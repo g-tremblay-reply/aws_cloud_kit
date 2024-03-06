@@ -1012,7 +1012,7 @@ extern "C" {
  *
  * This module is used for reading X.509 certificate request.
  */
-#if 0
+#if 1
 #define MBEDTLS_X509_CSR_PARSE_C
 #endif
 
@@ -1027,7 +1027,7 @@ extern "C" {
  *
  * This module is the basis for creating X.509 certificates and CSRs.
  */
-#if 0
+#if 1
 #define MBEDTLS_X509_CREATE_C
 #endif
 
@@ -1057,7 +1057,7 @@ extern "C" {
  *
  * This module is required for X.509 certificate request writing.
  */
-#if 0
+#if 1
 #define MBEDTLS_X509_CSR_WRITE_C
 #endif
 

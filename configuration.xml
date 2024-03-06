@@ -160,78 +160,6 @@
     <node id="board.clock.cecclk.display" option="board.clock.cecclk.display.value"/>
   </raClockConfiguration>
   <raComponentSelection>
-    <component apiversion="" class="BSP" condition="" group="Board" subgroup="ra6m5_ck" variant="" vendor="Renesas" version="5.1.0">
-      <description>CK-RA6M5 Board Support Files</description>
-      <originalPack>Renesas.RA_board_ra6m5_ck.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="Abstractions" condition="" group="PKCS11" subgroup="mbedtls" variant="" vendor="AWS" version="3.5.0+fsp.5.1.0">
-      <description>AWS PKCS11 to mbedTLS</description>
-      <originalPack>Amazon.corePKCS11.3.5.0+fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="RTOS" condition="" group="FreeRTOS" subgroup="all" variant="" vendor="AWS" version="10.6.1+fsp.5.1.0">
-      <description>FreeRTOS</description>
-      <originalPack>Amazon.FreeRTOS-Kernel.10.6.1+fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="Heaps" condition="" group="FreeRTOS" subgroup="heap_4" variant="" vendor="AWS" version="10.6.1+fsp.5.1.0">
-      <description>FreeRTOS - Memory Management - Heap 4</description>
-      <originalPack>Amazon.FreeRTOS-Kernel.10.6.1+fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="PSA" condition="" group="Crypto" subgroup="mbedCrypto" variant="" vendor="Arm" version="3.4.0+renesas.4.fsp.5.1.0">
-      <description>Arm PSA Crypto Implementation</description>
-      <originalPack>Arm.MbedCrypto.3.4.0+renesas.4.fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="Libraries" condition="" group="coreMQTT" subgroup="source" variant="" vendor="AWS" version="2.1.1+fsp.5.1.0">
-      <description>AWS Core MQTT</description>
-      <originalPack>Amazon.coreMQTT.2.1.1+fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="Libraries" condition="" group="FreeRTOS" subgroup="BufferAllocation2" variant="" vendor="AWS" version="4.0.0+fsp.5.1.0">
-      <description>FreeRTOS - Buffer Allocation 2</description>
-      <originalPack>Amazon.FreeRTOS-Plus-TCP.4.0.0+fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="Libraries" condition="" group="FreeRTOS_Plus" subgroup="FreeRTOS_Plus_TCP" variant="" vendor="AWS" version="4.0.0+fsp.5.1.0">
-      <description>FreeRTOS+TCP</description>
-      <originalPack>Amazon.FreeRTOS-Plus-TCP.4.0.0+fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="BSP" condition="" group="ra6m5" subgroup="device" variant="R7FA6M5BH3CFC" vendor="Renesas" version="5.1.0">
-      <description>Board support package for R7FA6M5BH3CFC</description>
-      <originalPack>Renesas.RA_mcu_ra6m5.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="BSP" condition="" group="ra6m5" subgroup="device" variant="" vendor="Renesas" version="5.1.0">
-      <description>Board support package for RA6M5</description>
-      <originalPack>Renesas.RA_mcu_ra6m5.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="BSP" condition="" group="ra6m5" subgroup="fsp" variant="" vendor="Renesas" version="5.1.0">
-      <description>Board support package for RA6M5 - FSP Data</description>
-      <originalPack>Renesas.RA_mcu_ra6m5.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="mbed" condition="" group="Security" subgroup="mbedTLS" variant="" vendor="Arm" version="3.4.0+renesas.4.fsp.5.1.0">
-      <description>Arm mbed TLS</description>
-      <originalPack>Arm.MbedTLS.3.4.0+renesas.4.fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="c_sdk" condition="" group="standard" subgroup="logging" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
-      <description>AWS Logging</description>
-      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="FreeRTOS_Plus" condition="" group="utilities" subgroup="mbedtls" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
-      <description>AWS MbedTLS FreeRTOS Port</description>
-      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="Libraries" condition="" group="FreeRTOS_Plus" subgroup="MbedTLS_PKCS11_Transport" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
-      <description>AWS MbedTLS/PKCS11 Transport Interface</description>
-      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="Libraries" condition="" group="FreeRTOS_Plus" subgroup="TCP_Sockets_Wrapper" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
-      <description>AWS FreeRTOS+TCP Sockets Wrapper</description>
-      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="Libraries" condition="" group="FreeRTOS_Plus" subgroup="Plus_TCP_MbedTLS_Bio" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
-      <description>FreeRTOS+TCP MbedTLS Bio</description>
-      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="FreeRTOS" condition="" group="demo" subgroup="key_provisioning_transport" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
-      <description>AWS Demo key_provisioning_transport</description>
-      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
-    </component>
     <component apiversion="" class="Common" condition="" group="all" subgroup="fsp_common" variant="" vendor="Renesas" version="5.1.0">
       <description>Board Support Package Common Files</description>
       <originalPack>Renesas.RA.5.1.0.pack</originalPack>
@@ -336,13 +264,85 @@
       <description>ZMOD4XXX Sensor Lib OAQ 1st</description>
       <originalPack>Renesas.RA.5.1.0.pack</originalPack>
     </component>
-    <component apiversion="" class="CMSIS" condition="" group="CMSIS5" subgroup="CoreM" variant="" vendor="Arm" version="5.9.0+renesas.0.fsp.5.1.0">
-      <description>Arm CMSIS Version 5 - Core (M)</description>
-      <originalPack>Arm.CMSIS5.5.9.0+renesas.0.fsp.5.1.0.pack</originalPack>
+    <component apiversion="" class="BSP" condition="" group="Board" subgroup="ra6m5_ck" variant="" vendor="Renesas" version="5.1.0">
+      <description>CK-RA6M5 Board Support Files</description>
+      <originalPack>Renesas.RA_board_ra6m5_ck.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Abstractions" condition="" group="PKCS11" subgroup="mbedtls" variant="" vendor="AWS" version="3.5.0+fsp.5.1.0">
+      <description>AWS PKCS11 to mbedTLS</description>
+      <originalPack>Amazon.corePKCS11.3.5.0+fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Libraries" condition="" group="FreeRTOS" subgroup="BufferAllocation2" variant="" vendor="AWS" version="4.0.0+fsp.5.1.0">
+      <description>FreeRTOS - Buffer Allocation 2</description>
+      <originalPack>Amazon.FreeRTOS-Plus-TCP.4.0.0+fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Libraries" condition="" group="FreeRTOS_Plus" subgroup="FreeRTOS_Plus_TCP" variant="" vendor="AWS" version="4.0.0+fsp.5.1.0">
+      <description>FreeRTOS+TCP</description>
+      <originalPack>Amazon.FreeRTOS-Plus-TCP.4.0.0+fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="RTOS" condition="" group="FreeRTOS" subgroup="all" variant="" vendor="AWS" version="10.6.1+fsp.5.1.0">
+      <description>FreeRTOS</description>
+      <originalPack>Amazon.FreeRTOS-Kernel.10.6.1+fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Heaps" condition="" group="FreeRTOS" subgroup="heap_4" variant="" vendor="AWS" version="10.6.1+fsp.5.1.0">
+      <description>FreeRTOS - Memory Management - Heap 4</description>
+      <originalPack>Amazon.FreeRTOS-Kernel.10.6.1+fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="PSA" condition="" group="Crypto" subgroup="mbedCrypto" variant="" vendor="Arm" version="3.4.0+renesas.4.fsp.5.1.0">
+      <description>Arm PSA Crypto Implementation</description>
+      <originalPack>Arm.MbedCrypto.3.4.0+renesas.4.fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="mbed" condition="" group="Security" subgroup="mbedTLS" variant="" vendor="Arm" version="3.4.0+renesas.4.fsp.5.1.0">
+      <description>Arm mbed TLS</description>
+      <originalPack>Arm.MbedTLS.3.4.0+renesas.4.fsp.5.1.0.pack</originalPack>
     </component>
     <component apiversion="" class="Mbed" condition="" group="Library" subgroup="LittleFS" variant="" vendor="Arm" version="2.2.1+renesas.1.fsp.5.1.0">
       <description>Arm Mbed LittleFS</description>
       <originalPack>Arm.LittleFS.2.2.1+renesas.1.fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Libraries" condition="" group="coreMQTT" subgroup="source" variant="" vendor="AWS" version="2.1.1+fsp.5.1.0">
+      <description>AWS Core MQTT</description>
+      <originalPack>Amazon.coreMQTT.2.1.1+fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="BSP" condition="" group="ra6m5" subgroup="device" variant="R7FA6M5BH3CFC" vendor="Renesas" version="5.1.0">
+      <description>Board support package for R7FA6M5BH3CFC</description>
+      <originalPack>Renesas.RA_mcu_ra6m5.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="BSP" condition="" group="ra6m5" subgroup="device" variant="" vendor="Renesas" version="5.1.0">
+      <description>Board support package for RA6M5</description>
+      <originalPack>Renesas.RA_mcu_ra6m5.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="BSP" condition="" group="ra6m5" subgroup="fsp" variant="" vendor="Renesas" version="5.1.0">
+      <description>Board support package for RA6M5 - FSP Data</description>
+      <originalPack>Renesas.RA_mcu_ra6m5.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="c_sdk" condition="" group="standard" subgroup="logging" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
+      <description>AWS Logging</description>
+      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="FreeRTOS_Plus" condition="" group="utilities" subgroup="mbedtls" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
+      <description>AWS MbedTLS FreeRTOS Port</description>
+      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Libraries" condition="" group="FreeRTOS_Plus" subgroup="MbedTLS_PKCS11_Transport" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
+      <description>AWS MbedTLS/PKCS11 Transport Interface</description>
+      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Libraries" condition="" group="FreeRTOS_Plus" subgroup="TCP_Sockets_Wrapper" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
+      <description>AWS FreeRTOS+TCP Sockets Wrapper</description>
+      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Libraries" condition="" group="FreeRTOS_Plus" subgroup="Plus_TCP_MbedTLS_Bio" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
+      <description>FreeRTOS+TCP MbedTLS Bio</description>
+      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="FreeRTOS" condition="" group="demo" subgroup="key_provisioning_transport" variant="" vendor="AWS" version="202212.0.1+renesas.1.fsp.5.1.0">
+      <description>AWS Demo key_provisioning_transport</description>
+      <originalPack>Amazon.FreeRTOS.202212.0.1+renesas.1.fsp.5.1.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="CMSIS" condition="" group="CMSIS5" subgroup="CoreM" variant="" vendor="Arm" version="5.9.0+renesas.0.fsp.5.1.0">
+      <description>Arm CMSIS Version 5 - Core (M)</description>
+      <originalPack>Arm.CMSIS5.5.9.0+renesas.0.fsp.5.1.0.pack</originalPack>
     </component>
   </raComponentSelection>
   <raElcConfiguration/>
@@ -614,9 +614,6 @@
     </module>
     <module id="module.aws.freertosplus.crypto.593772809"/>
     <module id="module.arm.mbedtls.1483311347"/>
-    <module id="module.driver.psa_crypto.1245173170"/>
-    <module id="module.driver.rm_psa_crypto.775543197"/>
-    <module id="module.driver.sce9.plaintext.1127611669"/>
     <module id="module.driver.rm_mbedtls.2034683427"/>
     <module id="module.aws.c_sdk.logging.54553781"/>
     <module id="module.aws.freertos.dev_mode_key_provisioning_mbed_transport_interface.1750555958"/>
@@ -655,9 +652,6 @@
     </module>
     <module id="module.freertos.bufferallocation2.939240892"/>
     <module id="module.aws.mbedtls_bio.plus_tcp.1826755331"/>
-    <module id="module.driver.sce9_key_injection.611616122">
-      <property id="module.driver.sce9_key_injection.name" value="g_sce9_key_install"/>
-    </module>
     <module id="module.driver.ob1203_on_ob1203.1599203136">
       <property id="module.driver.ob1203.name" value="g_ob1203_sensor0"/>
       <property id="module.driver.ob1203.semaphore_timeout" value="0xFFFFFFFF"/>
@@ -723,6 +717,12 @@
       <property id="module.driver.comms_i2c_device.slave_address" value="0x00"/>
       <property id="module.driver.comms_i2c_device.address_mode" value="module.driver.comms_i2c_device.address_mode.address_mode_7bit"/>
       <property id="module.driver.comms_i2c_device.p_callback" value="comms_i2c_callback"/>
+    </module>
+    <module id="module.driver.psa_crypto.1848644683"/>
+    <module id="module.driver.rm_psa_crypto.961636819"/>
+    <module id="module.driver.sce9.plaintext.1467708415"/>
+    <module id="module.driver.sce9_key_injection.1454102178">
+      <property id="module.driver.sce9_key_injection.name" value="g_sce9_key_install"/>
     </module>
     <object id="rtos.awsfreertos.object.queue.878604129">
       <property id="rtos.awsfreertos.object.queue.symbol" value="g_topic_queue"/>
@@ -800,7 +800,7 @@
     <context id="rtos.awsfreertos.thread.825434155">
       <property id="_symbol" value="console_thread"/>
       <property id="rtos.awsfreertos.thread.name" value="Console Thread"/>
-      <property id="rtos.awsfreertos.thread.stack" value="4096"/>
+      <property id="rtos.awsfreertos.thread.stack" value="16384"/>
       <property id="rtos.awsfreertos.thread.priority" value="3"/>
       <property id="rtos.awsfreertos.thread.context" value="NULL"/>
       <property id="rtos.awsfreertos.thread.allocation" value="rtos.awsfreertos.thread.allocation.static"/>
@@ -875,10 +875,10 @@
             </stack>
             <stack module="module.aws.freertosplus.crypto.593772809" requires="module.aws.pkcs11.mbedtls.requires.freertospluscrypto">
               <stack module="module.arm.mbedtls.1483311347" requires="module.driver.freertos_plus_tcp_on_ether.requires.mbedtls">
-                <stack module="module.driver.psa_crypto.1245173170" requires="module.arm.mbedtls.requires.psa_crypto">
-                  <stack module="module.driver.rm_psa_crypto.775543197" requires="module.driver.rm_psa_crypto">
-                    <stack module="module.driver.sce9.plaintext.1127611669" requires="module.driver.rm_psa_crypto.requires.sce">
-                      <stack module="module.driver.sce9_key_injection.611616122" requires="module.driver.sce.requires.sce9_key_injection"/>
+                <stack module="module.driver.psa_crypto.1848644683" requires="module.arm.mbedtls.requires.psa_crypto">
+                  <stack module="module.driver.rm_psa_crypto.961636819" requires="module.driver.rm_psa_crypto">
+                    <stack module="module.driver.sce9.plaintext.1467708415" requires="module.driver.rm_psa_crypto.requires.sce">
+                      <stack module="module.driver.sce9_key_injection.1454102178" requires="module.driver.sce.requires.sce9_key_injection"/>
                     </stack>
                   </stack>
                   <stack module="module.arm.mbed.littlefs.1795297491" requires="module.driver.rm_psa_crypto.requires.middleware.stdio_wrapper">
@@ -1047,10 +1047,10 @@
       <property id="config.arm.mbedtls.mbedtls_x509_use_c" value="config.arm.mbedtls.mbedtls_x509_use_c.enabled"/>
       <property id="config.arm.mbedtls.mbedtls_x509_crt_parse_c" value="config.arm.mbedtls.mbedtls_x509_crt_parse_c.enabled"/>
       <property id="config.arm.mbedtls.mbedtls_x509_crl_parse_c" value="config.arm.mbedtls.mbedtls_x509_crl_parse_c.disabled"/>
-      <property id="config.arm.mbedtls.mbedtls_x509_csr_parse_c" value="config.arm.mbedtls.mbedtls_x509_csr_parse_c.disabled"/>
-      <property id="config.arm.mbedtls.mbedtls_x509_create_c" value="config.arm.mbedtls.mbedtls_x509_create_c.disabled"/>
+      <property id="config.arm.mbedtls.mbedtls_x509_csr_parse_c" value="config.arm.mbedtls.mbedtls_x509_csr_parse_c.enabled"/>
+      <property id="config.arm.mbedtls.mbedtls_x509_create_c" value="config.arm.mbedtls.mbedtls_x509_create_c.enabled"/>
       <property id="config.arm.mbedtls.mbedtls_x509_crt_write_c" value="config.arm.mbedtls.mbedtls_x509_crt_write_c.disabled"/>
-      <property id="config.arm.mbedtls.mbedtls_x509_csr_write_c" value="config.arm.mbedtls.mbedtls_x509_csr_write_c.disabled"/>
+      <property id="config.arm.mbedtls.mbedtls_x509_csr_write_c" value="config.arm.mbedtls.mbedtls_x509_csr_write_c.enabled"/>
       <property id="config.arm.mbedtls.mbedtls_ssl_in_content_len_enabled" value="config.arm.mbedtls.mbedtls_ssl_in_content_len_enabled.disabled"/>
       <property id="config.arm.mbedtls.mbedtls_ssl_in_content_len" value="16384"/>
       <property id="config.arm.mbedtls.mbedtls_ssl_cid_in_len_max_enabled" value="config.arm.mbedtls.mbedtls_ssl_cid_in_len_max.disabled"/>

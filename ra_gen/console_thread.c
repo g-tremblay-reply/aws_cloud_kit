@@ -4,9 +4,9 @@
 #if 1
 static StaticTask_t console_thread_memory;
 #if defined(__ARMCC_VERSION)           /* AC6 compiler */
-                static uint8_t console_thread_stack[4096] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX ".stack.thread") BSP_ALIGN_VARIABLE(BSP_STACK_ALIGNMENT);
+                static uint8_t console_thread_stack[16384] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX ".stack.thread") BSP_ALIGN_VARIABLE(BSP_STACK_ALIGNMENT);
                 #else
-static uint8_t console_thread_stack[4096] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX ".stack.console_thread") BSP_ALIGN_VARIABLE(BSP_STACK_ALIGNMENT);
+static uint8_t console_thread_stack[16384] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX ".stack.console_thread") BSP_ALIGN_VARIABLE(BSP_STACK_ALIGNMENT);
 #endif
 #endif
 TaskHandle_t console_thread;
@@ -119,7 +119,7 @@ void console_thread_create(void) {
 #else
                     BaseType_t console_thread_create_err = xTaskCreate(
                     #endif
-			console_thread_func, (const char*) "Console Thread", 4096 / 4, // In words, not bytes
+			console_thread_func, (const char*) "Console Thread", 16384 / 4, // In words, not bytes
 			(void*) &console_thread_parameters, //pvParameters
 			3,
 #if 1
