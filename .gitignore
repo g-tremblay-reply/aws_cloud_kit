@@ -1,3 +1,9 @@
+# Build files
+Debug/
+cmake-*/
+
+
+# CMake
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
