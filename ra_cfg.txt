@@ -625,10 +625,10 @@ FSP Configuration
     X509 Options: MBEDTLS_X509_USE_C: Define
     X509 Options: MBEDTLS_X509_CRT_PARSE_C: Define
     X509 Options: MBEDTLS_X509_CRL_PARSE_C: Undefine
-    X509 Options: MBEDTLS_X509_CSR_PARSE_C: Undefine
-    X509 Options: MBEDTLS_X509_CREATE_C: Undefine
+    X509 Options: MBEDTLS_X509_CSR_PARSE_C: Define
+    X509 Options: MBEDTLS_X509_CREATE_C: Define
     X509 Options: MBEDTLS_X509_CRT_WRITE_C: Undefine
-    X509 Options: MBEDTLS_X509_CSR_WRITE_C: Undefine
+    X509 Options: MBEDTLS_X509_CSR_WRITE_C: Define
     SSL Options: MBEDTLS_SSL_IN_CONTENT_LEN: Undefine
     SSL Options: MBEDTLS_SSL_IN_CONTENT_LEN Value: 16384
     SSL Options: MBEDTLS_SSL_CID_IN_LEN_MAX: Undefine
@@ -655,6 +655,84 @@ FSP Configuration
     X509 Options: MBEDTLS_X509_MAX_FILE_PATH_LEN: Undefine
     X509 Options: MBEDTLS_X509_MAX_FILE_PATH_LEN Value: 512
     
+  Module "MbedTLS FSP Port (rm_mbedtls)"
+  Module "AWS Logging"
+  Module "AWS Demo dev_mode_key_provisioning"
+  Module "AWS TCP Sockets Wrapper"
+  Module "FreeRTOS+TCP"
+    Print debug messages: Disable
+    Backward Compatible Mode: Yes 
+    Enable IPV6: Disable
+    Print info messages: Disable
+    Byte order of the target MCU: pdFREERTOS_LITTLE_ENDIAN 
+    IP/TCP/UDP checksums: Enable 
+    Receive Block Time: 10000
+    Send Block Time: 10000
+    DNS caching: Enable 
+    DNS Request Attempts: 6
+    IP stack task priority: configMAX_PRIORITIES - 2
+    Stack size in words (not bytes): configMINIMAL_STACK_SIZE * 16
+    Network Events call vApplicationIPNetworkEventHook: Enable 
+    Max UDP send block time: 15000 / portTICK_PERIOD_MS
+    Use DHCP: Enable 
+    DHCP Register Hostname: Enable 
+    DHCP Uses Unicast: Enable 
+    DHCP callback function: Enable 
+    Interval between transmissions: 120000 / portTICK_PERIOD_MS
+    ARP Cache Entries: 6
+    ARP Request Retransmissions: 5
+    Maximum time before ARP table entry becomes stale: 150
+    Use string for IP Address: Enable 
+    Total number of available network buffers: 10
+    Set the maximum number of events: ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 16
+    Enable FreeRTOS_sendto() without calling Bind: Disable
+    TTL values for UDP packets: 128
+    TTL values for TCP packets: 128
+    Use TCP and all its features: Enable
+    Let TCP use windowing mechanism: Disable 
+    Maximum number of bytes the payload of a network frame can contain: 1500
+    Basic DNS client or resolver: Enable 
+    Reply to incoming ICMP echo (ping) requests: Enable 
+    FreeRTOS_SendPingRequest() is available: Disable
+    FreeRTOS_select() (and associated) API function is available: Disable
+    Filter out non Ethernet II frames.: Enable 
+    Responsibility of the Ethernet interface to filter out packets: Disable
+    Access 32-bit fields in the IP packets: 2
+    Size of the pool of TCP window descriptors: 240
+    Size of Rx buffer for TCP sockets: 8192
+    Size of Tx buffer for TCP sockets: 8192
+    TCP keep-alive: Enable 
+    TCP keep-alive interval: 120
+    The socket semaphore to unblock the MQTT task (USER_SEMAPHORE): Disable
+    The socket semaphore to unblock the MQTT task (WAKE_CALLBACK): Enable 
+    The socket semaphore  to unblock the MQTT task (USE_CALLBACKS): Disable
+    The socket semaphore to unblock the MQTT task (TX_DRIVER): Disable
+    The socket semaphore to unblock the MQTT task (RX_DRIVER): Disable
+    Possible optimisation for expert users: Disable
+    
+  Module "FreeRTOS+TCP Wrapper to r_ether (rm_freertos_plus_tcp)"
+  Module "Ethernet (r_ether)"
+    Parameter Checking: Default (BSP)
+    ET0_LINKSTA Pin Status Flag: Fall -> Rise
+    Link Signal Change Flag: Unused
+    
+  Module "Ethernet (r_ether_phy)"
+    Parameter Checking: Default (BSP)
+    KSZ8091RNB Target: Disabled
+    KSZ8041 Target: Disabled
+    DP83620 Target: Disabled
+    ICS1894 Target: Enabled
+    User Own Target: Disabled
+    Reference Clock: Enabled
+    Automatic Phy LSI Initialization: Enabled
+    
+  Module "FreeRTOS Buffer Allocation 2"
+  Module "AWS FreeRTOS+TCP MbedTLS Bio"
+  Module "OB1203 Light/Proximity/PPG Sensor (rm_ob1203)"
+    Parameter Checking: Default (BSP)
+    
+  Module "OB1203 PPG mode (rm_ob1203)"
+  Module "OB1203 Proximity mode (rm_ob1203)"
   Module "MbedTLS (Crypto Only)"
     Hardware Acceleration: TRNG: Enabled
     Hardware Acceleration: Key Format: AES: Plaintext and Wrapped (Vendor)
@@ -936,85 +1014,7 @@ FSP Configuration
     
   Module "Mbed Crypto H/W Acceleration (rm_psa_crypto)"
   Module "SCE Compatibility Mode"
-  Module "MbedTLS FSP Port (rm_mbedtls)"
-  Module "AWS Logging"
-  Module "AWS Demo dev_mode_key_provisioning"
-  Module "AWS TCP Sockets Wrapper"
-  Module "FreeRTOS+TCP"
-    Print debug messages: Disable
-    Backward Compatible Mode: Yes 
-    Enable IPV6: Disable
-    Print info messages: Disable
-    Byte order of the target MCU: pdFREERTOS_LITTLE_ENDIAN 
-    IP/TCP/UDP checksums: Enable 
-    Receive Block Time: 10000
-    Send Block Time: 10000
-    DNS caching: Enable 
-    DNS Request Attempts: 6
-    IP stack task priority: configMAX_PRIORITIES - 2
-    Stack size in words (not bytes): configMINIMAL_STACK_SIZE * 16
-    Network Events call vApplicationIPNetworkEventHook: Enable 
-    Max UDP send block time: 15000 / portTICK_PERIOD_MS
-    Use DHCP: Enable 
-    DHCP Register Hostname: Enable 
-    DHCP Uses Unicast: Enable 
-    DHCP callback function: Enable 
-    Interval between transmissions: 120000 / portTICK_PERIOD_MS
-    ARP Cache Entries: 6
-    ARP Request Retransmissions: 5
-    Maximum time before ARP table entry becomes stale: 150
-    Use string for IP Address: Enable 
-    Total number of available network buffers: 10
-    Set the maximum number of events: ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 16
-    Enable FreeRTOS_sendto() without calling Bind: Disable
-    TTL values for UDP packets: 128
-    TTL values for TCP packets: 128
-    Use TCP and all its features: Enable
-    Let TCP use windowing mechanism: Disable 
-    Maximum number of bytes the payload of a network frame can contain: 1500
-    Basic DNS client or resolver: Enable 
-    Reply to incoming ICMP echo (ping) requests: Enable 
-    FreeRTOS_SendPingRequest() is available: Disable
-    FreeRTOS_select() (and associated) API function is available: Disable
-    Filter out non Ethernet II frames.: Enable 
-    Responsibility of the Ethernet interface to filter out packets: Disable
-    Access 32-bit fields in the IP packets: 2
-    Size of the pool of TCP window descriptors: 240
-    Size of Rx buffer for TCP sockets: 8192
-    Size of Tx buffer for TCP sockets: 8192
-    TCP keep-alive: Enable 
-    TCP keep-alive interval: 120
-    The socket semaphore to unblock the MQTT task (USER_SEMAPHORE): Disable
-    The socket semaphore to unblock the MQTT task (WAKE_CALLBACK): Enable 
-    The socket semaphore  to unblock the MQTT task (USE_CALLBACKS): Disable
-    The socket semaphore to unblock the MQTT task (TX_DRIVER): Disable
-    The socket semaphore to unblock the MQTT task (RX_DRIVER): Disable
-    Possible optimisation for expert users: Disable
-    
-  Module "FreeRTOS+TCP Wrapper to r_ether (rm_freertos_plus_tcp)"
-  Module "Ethernet (r_ether)"
-    Parameter Checking: Default (BSP)
-    ET0_LINKSTA Pin Status Flag: Fall -> Rise
-    Link Signal Change Flag: Unused
-    
-  Module "Ethernet (r_ether_phy)"
-    Parameter Checking: Default (BSP)
-    KSZ8091RNB Target: Disabled
-    KSZ8041 Target: Disabled
-    DP83620 Target: Disabled
-    ICS1894 Target: Enabled
-    User Own Target: Disabled
-    Reference Clock: Enabled
-    Automatic Phy LSI Initialization: Enabled
-    
-  Module "FreeRTOS Buffer Allocation 2"
-  Module "AWS FreeRTOS+TCP MbedTLS Bio"
   Module "Key Injection for PSA Crypto"
-  Module "OB1203 Light/Proximity/PPG Sensor (rm_ob1203)"
-    Parameter Checking: Default (BSP)
-    
-  Module "OB1203 PPG mode (rm_ob1203)"
-  Module "OB1203 Proximity mode (rm_ob1203)"
   FreeRTOS
     General: Custom FreeRTOSConfig.h: 
     General: Use Preemption: Enabled
@@ -1202,7 +1202,7 @@ FSP Configuration
   Thread "Console Thread"
     Symbol: console_thread
     Name: Console Thread
-    Stack size (bytes): 4096
+    Stack size (bytes): 16384
     Priority: 3
     Thread Context: NULL
     Memory Allocation: Static
