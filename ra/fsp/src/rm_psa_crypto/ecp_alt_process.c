@@ -261,13 +261,14 @@ int mbedtls_ecp_gen_privkey (const mbedtls_ecp_group * grp,
     uint32_t   indata_key_type = 0;
     uint8_t    padding = 0U;
 
-#if !BSP_FEATURE_CRYPTO_HAS_SCE7
-    if((bool)(grp->vendor_ctx) == false)
-    {
-    	/* ECC plaintext key generation is not supported currently. */
-    	return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
-    }
-#endif
+    // TODO reenable this code when done testing with SCE7 vs SCE9
+//#if !BSP_FEATURE_CRYPTO_HAS_SCE7
+//    if((bool)(grp->vendor_ctx) == false)
+//    {
+//    	/* ECC plaintext key generation is not supported currently. */
+//    	return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+//    }
+//#endif
 
     /* Fail cleanly on curves that HW doesn't support */
     if ((!ecp_can_do_sce(grp->id)) || (grp->N.p == NULL))
