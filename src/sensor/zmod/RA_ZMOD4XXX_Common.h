@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
- * File Name    : usr_config.h
- * Description  : Contains macros, data structures and functions used  in the Application
+ * File Name    : RA_ZMOD4XXX_Common.h
+ * Description  : Contains common data structures and function prototypes for ZMOD4XX sensor
  ***********************************************************************************************************************/
 /***********************************************************************************************************************
  * DISCLAIMER
@@ -20,26 +20,43 @@
  *
  * Copyright (C) 2023 Renesas Electronics Corporation. All rights reserved.
  ***********************************************************************************************************************/
-#ifndef USR_CONFIG_H_
-#define USR_CONFIG_H_
 
-#include "common_utils.h"
-#define USR_LOG_LVL          (LOG_INFO)     /* User Options are:  LOG_ERROR, LOG_WARN, LOG_INFO, , LOG_DEBUG */
+#include "zmod_thread.h"
 
-#if 0
-    #define USR_LOG_TERMINAL     (RTT_TERMINAL)  /* User Options are:  RTT_TERMINAL */
-#else
-    #define USR_LOG_TERMINAL     (UART_TERMINAL)  /* User Options are:  RTT_TERMINAL */
-#endif
+#ifndef RA_ZMOD4XXX_COMMON_H_
+#define RA_ZMOD4XXX_COMMON_H_
 
-#define USR_MQTT_DATA_FORMAT (JSON)          /* JSON, UTF8  */
+#define DEMO_IRQ_ENABLE (1)
 
-#define LOGGING_TASK_STACK_SIZE         (1 * 1024)
-#define LOGGING_TASK_STACK_PRIORITY     (6)
-#define LOGGING_TASK_QUEUE_SIZE         (1 * 1024)
+/* ZMOD sensor read data sequence enum */
+typedef enum e_demo_sequence
+{
+    DEMO_SEQUENCE_1 = (1),
+    DEMO_SEQUENCE_2,
+    DEMO_SEQUENCE_3,
+    DEMO_SEQUENCE_4,
+    DEMO_SEQUENCE_5,
+    DEMO_SEQUENCE_6,
+    DEMO_SEQUENCE_7,
+    DEMO_SEQUENCE_8,
+    DEMO_SEQUENCE_9,
+} demo_sequence_t;
 
-#define DEBUG                           (1)
+/* ZMOD sensor call back status enum */
+typedef enum e_demo_callback_status
+{
+    DEMO_CALLBACK_STATUS_WAIT = (0), DEMO_CALLBACK_STATUS_SUCCESS, DEMO_CALLBACK_STATUS_REPEAT,
+} demo_callback_status_t;
 
-#define USR_MQTT_BROKER_PORT            (8883)
+/* Function declarations */
+void g_zmod4xxx_sensor0_quick_setup(void);
+void g_zmod4xxx_sensor1_quick_setup(void);
+void start_iaq_1st_gen(void);
+void start_oaq_1st_gen(void);
 
-#endif /* USR_CONFIG_H_ */
+extern volatile demo_callback_status_t g_i2c_callback_status;
+extern volatile demo_callback_status_t g_irq_callback_status;
+extern volatile demo_callback_status_t g_i2c_callback_status1;
+extern volatile demo_callback_status_t g_irq_callback_status1;
+
+#endif /* RA_ZMOD4XXX_COMMON_H_ */

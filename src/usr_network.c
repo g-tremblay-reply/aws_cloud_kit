@@ -220,7 +220,7 @@ BaseType_t network_ip_init(void)
     status = FreeRTOS_IPInit (ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress);
     if (pdFALSE == status)
     {
-        LogError(("FreeRTOS_IPInit Failed"));
+    	APP_ERR_PRINT(("FreeRTOS_IPInit Failed"));
     }
 
     return status;

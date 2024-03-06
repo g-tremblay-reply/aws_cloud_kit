@@ -19,9 +19,8 @@
  * included in this file may be subject to different terms.
  **********************************************************************************************************************/
 #include "hal_data.h"
-#include "common_init.h"
 #include "common_data.h"
-#include "common_utils.h"
+#include "common_data.h"
 #include "console_menu/console.h"
 #include "board_cfg.h"
 #include "console_thread.h"

@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
- * File Name    : usr_config.h
- * Description  : Contains macros, data structures and functions used  in the Application
+ * File Name    : RA_ICP10101.c
+ * Description  : Contains function definitions for ICP10101 sensor
  ***********************************************************************************************************************/
 /***********************************************************************************************************************
  * DISCLAIMER
@@ -20,26 +20,28 @@
  *
  * Copyright (C) 2023 Renesas Electronics Corporation. All rights reserved.
  ***********************************************************************************************************************/
-#ifndef USR_CONFIG_H_
-#define USR_CONFIG_H_
+#include "sensor/icp.h"
+#include "sensor/ICP_10101.h"
+#include "usr_data.h"
 
-#include "common_utils.h"
-#define USR_LOG_LVL          (LOG_INFO)     /* User Options are:  LOG_ERROR, LOG_WARN, LOG_INFO, , LOG_DEBUG */
+extern float Temperature; // @suppress("Global (API or Non-API) variable prefix")
+extern float Pressure;
+usr_icp_data_t g_icp_data;
 
-#if 0
-    #define USR_LOG_TERMINAL     (RTT_TERMINAL)  /* User Options are:  RTT_TERMINAL */
-#else
-    #define USR_LOG_TERMINAL     (UART_TERMINAL)  /* User Options are:  RTT_TERMINAL */
-#endif
+/*******************************************************************************************************************//**
+ * @brief   Send ICP data to the queue
+ * @param[in]   None
+ * @retval      None
+ ***********************************************************************************************************************/
+void send_icp_data_to_queue(void)
+{
+    /* Get value of ICP sensor */
+    ICP_10101_get();
+    
+    /* Update value for icp_data variable */
+    g_icp_data.temperature_C = Temperature;
+    g_icp_data.pressure_Pa = Pressure;
 
-#define USR_MQTT_DATA_FORMAT (JSON)          /* JSON, UTF8  */
+    xQueueOverwrite(g_icp_queue, &g_icp_data);
+}
 
-#define LOGGING_TASK_STACK_SIZE         (1 * 1024)
-#define LOGGING_TASK_STACK_PRIORITY     (6)
-#define LOGGING_TASK_QUEUE_SIZE         (1 * 1024)
-
-#define DEBUG                           (1)
-
-#define USR_MQTT_BROKER_PORT            (8883)
-
-#endif /* USR_CONFIG_H_ */

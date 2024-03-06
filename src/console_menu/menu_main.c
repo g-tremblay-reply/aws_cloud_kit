@@ -28,7 +28,6 @@
 #include "task.h"
 #include "menu_main.h"
 #include "common_utils.h"
-#include "common_init.h"
 #include "menu_main.h"
 #include "console.h"
 #include "menu_kis.h"

@@ -35,7 +35,6 @@
 #include "sensor_thread.h"
 #include "console_thread.h"
 #include "r_typedefs.h"
-#include "common_init.h"
 #include "console_menu/console.h"
 
 /* SEGGER RTT and error related headers */

@@ -21,10 +21,11 @@
  *
  * Copyright (C) 2023 Renesas Electronics Corporation. All rights reserved.
  *********************************************************************************************************************/
-#include "common_init.h"
 
 #ifndef MENU_SENSOR_H_
 #define MENU_SENSOR_H_
+
+#include "r_typedefs.h"
 
 #define INFO                       ('a')
 #define WRITE_CERTIFICATE          ('b')

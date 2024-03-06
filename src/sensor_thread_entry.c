@@ -21,16 +21,16 @@
  * Copyright (C) 2023 Renesas Electronics Corporation. All rights reserved.
  ***********************************************************************************************************************/
 #include "sensor_thread.h"
-#include "RA_HS3001.h"
-#include "RA_ZMOD4XXX_Common.h"
+#include "sensor/RA_HS3001.h"
+#include "zmod/RA_ZMOD4XXX_Common.h"
 #include "common_utils.h"
 #include "user_choice.h"
-#include "ICP_10101.h"
+#include "sensor/ICP_10101.h"
 #include "RmcI2C.h"
-#include "ICM_20948.h"
+#include "sensor/ICM_20948.h"
 #include "usr_data.h"
-#include "icm.h"
-#include "icp.h"
+#include "sensor/icm.h"
+#include "sensor/icp.h"
 
 #define UNUSED(x)  ((void)(x))
 #define INT_CHANNEL (1)

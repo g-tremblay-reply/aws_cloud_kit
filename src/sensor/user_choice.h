@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
- * File Name    : usr_config.h
- * Description  : Contains macros, data structures and functions used  in the Application
+ * File Name    : user_choice.h
+ * Description  : Contains data structures, macros and functions definitions for user choice
  ***********************************************************************************************************************/
 /***********************************************************************************************************************
  * DISCLAIMER
@@ -20,26 +20,32 @@
  *
  * Copyright (C) 2023 Renesas Electronics Corporation. All rights reserved.
  ***********************************************************************************************************************/
-#ifndef USR_CONFIG_H_
-#define USR_CONFIG_H_
 
-#include "common_utils.h"
-#define USR_LOG_LVL          (LOG_INFO)     /* User Options are:  LOG_ERROR, LOG_WARN, LOG_INFO, , LOG_DEBUG */
+#ifndef USER_CHOICE_H_
+#define USER_CHOICE_H_
 
-#if 0
-    #define USR_LOG_TERMINAL     (RTT_TERMINAL)  /* User Options are:  RTT_TERMINAL */
-#else
-    #define USR_LOG_TERMINAL     (UART_TERMINAL)  /* User Options are:  RTT_TERMINAL */
-#endif
+#include <stdint.h>
+#include "sensor_thread.h"
+#include "sensor/ICM_20948.h"
 
-#define USR_MQTT_DATA_FORMAT (JSON)          /* JSON, UTF8  */
+#define _OB1203_SENSOR_ENABLE_    1
+#define _HS3001_SENSOR_ENABLE_    1
+#define _ZMOD4410_SENSOR_ENABLE_  1
+#define _ZMOD4510_SENSOR_ENABLE_  1
+#define _ICP10101_SENSOR_ENABLE_  1
+#define _ICM20948_SENSOR_ENABLE_  1
 
-#define LOGGING_TASK_STACK_SIZE         (1 * 1024)
-#define LOGGING_TASK_STACK_PRIORITY     (6)
-#define LOGGING_TASK_QUEUE_SIZE         (1 * 1024)
 
-#define DEBUG                           (1)
+/*MACRO BASED DATA POSTING ON TIME BASIS
+ Here, USER_TIMER_DATA_POST macro can be set by user based on which the data can be
+ posted on interval of seconds. For e.g. if User sets it to 10 then the sensor data will
+ be posted at an interval of every 10 sec*/
 
-#define USR_MQTT_BROKER_PORT            (8883)
+/* User timer delay in seconds */
+#define USER_TIMER_DATA_POST  10
 
-#endif /* USR_CONFIG_H_ */
+/* Function declaration */
+void user_timer_start(void);
+void user_timer_reset(void);
+
+#endif /* USER_CHOICE_H_ */

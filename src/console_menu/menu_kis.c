@@ -23,17 +23,15 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "common_init.h"
 #include "common_data.h"
 #include "common_utils.h"
-#include "common_init.h"
 #include "menu_kis.h"
 #include "console.h"
 #include "menu_flash.h"
 #include "flash/flash_hp.h"
 
 extern TaskHandle_t app_thread; // @suppress("Global (API or Non-API) variable prefix")
-
+extern int8_t g_selected_menu;
 static char_t s_print_buffer[BUFFER_LENGTH_SHORT] = { };
 static bool cred_save_success_flag = false;
 
@@ -189,8 +187,8 @@ test_fn start_app(void)
 
     sprintf (s_print_buffer, MODULE_START_APP, g_selected_menu);
 
-    err = flash_mem_init ();
-    err = check_credentials_stored ();
+    //err = flash_mem_init ();
+    //err = check_credentials_stored ();
     if (err != FSP_SUCCESS)
     {
         printf_colour (
@@ -209,19 +207,19 @@ test_fn start_app(void)
         /* Do nothing */
     }
 
-    while (MENU_EXIT_CRTL != key_pressed)
-    {
-        if (cred_save_success_flag == false)
-        {
-            /* Wait for space key to be pressed to return to main menu */
-            key_pressed = wait_for_keypress ();
-        }
-        if ((MENU_EXIT_CRTL == key_pressed) || (CONNECTION_ABORT_CRTL == key_pressed))
-        {
-            break;
-        }
-        vTaskDelay (1000);
-    }
+//    while (MENU_EXIT_CRTL != key_pressed)
+//    {
+//        if (cred_save_success_flag == false)
+//        {
+//            /* Wait for space key to be pressed to return to main menu */
+//            key_pressed = wait_for_keypress ();
+//        }
+//        if ((MENU_EXIT_CRTL == key_pressed) || (CONNECTION_ABORT_CRTL == key_pressed))
+//        {
+//            break;
+//        }
+//        vTaskDelay (1000);
+//    }
 
     return 0;
 }

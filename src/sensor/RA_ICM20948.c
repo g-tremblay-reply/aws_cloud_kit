@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
- * File Name    : usr_config.h
- * Description  : Contains macros, data structures and functions used  in the Application
+ * File Name    : RA_ICM20948.c
+ * Description  : Contains function definitions for ICM20948 sensor
  ***********************************************************************************************************************/
 /***********************************************************************************************************************
  * DISCLAIMER
@@ -20,26 +20,36 @@
  *
  * Copyright (C) 2023 Renesas Electronics Corporation. All rights reserved.
  ***********************************************************************************************************************/
-#ifndef USR_CONFIG_H_
-#define USR_CONFIG_H_
+#include "icm.h"
+#include "sensor/ICM_20948.h"
+#include "usr_data.h"
 
-#include "common_utils.h"
-#define USR_LOG_LVL          (LOG_INFO)     /* User Options are:  LOG_ERROR, LOG_WARN, LOG_INFO, , LOG_DEBUG */
+extern xyzFloat corrAccRaw; // @suppress("Global (API or Non-API) variable prefix")
+extern xyzFloat gVal;
+extern xyzFloat magValue;
+usr_icm_data_t g_icm_data;
 
-#if 0
-    #define USR_LOG_TERMINAL     (RTT_TERMINAL)  /* User Options are:  RTT_TERMINAL */
-#else
-    #define USR_LOG_TERMINAL     (UART_TERMINAL)  /* User Options are:  RTT_TERMINAL */
-#endif
+/*******************************************************************************************************************//**
+ * @brief   Send ICM data to the queue
+ * @param[in]   None
+ * @retval      None
+ ***********************************************************************************************************************/
+void send_icm_data_to_queue(void)
+{
+    /* Get value of ICM sensor */
+    ICM_20948_get();
+    
+    /* Update value for icm_data variable */
+    g_icm_data.acc_data.x = corrAccRaw.x;
+    g_icm_data.acc_data.y = corrAccRaw.y;
+    g_icm_data.acc_data.z = corrAccRaw.z;
+    g_icm_data.gyr_data.x = gVal.x;
+    g_icm_data.gyr_data.y = gVal.y;
+    g_icm_data.gyr_data.z = gVal.z;
+    g_icm_data.mag_data.x = magValue.x;
+    g_icm_data.mag_data.y = magValue.y;
+    g_icm_data.mag_data.z = magValue.z;
 
-#define USR_MQTT_DATA_FORMAT (JSON)          /* JSON, UTF8  */
+    xQueueOverwrite(g_icm_queue, &g_icm_data);
+}
 
-#define LOGGING_TASK_STACK_SIZE         (1 * 1024)
-#define LOGGING_TASK_STACK_PRIORITY     (6)
-#define LOGGING_TASK_QUEUE_SIZE         (1 * 1024)
-
-#define DEBUG                           (1)
-
-#define USR_MQTT_BROKER_PORT            (8883)
-
-#endif /* USR_CONFIG_H_ */
