@@ -97,7 +97,7 @@
 /**
  * @brief Timeout for receiving CONNACK packet in milliseconds.
  */
-#define mqttexampleCONNACK_RECV_TIMEOUT_MS           ( 10000U )
+#define mqttexampleCONNACK_RECV_TIMEOUT_MS           ( 20000U )
 
 /**
  * @brief The number of topic filters to subscribe.
@@ -687,6 +687,9 @@ static BaseType_t xHandlePublishResend( MQTTContext_t * pxMqttContext )
 
 /*-----------------------------------------------------------*/
 
+//TODO remove this after debugging
+#include "common_utils.h"
+
 BaseType_t xEstablishMqttSession( MQTTContext_t * pxMqttContext,
                                   NetworkContext_t * pxNetworkContext,
                                   MQTTFixedBuffer_t * pxNetworkBuffer,
@@ -809,42 +812,37 @@ BaseType_t xEstablishMqttSession( MQTTContext_t * pxMqttContext,
                     xReturnStatus = pdFAIL;
                     LogError( ( "Connection with MQTT broker failed with status %s.",
                                 MQTT_Status_strerror( xMQTTStatus ) ) );
+                    APP_ERR_PRINT( ( "MQTT_Connect() returns status code %d.\r\n"), xMQTTStatus);
                 }
                 else
                 {
+                    /* Keep a flag for indicating if MQTT session is established. This
+                    * flag will mark that an MQTT DISCONNECT has to be sent at the end
+                    * of the demo even if there are intermediate failures. */
+                    xMqttSessionEstablished = true;
+
+                    /* Check if session is present and if there are any outgoing publishes
+                    * that need to resend. This is only valid if the broker is
+                    * re-establishing a session which was already present. */
+                    if( sessionPresent == true )
+                    {
+                        LogInfo( ( "An MQTT session with broker is re-established. "
+                                   "Resending unacked publishes." ) );
+
+                        /* Handle all the resend of publish messages. */
+                        xReturnStatus = xHandlePublishResend( pxMqttContext );
+                    }
+                    else
+                    {
+                        LogInfo( ( "A clean MQTT connection is established."
+                                   " Cleaning up all the stored outgoing publishes.\n\n" ) );
+
+                        /* Clean up the outgoing publishes waiting for ack as this new
+                         * connection doesn't re-establish an existing session. */
+                        vCleanupOutgoingPublishes();
+                    }
+
                     LogInfo( ( "MQTT connection successfully established with broker.\n\n" ) );
-                }
-            }
-
-            if( xReturnStatus == pdFAIL )
-            {
-                /* Keep a flag for indicating if MQTT session is established. This
-                 * flag will mark that an MQTT DISCONNECT has to be sent at the end
-                 * of the demo even if there are intermediate failures. */
-                xMqttSessionEstablished = true;
-            }
-
-            if( xReturnStatus == pdFAIL )
-            {
-                /* Check if session is present and if there are any outgoing publishes
-                 * that need to resend. This is only valid if the broker is
-                 * re-establishing a session which was already present. */
-                if( sessionPresent == true )
-                {
-                    LogInfo( ( "An MQTT session with broker is re-established. "
-                               "Resending unacked publishes." ) );
-
-                    /* Handle all the resend of publish messages. */
-                    xReturnStatus = xHandlePublishResend( pxMqttContext );
-                }
-                else
-                {
-                    LogInfo( ( "A clean MQTT connection is established."
-                               " Cleaning up all the stored outgoing publishes.\n\n" ) );
-
-                    /* Clean up the outgoing publishes waiting for ack as this new
-                     * connection doesn't re-establish an existing session. */
-                    vCleanupOutgoingPublishes();
                 }
             }
         }
@@ -874,6 +872,10 @@ BaseType_t xDisconnectMqttSession( MQTTContext_t * pxMqttContext,
             LogError( ( "Sending MQTT DISCONNECT failed with status=%s.",
                         MQTT_Status_strerror( xMQTTStatus ) ) );
             xReturnStatus = pdFAIL;
+        }
+        else
+        {
+            xMqttSessionEstablished = false;
         }
     }
 

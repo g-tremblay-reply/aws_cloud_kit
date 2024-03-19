@@ -592,7 +592,6 @@ void FleetProvisioningDemo(void *pvParameters)
     /* Buffer for holding the certificate ownership token. */
     char pcOwnershipToken[ fpdemoOWNERSHIP_TOKEN_BUFFER_LENGTH ];
     size_t xOwnershipTokenLength;
-    bool xConnectionEstablished = false;
     CK_SESSION_HANDLE xP11Session;
     uint32_t ulDemoRunCount = 0U;
     CK_RV xPkcs11Ret = CKR_OK;
@@ -738,7 +737,6 @@ void FleetProvisioningDemo(void *pvParameters)
 			else
 			{
 				APP_INFO_PRINT( ( "Established connection with claim credentials.\r\n" ) );
-				xConnectionEstablished = true;
 			}
 		}
 
@@ -835,7 +833,7 @@ void FleetProvisioningDemo(void *pvParameters)
                                         pkcs11configLABEL_DEVICE_CERTIFICATE_FOR_TLS,
                                         xCertificateLength );
 
-            xPkcs11CloseSession( xP11Session );
+            //xPkcs11CloseSession( xP11Session );
         }
 
         if( xStatus == true )
@@ -859,16 +857,20 @@ void FleetProvisioningDemo(void *pvParameters)
                                                      democonfigFP_DEMO_ID,
                                                      fpdemoFP_DEMO_ID_LENGTH,
                                                      &xPayloadLength );
+
+            APP_INFO_PRINT( ( "Serialized RegisterThingRequest : %.*s.\r\n"),
+                                        ( int ) xPayloadLength,
+                                        ( const char * ) pucPayloadBuffer );
         }
 
         if( xStatus == true )
         {
             /* Publish the RegisterThing request. */
-            xPublishToTopic( &xMqttContext,
-                             FP_CBOR_REGISTER_PUBLISH_TOPIC( democonfigPROVISIONING_TEMPLATE_NAME ),
-                             FP_CBOR_REGISTER_PUBLISH_LENGTH( fpdemoPROVISIONING_TEMPLATE_NAME_LENGTH ),
-                             ( char * ) pucPayloadBuffer,
-                             xPayloadLength );
+        	xStatus = xPublishToTopic( &xMqttContext,
+										 FP_CBOR_REGISTER_PUBLISH_TOPIC( democonfigPROVISIONING_TEMPLATE_NAME ),
+										 FP_CBOR_REGISTER_PUBLISH_LENGTH( fpdemoPROVISIONING_TEMPLATE_NAME_LENGTH ),
+										 ( char * ) pucPayloadBuffer,
+										 xPayloadLength );
 
             if( xStatus == false )
             {
@@ -905,11 +907,13 @@ void FleetProvisioningDemo(void *pvParameters)
          * the connection using the provisioning claim credentials. We will
          * establish a new MQTT connection with the newly provisioned
          * credentials. */
-        if( xConnectionEstablished == true )
+        xStatus = xDisconnectMqttSession( &xMqttContext, &xNetworkContext );
+
+        if(xStatus == true)
         {
-            xDisconnectMqttSession( &xMqttContext, &xNetworkContext );
-            xConnectionEstablished = false;
+        	APP_INFO_PRINT( ( "Disconnected from MQTT session with claim credentials\r\n" ) );
         }
+
 
         /**** Connect to AWS IoT Core with provisioned certificate ************/
 
@@ -933,18 +937,12 @@ void FleetProvisioningDemo(void *pvParameters)
             else
             {
                 APP_INFO_PRINT( ( "Successfully established connection with provisioned credentials.\r\n" ) );
-                xConnectionEstablished = true;
             }
         }
 
         /**** Finish **********************************************************/
+        xDisconnectMqttSession( &xMqttContext, &xNetworkContext );
 
-        if( xConnectionEstablished == true )
-        {
-            /* Close the connection. */
-            xDisconnectMqttSession( &xMqttContext, &xNetworkContext );
-            xConnectionEstablished = false;
-        }
 
         /**** Retry in case of failure ****************************************/
 
