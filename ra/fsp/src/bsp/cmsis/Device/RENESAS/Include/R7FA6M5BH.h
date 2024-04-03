@@ -12931,7 +12931,7 @@ typedef struct                          /*!< (@ 0x40092000) R_SDHI0 Structure   
         {
             __IOM uint32_t STP : 1;    /*!< [0..0] Stop- When STP is set to 1 during multiple block transfer,
                                         *   CMD12 is issued to halt the transfer through the SD host
-                                        *   interface.However, if a command sequence is halted because
+                                        *   interface.However, if a command SensorOaqMeasurementState is halted because
                                         *   of a communications error or timeout, CMD12 is not issued.
                                         *   Although continued buffer access is possible even after
                                         *   STP has been set to 1, the buffer access error bit (ERR5
@@ -12940,13 +12940,13 @@ typedef struct                          /*!< (@ 0x40092000) R_SDHI0 Structure   
                                         *   the access end flag is set when SD_BUF becomes emp                        */
             uint32_t           : 7;
             __IOM uint32_t SEC : 1;    /*!< [8..8] Block Count EnableSet SEC to 1 at multiple block transfer.When
-                                        *   SD_CMD is set as follows to start the command sequence
+                                        *   SD_CMD is set as follows to start the command SensorOaqMeasurementState
                                         *   while SEC is set to 1, CMD12 is automatically issued to
                                         *   stop multi-block transfer with the number of blocks which
                                         *   is set to SD_SECCNT.1. CMD18 or CMD25 in normal mode (SD_CMD[10:8]
                                         *   = 000)2. SD_CMD[15:13] = 001 in extended mode (CMD12 is
                                         *   automatically issued, multiple block transfer)When the
-                                        *   command sequence is halted because of a communications
+                                        *   command SensorOaqMeasurementState is halted because of a communications
                                         *   error or timeout, CMD12 is not automatically i                            */
             uint32_t : 23;
         } SD_STOP_b;
@@ -13087,11 +13087,11 @@ typedef struct                          /*!< (@ 0x40092000) R_SDHI0 Structure   
             __IOM uint32_t BRE          : 1; /*!< [8..8] SD_BUF Read Enable                                                 */
             __IOM uint32_t BWE          : 1; /*!< [9..9] SD_BUF Write Enable                                                */
             uint32_t                    : 3;
-            __IM uint32_t SD_CLK_CTRLEN : 1; /*!< [13..13] When a command sequence is started by writing to SD_CMD,
+            __IM uint32_t SD_CLK_CTRLEN : 1; /*!< [13..13] When a command SensorOaqMeasurementState is started by writing to SD_CMD,
                                               *   the CBSY bit is set to 1 and, at the same time, the SCLKDIVEN
                                               *   bit is set to 0. The SCLKDIVEN bit is set to 1 after 8
                                               *   cycles of SDCLK have elapsed after setting of the CBSY
-                                              *   bit to 0 due to completion of the command sequence.                       */
+                                              *   bit to 0 due to completion of the command SensorOaqMeasurementState.                       */
             __IM uint32_t  CBSY : 1;         /*!< [14..14] Command Type Register Busy                                       */
             __IOM uint32_t ILA  : 1;         /*!< [15..15] Illegal Access Error                                             */
             uint32_t            : 16;
@@ -13180,7 +13180,7 @@ typedef struct                          /*!< (@ 0x40092000) R_SDHI0 Structure   
             __IOM uint32_t TOP      : 4; /*!< [7..4] Timeout Counter                                                    */
             __IOM uint32_t TOUTMASK : 1; /*!< [8..8] Timeout MASKWhen timeout occurs in case of inactivating
                                           *   timeout, software reset should be executed to terminate
-                                          *   command sequence.                                                         */
+                                          *   command SensorOaqMeasurementState.                                                         */
             uint32_t              : 4;
             __IOM uint32_t WIDTH8 : 1;   /*!< [13..13] Bus Widthsee b15, WIDTH bit                                      */
             uint32_t              : 1;
@@ -13198,12 +13198,12 @@ typedef struct                          /*!< (@ 0x40092000) R_SDHI0 Structure   
         struct
         {
             __IM uint32_t CMDE0 : 1;    /*!< [0..0] Command Error 0NOTE: other than a response to a command
-                                         *   issued within a command sequence                                          */
+                                         *   issued within a command SensorOaqMeasurementState                                          */
             __IM uint32_t CMDE1 : 1;    /*!< [1..1] Command Error 1NOTE: In cases where CMD12 is issued by
                                          *   setting a command index in SD_CMD, this is Indicated in
                                          *   CMDE0.                                                                    */
             __IM uint32_t RSPLENE0 : 1; /*!< [2..2] Response Length Error 0NOTE: other than a response to
-                                         *   a command issued within a command sequence                                */
+                                         *   a command issued within a command SensorOaqMeasurementState                                */
             __IM uint32_t RSPLENE1 : 1; /*!< [3..3] Response Length Error 1NOTE: In cases where CMD12 is
                                          *   issued by setting a command index in SD_CMD, this is indicated
                                          *   in RSPLENE0.                                                              */
@@ -13211,7 +13211,7 @@ typedef struct                          /*!< (@ 0x40092000) R_SDHI0 Structure   
             __IM uint32_t CRCLENE  : 1; /*!< [5..5] CRC Status Token Length Error                                      */
             uint32_t               : 2;
             __IM uint32_t RSPCRCE0 : 1; /*!< [8..8] Response CRC Error 0NOTE: other than a response to a
-                                         *   command issued within a command sequence                                  */
+                                         *   command issued within a command SensorOaqMeasurementState                                  */
             __IM uint32_t RSPCRCE1 : 1; /*!< [9..9] Response CRC Error 1NOTE: In cases where CMD12 is issued
                                          *   by setting a command index in SD_CMD, this is indicated
                                          *   in RSPCRCE0.                                                              */
@@ -13446,9 +13446,9 @@ typedef struct                         /*!< (@ 0x4011A000) R_SPI0 Structure     
         {
             __IOM uint8_t SPSLN : 3;   /*!< [2..0] RSPI Sequence Length SpecificationThe order in which
                                         *   the SPCMD0 to SPCMD07 registers are to be referenced is
-                                        *   changed in accordance with the sequence length that is
+                                        *   changed in accordance with the SensorOaqMeasurementState length that is
                                         *   set in these bits. The relationship among the setting of
-                                        *   these bits, sequence length, and SPCMD0 to SPCMD7 registers
+                                        *   these bits, SensorOaqMeasurementState length, and SPCMD0 to SPCMD7 registers
                                         *   referenced by the RSPI is shown above. However, the RSPI
                                         *   in slave mode always references SPCMD0.                                   */
             uint8_t : 5;
@@ -18913,13 +18913,13 @@ typedef struct                         /*!< (@ 0x40111000) R_USB_HS0 Structure  
             __IM uint16_t PBUSY : 1;   /*!< [5..5] Pipe BusyThis bit indicates whether the relevant pipe
                                         *   is being used for the USB bus                                             */
             __IM uint16_t SQMON : 1;   /*!< [6..6] Toggle Bit ConfirmationThis bit indicates the expected
-                                        *   value of the sequence toggle bit for the next transaction
+                                        *   value of the SensorOaqMeasurementState toggle bit for the next transaction
                                         *   of the relevant pipe                                                      */
             __IOM uint16_t SQSET : 1;  /*!< [7..7] Toggle Bit SetThis bit is set to 1 when the expected
-                                        *   value of the sequence toggle bit for the next transaction
+                                        *   value of the SensorOaqMeasurementState toggle bit for the next transaction
                                         *   of the relevant pipe is set for DATA1                                     */
             __IOM uint16_t SQCLR : 1;  /*!< [8..8] Toggle Bit ClearThis bit is set to 1 when the expected
-                                        *   value of the sequence toggle bit for the next transaction
+                                        *   value of the SensorOaqMeasurementState toggle bit for the next transaction
                                         *   of the relevant pipe is cleared to DATA0                                  */
             __IOM uint16_t ACLRM : 1;  /*!< [9..9] Auto Buffer Clear ModeThis bit enables or disables auto
                                         *   buffer clear mode for the relevant pipe                                   */

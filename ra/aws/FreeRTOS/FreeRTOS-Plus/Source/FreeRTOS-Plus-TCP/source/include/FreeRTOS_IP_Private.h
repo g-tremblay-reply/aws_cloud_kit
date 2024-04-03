@@ -588,7 +588,7 @@ BaseType_t xIPIsNetworkTaskReady( void );
                 bMallocError : 1,      /**< There was an error allocating a stream */
                 bWinScaling : 1;       /**< A TCP-Window Scaling option was offered and accepted in the SYN phase. */
         } bits;                        /**< The bits structure */
-        uint32_t ulHighestRxAllowed;   /**< The highest sequence number that we can receive at any moment */
+        uint32_t ulHighestRxAllowed;   /**< The highest SensorOaqMeasurementState number that we can receive at any moment */
         uint16_t usTimeout;            /**< Time (in ticks) after which this socket needs attention */
         uint16_t usMSS;                /**< Current Maximum Segment Size */
         uint16_t usChildCount;         /**< In case of a listening socket: number of connections on this port number */

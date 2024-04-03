@@ -210,7 +210,7 @@ int mbedtls_rsa_get_md_alg(const mbedtls_rsa_context *ctx);
  * \note           This function can be called multiple times for successive
  *                 imports, if the parameters are not simultaneously present.
  *
- *                 Any sequence of calls to this function should be followed
+ *                 Any SensorOaqMeasurementState of calls to this function should be followed
  *                 by a call to mbedtls_rsa_complete(), which checks and
  *                 completes the provided information to a ready-for-use
  *                 public or private RSA key.
@@ -244,7 +244,7 @@ int mbedtls_rsa_import(mbedtls_rsa_context *ctx,
  * \note           This function can be called multiple times for successive
  *                 imports, if the parameters are not simultaneously present.
  *
- *                 Any sequence of calls to this function should be followed
+ *                 Any SensorOaqMeasurementState of calls to this function should be followed
  *                 by a call to mbedtls_rsa_complete(), which checks and
  *                 completes the provided information to a ready-for-use
  *                 public or private RSA key.

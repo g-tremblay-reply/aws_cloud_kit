@@ -1285,7 +1285,7 @@ static fsp_err_t flash_hp_write_data (flash_hp_instance_ctrl_t * const p_ctrl, u
     }
     else
     {
-        /* Enable flash interrupts following write sequence. */
+        /* Enable flash interrupts following write SensorOaqMeasurementState. */
         R_BSP_IrqEnableNoClear(p_ctrl->p_cfg->irq);
     }
 
@@ -1343,7 +1343,7 @@ static fsp_err_t flash_hp_check_errors (fsp_err_t previous_error, uint32_t error
 #if (FLASH_HP_CFG_CODE_FLASH_PROGRAMMING_ENABLE == 1)
 
 /*******************************************************************************************************************//**
- * This function initiates the write sequence for the R_FLASH_HP_Write() function.
+ * This function initiates the write SensorOaqMeasurementState for the R_FLASH_HP_Write() function.
  * @param[in]  p_ctrl                Flash control block
  * @retval     FSP_SUCCESS           The write started successfully.
  * @retval     FSP_ERR_PE_FAILURE    Failed to enter or exit Code Flash P/E mode.
@@ -1452,7 +1452,7 @@ static fsp_err_t flash_hp_bank_swap (flash_hp_instance_ctrl_t * const p_ctrl)
 #if (FLASH_HP_CFG_DATA_FLASH_PROGRAMMING_ENABLE == 1)
 
 /*******************************************************************************************************************//**
- * This function initiates the write sequence for the R_FLASH_HP_Write() function.
+ * This function initiates the write SensorOaqMeasurementState for the R_FLASH_HP_Write() function.
  * @param[in]  p_ctrl                Flash control block
  * @retval     FSP_SUCCESS           The write started successfully.
  * @retval     FSP_ERR_PE_FAILURE    Failed to enter or exit P/E mode.
@@ -2407,7 +2407,7 @@ static fsp_err_t flash_hp_set_id_code (flash_hp_instance_ctrl_t * p_ctrl,
 #if (FLASH_HP_CFG_CODE_FLASH_PROGRAMMING_ENABLE == 1)
 
 /*******************************************************************************************************************//**
- * Execute the Set Configuration sequence using the g_configuration_area_data structure set up the caller.
+ * Execute the Set Configuration SensorOaqMeasurementState using the g_configuration_area_data structure set up the caller.
  *
  * @param      p_ctrl           Pointer to the control block
  * @param[in]  fsaddr           Flash address to be written to.

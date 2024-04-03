@@ -22,14 +22,9 @@
  *********************************************************************************************************************/
 
 #include "FreeRTOS.h"
-#include "FreeRTOSconfig.h"
-#include "semphr.h"
-#include "queue.h"
 #include "task.h"
 #include "menu_main.h"
-#include "common_utils.h"
-#include "menu_main.h"
-#include "console.h"
+#include <console.h>
 #include "menu_kis.h"
 
 typedef struct menu_fn_tbl
@@ -64,6 +59,15 @@ int8_t main_display_menu(void)
 {
     int8_t key_pressed = -1;
     int8_t menu_limit = 0;
+    fsp_pack_version_t      version = {RESET_VALUE};
+
+    /* version get API for FLEX pack information */
+    R_FSP_VersionGet(&version);
+
+    /* Example Project information printed on the RTT */
+    APP_PRINT (BANNER_INFO, AP_VERSION, version.version_id_b.major, version.version_id_b.minor, version.version_id_b.patch);
+    // TODO figure out how to use correct printing APIs here
+
 
     sprintf (s_print_buffer, "%s%s", gp_clear_screen, gp_cursor_home);
 

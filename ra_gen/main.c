@@ -7,8 +7,8 @@ extern void console_thread_create(void);
 extern TaskHandle_t console_thread;
 extern void sensor_thread_create(void);
 extern TaskHandle_t sensor_thread;
-extern void app_thread_create(void);
-extern TaskHandle_t app_thread;
+extern void cloud_app_thread_create(void);
+extern TaskHandle_t cloud_app_thread;
 extern void oximeter_thread_create(void);
 extern TaskHandle_t oximeter_thread;
 extern void zmod_thread_create(void);
@@ -104,7 +104,7 @@ int main(void) {
 	/* Init RTOS tasks. */
 	console_thread_create();
 	sensor_thread_create();
-	app_thread_create();
+	cloud_app_thread_create();
 	oximeter_thread_create();
 	zmod_thread_create();
 

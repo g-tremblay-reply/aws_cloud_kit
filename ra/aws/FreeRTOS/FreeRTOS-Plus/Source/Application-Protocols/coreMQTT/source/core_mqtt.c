@@ -2544,7 +2544,7 @@ MQTTStatus_t MQTT_InitStatefulQoS( MQTTContext_t * pContext,
     else if( ( outgoingPublishCount == 0U ) !=
              ( pOutgoingPublishRecords == NULL ) )
     {
-        LogError( ( "Arguments do not match: pOutgoingPublishRecords=%p, "
+        LogError( ( "Arguments do not match: CloudProvOutgoingPublishRecords=%p, "
                     "outgoingPublishCount=%lu",
                     ( void * ) pOutgoingPublishRecords,
                     outgoingPublishCount ) );
@@ -2556,7 +2556,7 @@ MQTTStatus_t MQTT_InitStatefulQoS( MQTTContext_t * pContext,
     else if( ( incomingPublishCount == 0U ) !=
              ( pIncomingPublishRecords == NULL ) )
     {
-        LogError( ( "Arguments do not match: pIncomingPublishRecords=%p, "
+        LogError( ( "Arguments do not match: CloudProvIncomingPublishRecords=%p, "
                     "incomingPublishCount=%lu",
                     ( void * ) pIncomingPublishRecords,
                     incomingPublishCount ) );

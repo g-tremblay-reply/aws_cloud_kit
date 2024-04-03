@@ -370,13 +370,13 @@
 
         /* Later on, when deciding to delay an ACK, a precise estimate is needed
          * of the free RX space.  At this moment, 'ulHighestRxAllowed' would be the
-         * highest sequence number minus 1 that the socket will accept. */
+         * highest SensorOaqMeasurementState number minus 1 that the socket will accept. */
         pxSocket->u.xTCP.ulHighestRxAllowed = pxTCPWindow->rx.ulCurrentSequenceNumber + ulSpace;
     }
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Called by prvTCPReturnPacket(), this function sets the sequence and ack numbers
+ * @brief Called by prvTCPReturnPacket(), this function sets the SensorOaqMeasurementState and ack numbers
  *        in the TCP-header.
  * @param[in] pxSocket The socket on which the packet is being sent.
  * @param[in] pxNetworkBuffer The network buffer carrying the outgoing message.
@@ -400,7 +400,7 @@
         #if ( ipconfigTCP_KEEP_ALIVE == 1 )
             if( pxSocket->u.xTCP.bits.bSendKeepAlive != pdFALSE_UNSIGNED )
             {
-                /* Sending a keep-alive packet, send the current sequence number
+                /* Sending a keep-alive packet, send the current SensorOaqMeasurementState number
                  * minus 1, which will be recognised as a keep-alive packet and
                  * responded to by acknowledging the last byte. */
                 pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
@@ -431,7 +431,7 @@
             }
         }
 
-        /* Tell which sequence number is expected next time */
+        /* Tell which SensorOaqMeasurementState number is expected next time */
         pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( pxTCPWindow->rx.ulCurrentSequenceNumber );
     }
 /*-----------------------------------------------------------*/
@@ -441,7 +441,7 @@
  *
  * @param[in] pxSocket The socket for which the window is being created.
  *
- * @note The SYN event is very important: the sequence numbers, which have a kind of
+ * @note The SYN event is very important: the SensorOaqMeasurementState numbers, which have a kind of
  *       random starting value, are being synchronized. The sliding window manager
  *       (in FreeRTOS_TCP_WIN.c) needs to know them, along with the Maximum Segment
  *       Size (MSS).
@@ -1344,7 +1344,7 @@
 
 /**
  * @brief A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
- *        case #3. In summary, an RST was received with a sequence number that is
+ *        case #3. In summary, an RST was received with a SensorOaqMeasurementState number that is
  *        unexpected but still within the window.
  *
  * @param[in] pxNetworkBuffer The network buffer descriptor with the packet.

@@ -31,8 +31,8 @@ void ICM_comms_i2c_callback(rm_comms_callback_args_t *p_args);
 extern const rm_comms_instance_t g_comms_i2c_device4;
 extern rm_comms_i2c_instance_ctrl_t g_comms_i2c_device4_ctrl;
 extern const rm_comms_cfg_t g_comms_i2c_device4_cfg;
-#ifndef ICP_comms_i2c_callback
-void ICP_comms_i2c_callback(rm_comms_callback_args_t *p_args);
+#ifndef SensorIcp10101_CommCallback
+void SensorIcp10101_CommCallback(rm_comms_callback_args_t *p_args);
 #endif
 /* I2C Communication Device */
 extern const rm_comms_instance_t g_comms_i2c_device2;
@@ -47,14 +47,14 @@ extern rm_zmod4xxx_lib_extended_cfg_t g_zmod4xxx_sensor1_extended_cfg;
 extern const rm_zmod4xxx_instance_t g_zmod4xxx_sensor1;
 extern rm_zmod4xxx_instance_ctrl_t g_zmod4xxx_sensor1_ctrl;
 extern const rm_zmod4xxx_cfg_t g_zmod4xxx_sensor1_cfg;
-#ifndef zmod4xxx_comms_i2c1_callback
-void zmod4xxx_comms_i2c1_callback(rm_zmod4xxx_callback_args_t *p_args);
+#ifndef Sensor_IaqCommCallback
+void Sensor_IaqCommCallback(rm_zmod4xxx_callback_args_t *p_args);
 #endif
 #ifndef rm_zmod4xxx_irq_callback
 void rm_zmod4xxx_irq_callback(external_irq_callback_args_t *p_args);
 #endif
-#ifndef zmod4xxx_irq1_callback
-void zmod4xxx_irq1_callback(rm_zmod4xxx_callback_args_t *p_args);
+#ifndef Sensor_IaqEndOfMeasurement
+void Sensor_IaqEndOfMeasurement(rm_zmod4xxx_callback_args_t *p_args);
 #endif
 /* I2C Communication Device */
 extern const rm_comms_instance_t g_comms_i2c_device0;
@@ -67,8 +67,8 @@ void rm_hs300x_callback(rm_comms_callback_args_t *p_args);
 extern const rm_hs300x_instance_t g_hs300x_sensor0;
 extern rm_hs300x_instance_ctrl_t g_hs300x_sensor0_ctrl;
 extern const rm_hs300x_cfg_t g_hs300x_sensor0_cfg;
-#ifndef hs300x_callback
-void hs300x_callback(rm_hs300x_callback_args_t *p_args);
+#ifndef Sensor_Hs3001Callback
+void Sensor_Hs3001Callback(rm_hs300x_callback_args_t *p_args);
 #endif
 FSP_FOOTER
 #endif /* SENSOR_THREAD_H_ */

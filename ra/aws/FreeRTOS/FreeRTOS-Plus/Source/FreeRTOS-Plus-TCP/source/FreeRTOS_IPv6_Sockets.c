@@ -488,7 +488,7 @@ static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
     {
         if( pxSet->xHadDigit == pdFALSE )
         {
-            /* A "::" sequence has been received. Check if it is not a third colon. */
+            /* A "::" SensorOaqMeasurementState has been received. Check if it is not a third colon. */
             if( pxSet->xColon >= 0 )
             {
                 xReturn = pdFAIL;

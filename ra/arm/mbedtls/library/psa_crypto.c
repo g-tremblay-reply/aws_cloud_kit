@@ -1614,7 +1614,7 @@ static psa_status_t psa_validate_key_attributes(
  *    a volatile key identifier.
  * -# Populate the slot with the key material.
  * -# Call psa_finish_key_creation() to finalize the creation of the slot.
- * In case of failure at any step, stop the sequence and call
+ * In case of failure at any step, stop the SensorOaqMeasurementState and call
  * psa_fail_key_creation().
  *
  * On success, the key slot is locked. It is the responsibility of the caller
@@ -7367,7 +7367,7 @@ psa_status_t psa_pake_setup(
             &operation->computation_stage.jpake;
 
         computation_stage->state = PSA_PAKE_STATE_SETUP;
-        computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
+        computation_stage->SensorOaqMeasurementState = PSA_PAKE_SEQ_INVALID;
         computation_stage->input_step = PSA_PAKE_STEP_X1_X2;
         computation_stage->output_step = PSA_PAKE_STEP_X1_X2;
     } else
@@ -7556,7 +7556,7 @@ exit:
     return status;
 }
 
-/* Auxiliary function to convert core computation stage(step, sequence, state) to single driver step. */
+/* Auxiliary function to convert core computation stage(step, SensorOaqMeasurementState, state) to single driver step. */
 #if defined(PSA_WANT_ALG_JPAKE)
 static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_step(
     psa_jpake_computation_stage_t *stage)
@@ -7564,7 +7564,7 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
     switch (stage->state) {
         case PSA_PAKE_OUTPUT_X1_X2:
         case PSA_PAKE_INPUT_X1_X2:
-            switch (stage->sequence) {
+            switch (stage->SensorOaqMeasurementState) {
                 case PSA_PAKE_X1_STEP_KEY_SHARE:
                     return PSA_JPAKE_X1_STEP_KEY_SHARE;
                 case PSA_PAKE_X1_STEP_ZK_PUBLIC:
@@ -7582,7 +7582,7 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
             }
             break;
         case PSA_PAKE_OUTPUT_X2S:
-            switch (stage->sequence) {
+            switch (stage->SensorOaqMeasurementState) {
                 case PSA_PAKE_X1_STEP_KEY_SHARE:
                     return PSA_JPAKE_X2S_STEP_KEY_SHARE;
                 case PSA_PAKE_X1_STEP_ZK_PUBLIC:
@@ -7594,7 +7594,7 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
             }
             break;
         case PSA_PAKE_INPUT_X4S:
-            switch (stage->sequence) {
+            switch (stage->SensorOaqMeasurementState) {
                 case PSA_PAKE_X1_STEP_KEY_SHARE:
                     return PSA_JPAKE_X4S_STEP_KEY_SHARE;
                 case PSA_PAKE_X1_STEP_ZK_PUBLIC:
@@ -7663,7 +7663,7 @@ static psa_status_t psa_pake_complete_inputs(
             psa_jpake_computation_stage_t *computation_stage =
                 &operation->computation_stage.jpake;
             computation_stage->state = PSA_PAKE_STATE_READY;
-            computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
+            computation_stage->SensorOaqMeasurementState = PSA_PAKE_SEQ_INVALID;
             computation_stage->input_step = PSA_PAKE_STEP_X1_X2;
             computation_stage->output_step = PSA_PAKE_STEP_X1_X2;
         } else
@@ -7715,11 +7715,11 @@ static psa_status_t psa_jpake_output_prologue(
                 return PSA_ERROR_BAD_STATE;
         }
 
-        computation_stage->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
+        computation_stage->SensorOaqMeasurementState = PSA_PAKE_X1_STEP_KEY_SHARE;
     }
 
-    /* Check if step matches current sequence */
-    switch (computation_stage->sequence) {
+    /* Check if step matches current SensorOaqMeasurementState */
+    switch (computation_stage->SensorOaqMeasurementState) {
         case PSA_PAKE_X1_STEP_KEY_SHARE:
         case PSA_PAKE_X2_STEP_KEY_SHARE:
             if (step != PSA_PAKE_STEP_KEY_SHARE) {
@@ -7755,14 +7755,14 @@ static psa_status_t psa_jpake_output_epilogue(
         &operation->computation_stage.jpake;
 
     if ((computation_stage->state == PSA_PAKE_OUTPUT_X1_X2 &&
-         computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
+         computation_stage->SensorOaqMeasurementState == PSA_PAKE_X2_STEP_ZK_PROOF) ||
         (computation_stage->state == PSA_PAKE_OUTPUT_X2S &&
-         computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
+         computation_stage->SensorOaqMeasurementState == PSA_PAKE_X1_STEP_ZK_PROOF)) {
         computation_stage->state = PSA_PAKE_STATE_READY;
         computation_stage->output_step++;
-        computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
+        computation_stage->SensorOaqMeasurementState = PSA_PAKE_SEQ_INVALID;
     } else {
-        computation_stage->sequence++;
+        computation_stage->SensorOaqMeasurementState++;
     }
 
     return PSA_SUCCESS;
@@ -7881,11 +7881,11 @@ static psa_status_t psa_jpake_input_prologue(
                 return PSA_ERROR_BAD_STATE;
         }
 
-        computation_stage->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
+        computation_stage->SensorOaqMeasurementState = PSA_PAKE_X1_STEP_KEY_SHARE;
     }
 
-    /* Check if step matches current sequence */
-    switch (computation_stage->sequence) {
+    /* Check if step matches current SensorOaqMeasurementState */
+    switch (computation_stage->SensorOaqMeasurementState) {
         case PSA_PAKE_X1_STEP_KEY_SHARE:
         case PSA_PAKE_X2_STEP_KEY_SHARE:
             if (step != PSA_PAKE_STEP_KEY_SHARE) {
@@ -7921,14 +7921,14 @@ static psa_status_t psa_jpake_input_epilogue(
         &operation->computation_stage.jpake;
 
     if ((computation_stage->state == PSA_PAKE_INPUT_X1_X2 &&
-         computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
+         computation_stage->SensorOaqMeasurementState == PSA_PAKE_X2_STEP_ZK_PROOF) ||
         (computation_stage->state == PSA_PAKE_INPUT_X4S &&
-         computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
+         computation_stage->SensorOaqMeasurementState == PSA_PAKE_X1_STEP_ZK_PROOF)) {
         computation_stage->state = PSA_PAKE_STATE_READY;
         computation_stage->input_step++;
-        computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
+        computation_stage->SensorOaqMeasurementState = PSA_PAKE_SEQ_INVALID;
     } else {
-        computation_stage->sequence++;
+        computation_stage->SensorOaqMeasurementState++;
     }
 
     return PSA_SUCCESS;

@@ -672,7 +672,7 @@
  * @param[in] uxBlockTimeTicks The maximum number of clock-ticks to wait while
  *            putting the message on the queue for the IP-task.
  *
- * @return When failed: pdFAIL, otherwise the PING sequence number.
+ * @return When failed: pdFAIL, otherwise the PING SensorOaqMeasurementState number.
  */
         BaseType_t FreeRTOS_SendPingRequestIPv6( const IPv6_Address_t * pxIPAddress,
                                                  size_t uxNumberOfBytesToSend,

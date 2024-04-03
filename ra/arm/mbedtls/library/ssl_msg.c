@@ -464,7 +464,7 @@ static void ssl_extract_add_data_from_record(unsigned char *add_data,
      *    additional_data = seq_num + TLSCompressed.type +
      *                      TLSCompressed.version + TLSCompressed.length;
      *
-     * For TLS 1.3, the record sequence number is dropped from the AAD
+     * For TLS 1.3, the record SensorOaqMeasurementState number is dropped from the AAD
      * and encoded within the nonce of the AEAD operation instead.
      * Moreover, the additional data involves the length of the TLS
      * ciphertext, not the TLS plaintext as in earlier versions.
@@ -574,7 +574,7 @@ static void ssl_extract_add_data_from_record(unsigned char *add_data,
         } else
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         {
-            // epoch + sequence number
+            // epoch + SensorOaqMeasurementState number
             memcpy(cur, rec->ctr, sizeof(rec->ctr));
             cur += sizeof(rec->ctr);
         }
@@ -608,7 +608,7 @@ static void ssl_extract_add_data_from_record(unsigned char *add_data,
     MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 0
 
     if (rec->cid_len != 0) {
-        // epoch + sequence number
+        // epoch + SensorOaqMeasurementState number
         memcpy(cur, rec->ctr, sizeof(rec->ctr));
         cur += sizeof(rec->ctr);
 
@@ -938,11 +938,11 @@ hmac_failed_etm_disabled:
          * Note: In the case of CCM and GCM in TLS 1.2, the dynamic
          *       part of the IV is prepended to the ciphertext and
          *       can be chosen freely - in particular, it need not
-         *       agree with the record sequence number.
+         *       agree with the record SensorOaqMeasurementState number.
          *       However, since ChaChaPoly as well as all AEAD modes
-         *       in TLS 1.3 use the record sequence number as the
+         *       in TLS 1.3 use the record SensorOaqMeasurementState number as the
          *       dynamic part of the nonce, we uniformly use the
-         *       record sequence number here in all cases.
+         *       record SensorOaqMeasurementState number here in all cases.
          */
         dynamic_iv     = rec->ctr;
         dynamic_iv_len = sizeof(rec->ctr);
@@ -1333,7 +1333,7 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
          * Note: In the case of CCM and GCM in TLS 1.2, the dynamic
          *       part of the IV is prepended to the ciphertext and
          *       can be chosen freely - in particular, it need not
-         *       agree with the record sequence number.
+         *       agree with the record SensorOaqMeasurementState number.
          */
         dynamic_iv_len = sizeof(rec->ctr);
         if (ssl_transform_aead_dynamic_iv_is_explicit(transform) == 1) {
@@ -3028,7 +3028,7 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
             if (recv_msg_seq > ssl->handshake->in_msg_seq) {
                 MBEDTLS_SSL_DEBUG_MSG(2,
                                       (
-                                          "received future handshake message of sequence number %u (next %u)",
+                                          "received future handshake message of SensorOaqMeasurementState number %u (next %u)",
                                           recv_msg_seq,
                                           ssl->handshake->in_msg_seq));
                 return MBEDTLS_ERR_SSL_EARLY_MESSAGE;
@@ -3049,7 +3049,7 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
                     return ret;
                 }
             } else {
-                MBEDTLS_SSL_DEBUG_MSG(2, ("dropping out-of-sequence message: "
+                MBEDTLS_SSL_DEBUG_MSG(2, ("dropping out-of-SensorOaqMeasurementState message: "
                                           "message_seq = %u, expected = %u",
                                           recv_msg_seq,
                                           ssl->handshake->in_msg_seq));
@@ -3098,7 +3098,7 @@ int mbedtls_ssl_update_handshake_status(mbedtls_ssl_context *ssl)
         unsigned offset;
         mbedtls_ssl_hs_buffer *hs_buf;
 
-        /* Increment handshake sequence number */
+        /* Increment handshake SensorOaqMeasurementState number */
         hs->in_msg_seq++;
 
         /*
@@ -3170,7 +3170,7 @@ static int mbedtls_ssl_dtls_record_replay_check(mbedtls_ssl_context *ssl, uint8_
 }
 
 /*
- * Return 0 if sequence number is acceptable, -1 otherwise
+ * Return 0 if SensorOaqMeasurementState number is acceptable, -1 otherwise
  */
 int mbedtls_ssl_dtls_replay_check(mbedtls_ssl_context const *ssl)
 {
@@ -3607,18 +3607,18 @@ static int ssl_parse_record_header(mbedtls_ssl_context const *ssl,
         return MBEDTLS_ERR_SSL_INVALID_RECORD;
     }
     /*
-     * Parse/Copy record sequence number.
+     * Parse/Copy record SensorOaqMeasurementState number.
      */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
-        /* Copy explicit record sequence number from input buffer. */
+        /* Copy explicit record SensorOaqMeasurementState number from input buffer. */
         memcpy(&rec->ctr[0], buf + rec_hdr_ctr_offset,
                rec_hdr_ctr_len);
     } else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     {
-        /* Copy implicit record sequence number from SSL context structure. */
+        /* Copy implicit record SensorOaqMeasurementState number from SSL context structure. */
         memcpy(&rec->ctr[0], ssl->in_ctr, rec_hdr_ctr_len);
     }
 
@@ -3688,7 +3688,7 @@ static int ssl_parse_record_header(mbedtls_ssl_context const *ssl,
         }
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
         /* For records from the correct epoch, check whether their
-         * sequence number has been seen before. */
+         * SensorOaqMeasurementState number has been seen before. */
         else if (mbedtls_ssl_dtls_record_replay_check((mbedtls_ssl_context *) ssl,
                                                       &rec->ctr[0]) != 0) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("replayed record"));
@@ -4015,7 +4015,7 @@ static int ssl_load_buffered_message(mbedtls_ssl_context *ssl)
         for (offset = 1; offset < MBEDTLS_SSL_MAX_BUFFERED_HS; offset++) {
             hs_buf = &hs->buffering.hs[offset];
             if (hs_buf->is_valid == 1) {
-                MBEDTLS_SSL_DEBUG_MSG(2, ("Future message with sequence number %u %s buffered.",
+                MBEDTLS_SSL_DEBUG_MSG(2, ("Future message with SensorOaqMeasurementState number %u %s buffered.",
                                           hs->in_msg_seq + offset,
                                           hs_buf->is_complete ? "fully" : "partially"));
             }
@@ -4142,7 +4142,7 @@ static int ssl_buffer_message(mbedtls_ssl_context *ssl)
             if (recv_msg_seq_offset >= MBEDTLS_SSL_MAX_BUFFERED_HS) {
                 /* Silently ignore -- message too far in the future */
                 MBEDTLS_SSL_DEBUG_MSG(2,
-                                      ("Ignore future HS message with sequence number %u, "
+                                      ("Ignore future HS message with SensorOaqMeasurementState number %u, "
                                        "buffering window %u - %u",
                                        recv_msg_seq, ssl->handshake->in_msg_seq,
                                        ssl->handshake->in_msg_seq + MBEDTLS_SSL_MAX_BUFFERED_HS -
@@ -4151,7 +4151,7 @@ static int ssl_buffer_message(mbedtls_ssl_context *ssl)
                 goto exit;
             }
 
-            MBEDTLS_SSL_DEBUG_MSG(2, ("Buffering HS message with sequence number %u, offset %u ",
+            MBEDTLS_SSL_DEBUG_MSG(2, ("Buffering HS message with SensorOaqMeasurementState number %u, offset %u ",
                                       recv_msg_seq, recv_msg_seq_offset));
 
             hs_buf = &hs->buffering.hs[recv_msg_seq_offset];
@@ -4359,7 +4359,7 @@ static int ssl_consume_current_message(mbedtls_ssl_context *ssl)
          *     should not be treated as a silently corrected assertion.
          *     Additionally, ssl->in_hslen might be arbitrarily out of
          *     bounds after handling a DTLS message with an unexpected
-         *     sequence number, see mbedtls_ssl_prepare_handshake_record.
+         *     SensorOaqMeasurementState number, see mbedtls_ssl_prepare_handshake_record.
          */
         if (ssl->in_hslen < ssl->in_msglen) {
             ssl->in_msglen -= ssl->in_hslen;
@@ -4964,7 +4964,7 @@ int mbedtls_ssl_parse_change_cipher_spec(mbedtls_ssl_context *ssl)
 /* Once ssl->out_hdr as the address of the beginning of the
  * next outgoing record is set, deduce the other pointers.
  *
- * Note: For TLS, we save the implicit record sequence number
+ * Note: For TLS, we save the implicit record SensorOaqMeasurementState number
  *       (entering MAC computation) in the 8 bytes before ssl->out_hdr,
  *       and the caller has to make sure there's space for this.
  */
@@ -5011,7 +5011,7 @@ void mbedtls_ssl_update_out_pointers(mbedtls_ssl_context *ssl,
 /* Once ssl->in_hdr as the address of the beginning of the
  * next incoming record is set, deduce the other pointers.
  *
- * Note: For TLS, we save the implicit record sequence number
+ * Note: For TLS, we save the implicit record SensorOaqMeasurementState number
  *       (entering MAC computation) in the 8 bytes before ssl->in_hdr,
  *       and the caller has to make sure there's space for this.
  */

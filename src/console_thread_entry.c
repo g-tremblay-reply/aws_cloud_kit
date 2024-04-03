@@ -18,13 +18,9 @@
  * CONTRACT OR TORT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE CONTENTS. Third-party contents
  * included in this file may be subject to different terms.
  **********************************************************************************************************************/
-#include "hal_data.h"
-#include "common_data.h"
 #include "common_data.h"
 #include "console_menu/console.h"
-#include "board_cfg.h"
 #include "console_thread.h"
-#include "common_utils.h"
 #include "console_menu/menu_main.h"
 
  uint32_t  g_console_status = RESET_VALUE;
@@ -37,6 +33,8 @@
   * @param[in]  pvParameters contains TaskHandle_t
   * @retval
   **************************************************************************************/
+
+
 void console_thread_entry(void *pvParameters) {
 	FSP_PARAMETER_NOT_USED(pvParameters);
 
@@ -44,7 +42,7 @@ void console_thread_entry(void *pvParameters) {
 	flash_init();
 	/* TODO: add your own code here */
 	
-    /* wait for application thread to finish MQTT connection */
+    /* wait sensor thread to init of sensors */
     xTaskNotifyWait(pdFALSE, pdFALSE, (uint32_t* )&console_thread, portMAX_DELAY);
 	while (1)
 	{

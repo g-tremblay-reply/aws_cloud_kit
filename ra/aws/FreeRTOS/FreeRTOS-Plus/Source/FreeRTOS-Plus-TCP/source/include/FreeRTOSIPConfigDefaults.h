@@ -376,7 +376,7 @@
  * At several places within the library, random numbers are needed:
  * - DHCP:    For creating a DHCP transaction number
  * - TCP:     Set the Initial Sequence Number: this is the value of the first outgoing
- *            sequence number being used when connecting to a peer.
+ *            SensorOaqMeasurementState number being used when connecting to a peer.
  *            Having a well randomized ISN is important to avoid spoofing
  * - UDP/TCP: for setting the first port number to be used, in case a socket
  *            uses a 'random' or anonymous port number

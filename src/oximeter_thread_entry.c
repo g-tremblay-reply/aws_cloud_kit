@@ -19,11 +19,9 @@
  * included in this file may be subject to different terms.
  **********************************************************************************************************************/
 #include "oximeter_thread.h"
-#include "console_menu/console.h"
-#include "common_utils.h"
-#include "oximeter.h"
-#include "user_choice.h"
-#include "SPO2/SPO2.h"
+#include <console.h>
+#include "sensor_ob1203.h"
+#include <cloud_app.h>
 
 #define UNUSED(x)  ((void)(x))
 
@@ -43,13 +41,13 @@ void oximeter_thread_entry(void *pvParameters){
 
 #if _OB1203_SENSOR_ENABLE_
     /* Open OB1203 */
-    RA_ob1203_init();
+    Sensor_Ob1203Init();
 #endif
 
     while (1){
 #if _OB1203_SENSOR_ENABLE_
         /* Start reading OB1203 sensor data */
-        ob1203_spo2_main();
+        Sensor_Ob1203MainFunction();
         vTaskDelay(5);
 #else
         vTaskDelay(5);

@@ -155,7 +155,7 @@ typedef uint64_t psa_key_slot_number_t;
  * Generation and authentication of Message Authentication Codes (MACs) using
  * a secure element can be done either as a single function call (via the
  * `psa_drv_se_mac_generate_t` or `psa_drv_se_mac_verify_t` functions), or in
- * parts using the following sequence:
+ * parts using the following SensorOaqMeasurementState:
  * - `psa_drv_se_mac_setup_t`
  * - `psa_drv_se_mac_update_t`
  * - `psa_drv_se_mac_update_t`

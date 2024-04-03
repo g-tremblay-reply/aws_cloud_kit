@@ -736,14 +736,14 @@ FSP Configuration
   Module "MbedTLS (Crypto Only)"
     Hardware Acceleration: TRNG: Enabled
     Hardware Acceleration: Key Format: AES: Plaintext and Wrapped (Vendor)
-    Hardware Acceleration: Key Format: ECC: Plaintext and Wrapped (Vendor)
+    Hardware Acceleration: Key Format: ECC: Plaintext Only
     Hardware Acceleration: Key Format: RSA: Plaintext and Wrapped (Vendor)
     Hardware Acceleration: Hash: SHA256/224: Use Hardware
     Hardware Acceleration: Hash: SHA512/384: Use Software
     Hardware Acceleration: Cipher: AES: Use Hardware
-    Hardware Acceleration: Public Key Cryptography (PKC): ECC: Use Hardware
-    Hardware Acceleration: Public Key Cryptography (PKC): ECDSA : Use Hardware
-    Hardware Acceleration: Public Key Cryptography (PKC): ECDH : Use Hardware
+    Hardware Acceleration: Public Key Cryptography (PKC): ECC: Use Software
+    Hardware Acceleration: Public Key Cryptography (PKC): ECDSA : Use Software
+    Hardware Acceleration: Public Key Cryptography (PKC): ECDH : Use Software
     Hardware Acceleration: Public Key Cryptography (PKC): RSA: Use Hardware
     Hardware Acceleration: Public Key Cryptography (PKC): RSA 3072: Key Generation: Disabled
     Hardware Acceleration: Public Key Cryptography (PKC): RSA 3072: Signing: Disabled
@@ -1132,7 +1132,7 @@ FSP Configuration
       Input: Capture B Source: 
       Input: Noise Filter A Sampling Clock Select: No Filter
       Input: Noise Filter B Sampling Clock Select: No Filter
-      Interrupts: Callback: g_user_timer_cb
+      Interrupts: Callback: CloudApp_PeriodicDataPush
       Interrupts: Overflow/Crest Interrupt Priority: Priority 5
       Interrupts: Capture A Interrupt Priority: Disabled
       Interrupts: Capture B Interrupt Priority: Disabled
@@ -1180,7 +1180,7 @@ FSP Configuration
       Input: Capture B Source: 
       Input: Noise Filter A Sampling Clock Select: No Filter
       Input: Noise Filter B Sampling Clock Select: No Filter
-      Interrupts: Callback: TimerCallback
+      Interrupts: Callback: SensorIcp10101_TimerCallback
       Interrupts: Overflow/Crest Interrupt Priority: Priority 6
       Interrupts: Capture A Interrupt Priority: Disabled
       Interrupts: Capture B Interrupt Priority: Disabled
@@ -1252,7 +1252,7 @@ FSP Configuration
     
     Instance "g_hs300x_sensor0 HS300X Temperature/Humidity Sensor (rm_hs300x)"
       Name: g_hs300x_sensor0
-      Callback: hs300x_callback
+      Callback: Sensor_Hs3001Callback
       
       Instance "g_comms_i2c_device0 I2C Communication Device (rm_comms_i2c)"
         Name: g_comms_i2c_device0
@@ -1283,8 +1283,8 @@ FSP Configuration
             
     Instance "g_zmod4xxx_sensor1 ZMOD4XXX Gas Sensor (rm_zmod4xxx)"
       Name: g_zmod4xxx_sensor1
-      Comms I2C Callback: zmod4xxx_comms_i2c1_callback
-      IRQ Callback: zmod4xxx_irq1_callback
+      Comms I2C Callback: Sensor_IaqCommCallback
+      IRQ Callback: Sensor_IaqEndOfMeasurement
       
       Instance "ZMOD4510 OAQ 1st Generation (rm_zmod4xxx)"
         
@@ -1329,7 +1329,7 @@ FSP Configuration
       Semaphore Timeout (RTOS only): 0xFFFFFFFF
       Slave Address: 0x63
       Address Mode: 7-Bit
-      Callback: ICP_comms_i2c_callback
+      Callback: SensorIcp10101_CommCallback
       
       Instance "g_comms_i2c_bus0 I2C Shared Bus (rm_comms_i2c)"
         Name: g_comms_i2c_bus0
@@ -1378,9 +1378,9 @@ FSP Configuration
           Callback: rm_comms_i2c_callback
           Interrupt Priority Level: Priority 5
           
-  Thread "App Thread"
-    Symbol: app_thread
-    Name: App Thread
+  Thread "CloudApp Thread"
+    Symbol: cloud_app_thread
+    Name: CloudApp Thread
     Stack size (bytes): 0x12000
     Priority: 3
     Thread Context: NULL
@@ -1610,8 +1610,8 @@ FSP Configuration
     
     Instance "g_zmod4xxx_sensor0 ZMOD4XXX Gas Sensor (rm_zmod4xxx)"
       Name: g_zmod4xxx_sensor0
-      Comms I2C Callback: zmod4xxx_comms_i2c_callback
-      IRQ Callback: zmod4xxx_irq0_callback
+      Comms I2C Callback: Sensor_OaqCommCallback
+      IRQ Callback: Sensor_OaqEndOfMeasurement
       
       Instance "ZMOD4410 IAQ 1st Generation (rm_zmod4xxx)"
         Operation Mode: Continuous

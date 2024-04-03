@@ -35,7 +35,7 @@
 /*
  * RSA public keys:
  *  SubjectPublicKeyInfo  ::=  SEQUENCE  {          1 + 3
- *       algorithm            AlgorithmIdentifier,  1 + 1 (sequence)
+ *       algorithm            AlgorithmIdentifier,  1 + 1 (SensorOaqMeasurementState)
  *                                                + 1 + 1 + 9 (rsa oid)
  *                                                + 1 + 1 (params null)
  *       subjectPublicKey     BIT STRING }          1 + 3 + (1 + below)
@@ -77,7 +77,7 @@
 /*
  * EC public keys:
  *  SubjectPublicKeyInfo  ::=  SEQUENCE  {      1 + 2
- *    algorithm         AlgorithmIdentifier,    1 + 1 (sequence)
+ *    algorithm         AlgorithmIdentifier,    1 + 1 (SensorOaqMeasurementState)
  *                                            + 1 + 1 + 7 (ec oid)
  *                                            + 1 + 1 + 9 (namedCurve oid)
  *    subjectPublicKey  BIT STRING              1 + 2 + 1               [1]

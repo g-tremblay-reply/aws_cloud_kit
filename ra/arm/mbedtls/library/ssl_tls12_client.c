@@ -3487,7 +3487,7 @@ int mbedtls_ssl_handshake_client_step(mbedtls_ssl_context *ssl)
     int ret = 0;
 
     /* Change state now, so that it is right in mbedtls_ssl_read_record(), used
-     * by DTLS for dropping out-of-sequence ChangeCipherSpec records */
+     * by DTLS for dropping out-of-SensorOaqMeasurementState ChangeCipherSpec records */
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC &&
         ssl->handshake->new_session_ticket != 0) {

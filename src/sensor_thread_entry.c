@@ -21,21 +21,16 @@
  * Copyright (C) 2023 Renesas Electronics Corporation. All rights reserved.
  ***********************************************************************************************************************/
 #include "sensor_thread.h"
-#include "sensor/RA_HS3001.h"
-#include "zmod/RA_ZMOD4XXX_Common.h"
-#include "common_utils.h"
-#include "user_choice.h"
-#include "sensor/ICP_10101.h"
-#include "RmcI2C.h"
+#include <console.h>
 #include "sensor/ICM_20948.h"
-#include "usr_data.h"
-#include "sensor/icm.h"
-#include "sensor/icp.h"
+#include <sensor_iaq.h>
+#include <sensor_oaq.h>
+#include <sensor_hs3001.h>
+#include <sensor_icp10101.h>
+#include <cloud_app.h>
 
 #define UNUSED(x)  ((void)(x))
 #define INT_CHANNEL (1)
-
-void updateData(void);
 
 
 
@@ -44,58 +39,45 @@ extern TaskHandle_t oximeter_thread;
 extern TaskHandle_t zmod_thread;
 extern TaskHandle_t console_thread;
 
+
+
 /*******************************************************************************************************************//**
- * @brief       Send ID to queue 
- * @param[in]   None
+ * @brief       Re-cover the I2C bus if it is busy
+ * @param[in]   SCL SCL pin of the IIC bus
+ * @param[in]   SDA SDA pin of the IIC bus
  * @retval      None
  ***********************************************************************************************************************/
-void updateData(void)
+void bsp_recover_iic(const bsp_io_port_pin_t SCL, const bsp_io_port_pin_t SDA)
 {
+    const bsp_io_port_pin_t PIN_SCL = SCL;
+    const bsp_io_port_pin_t PIN_SDA = SDA;
+    const uint32_t pinToggleDelay = 5;
 
-    mqtt_rx_payload_t payload_data = {'\0'};
-    static  uint8_t  msgId = ID_IAQ_DATA_PUSH;
-    BaseType_t xHigherPriorityTaskWokenByPost = pdFALSE;
+    /* switch to GPIO mode, N-channel open-drain with pull-up */
+    R_IOPORT_PinCfg(&g_ioport_ctrl, PIN_SCL, (uint32_t)IOPORT_CFG_NMOS_ENABLE | (uint32_t)IOPORT_CFG_PORT_DIRECTION_OUTPUT | (uint32_t)IOPORT_CFG_PORT_OUTPUT_HIGH | (uint32_t)IOPORT_CFG_PULLUP_ENABLE);
+    R_IOPORT_PinCfg(&g_ioport_ctrl, PIN_SDA, (uint32_t)IOPORT_CFG_NMOS_ENABLE | (uint32_t)IOPORT_CFG_PORT_DIRECTION_OUTPUT | (uint32_t)IOPORT_CFG_PORT_OUTPUT_HIGH | (uint32_t)IOPORT_CFG_PULLUP_ENABLE);
 
-    if (ID_IAQ_DATA_PUSH == msgId)
-    {
-        payload_data.id = ID_IAQ_DATA_PUSH;
-        xQueueGenericSendFromISR (g_topic_queue, &payload_data, &xHigherPriorityTaskWokenByPost, queueSEND_TO_FRONT);
-        msgId = ID_OAQ_DATA_PUSH;
+    /* toggle SCL 9+ times */
+    for (uint32_t i = 0; i< 10; i++) {
+        R_IOPORT_PinWrite(&g_ioport_ctrl, PIN_SCL, BSP_IO_LEVEL_LOW);
+        R_BSP_SoftwareDelay(pinToggleDelay, BSP_DELAY_UNITS_MICROSECONDS);
+        R_IOPORT_PinWrite(&g_ioport_ctrl, PIN_SCL, BSP_IO_LEVEL_HIGH);
+        R_BSP_SoftwareDelay(pinToggleDelay, BSP_DELAY_UNITS_MICROSECONDS);
     }
-    else if (ID_OAQ_DATA_PUSH == msgId)
-    {
-        payload_data.id = ID_OAQ_DATA_PUSH;
-        xQueueGenericSendFromISR (g_topic_queue, &payload_data, &xHigherPriorityTaskWokenByPost, queueSEND_TO_FRONT);
-        msgId = ID_HS_DATA_PUSH;
-    }
-    else if (ID_HS_DATA_PUSH == msgId)
-    {
-        payload_data.id = ID_HS_DATA_PUSH;
-        xQueueGenericSendFromISR (g_topic_queue, &payload_data, &xHigherPriorityTaskWokenByPost, queueSEND_TO_FRONT);
-        msgId = ID_ICM_DATA_PUSH;
-    }
-    else if (ID_ICM_DATA_PUSH == msgId)
-    {
-        payload_data.id = ID_ICM_DATA_PUSH;
-        xQueueGenericSendFromISR (g_topic_queue, &payload_data, &xHigherPriorityTaskWokenByPost, queueSEND_TO_FRONT);
-        msgId = ID_ICP_DATA_PUSH;
-    }
-    else if (ID_ICP_DATA_PUSH == msgId)
-    {
-        payload_data.id = ID_ICP_DATA_PUSH;
-        xQueueGenericSendFromISR (g_topic_queue, &payload_data, &xHigherPriorityTaskWokenByPost, queueSEND_TO_FRONT);
-        msgId = ID_OB1203_DATA_PUSH;
-    }
-    else if (ID_OB1203_DATA_PUSH == msgId)
-    {
-        payload_data.id = ID_OB1203_DATA_PUSH;
-        xQueueGenericSendFromISR (g_topic_queue, &payload_data, &xHigherPriorityTaskWokenByPost, queueSEND_TO_FRONT);
-        msgId = ID_IAQ_DATA_PUSH;
-    }
-    else
-    {
-        /* Do nothing */
-    }
+
+    /* generate STOP condition (SDA going from LOW to HIGH when SCL is HIGH) */
+    R_IOPORT_PinWrite(&g_ioport_ctrl, PIN_SCL, BSP_IO_LEVEL_LOW);
+    R_BSP_SoftwareDelay(pinToggleDelay, BSP_DELAY_UNITS_MICROSECONDS);
+    R_IOPORT_PinWrite(&g_ioport_ctrl, PIN_SDA, BSP_IO_LEVEL_LOW);
+    R_BSP_SoftwareDelay(pinToggleDelay, BSP_DELAY_UNITS_MICROSECONDS);
+    R_IOPORT_PinWrite(&g_ioport_ctrl, PIN_SCL, BSP_IO_LEVEL_HIGH);
+    R_BSP_SoftwareDelay(pinToggleDelay, BSP_DELAY_UNITS_MICROSECONDS);
+    R_IOPORT_PinWrite(&g_ioport_ctrl, PIN_SDA, BSP_IO_LEVEL_HIGH);
+    R_BSP_SoftwareDelay(pinToggleDelay, BSP_DELAY_UNITS_MICROSECONDS);
+
+    /* switch back to peripheral mode */
+    R_IOPORT_PinCfg(&g_ioport_ctrl, PIN_SCL, (uint32_t)IOPORT_CFG_PERIPHERAL_PIN | (uint32_t)IOPORT_PERIPHERAL_IIC);
+    R_IOPORT_PinCfg(&g_ioport_ctrl, PIN_SDA, (uint32_t)IOPORT_CFG_PERIPHERAL_PIN | (uint32_t)IOPORT_PERIPHERAL_IIC);
 }
 
 /*******************************************************************************************************************//**
@@ -181,12 +163,12 @@ void sensor_thread_entry(void *pvParameters)
 
 #if  _HS3001_SENSOR_ENABLE_
     /* Open HS3001 */
-    g_hs300x_sensor0_quick_setup ();
+    Sensor_Hs3001Init();
 #endif
 
 #if  _ZMOD4410_SENSOR_ENABLE_
-    /* Open ZMOD4410 */
-    g_zmod4xxx_sensor0_quick_setup ();
+    /* Open IAQ ZMOD4410 */
+    Sensor_IaqInit();
 #endif
 
     /* Start sensing ZMOD 4410 sensor data */
@@ -194,14 +176,12 @@ void sensor_thread_entry(void *pvParameters)
 
 #if _ZMOD4510_SENSOR_ENABLE_
     /* Open ZMOD4510 */
-    g_zmod4xxx_sensor1_quick_setup ();
+    Sensor_OaqInit();
 #endif
 
 #if	_ICP10101_SENSOR_ENABLE_
     /* Initialize ICP10101 sensor */
-    RmComDevice_init ();
-    begin ();
-    measureStart (VERY_ACCURATE);
+    SensorIcp10101_Init();
 #endif
 
 #if _ICM20948_SENSOR_ENABLE_
@@ -214,24 +194,22 @@ void sensor_thread_entry(void *pvParameters)
     /* wait for application thread to finish MQTT connection */
     xTaskNotifyWait(pdFALSE, pdFALSE, (uint32_t* )&sensor_thread, portMAX_DELAY);
 
-    /* start user timer */
-    user_timer_start ();
     while (1)
     {
 
 #if _HS3001_SENSOR_ENABLE_
         /* Read HS3001 sensor data */
-        hs3001_get ();
+        Sensor_Hs3001MainFunction();
 #endif
 
 #if  _ICP10101_SENSOR_ENABLE_
         /* Read ICP10101 sensor data and send it to the queue */
-        send_icp_data_to_queue ();
+        SensorIcp10101_MainFunction();
 #endif
 
 #if _ZMOD4510_SENSOR_ENABLE_
         /* Read ZMOD4510 sensor data */
-        start_oaq_1st_gen ();
+        Sensor_OaqMainFunction();
 #endif
 
 #if _ICM20948_SENSOR_ENABLE_

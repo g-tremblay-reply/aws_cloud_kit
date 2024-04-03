@@ -28,11 +28,9 @@
 #include "queue.h"
 #include "task.h"
 #include "hal_data.h"
-#include "common_utils.h"
-#include "console.h"
+#include <console.h>
 #include "flash/flash_hp.h"
 #include "rm_hs300x.h"
-#include "console.h"
 
 extern int8_t g_selected_menu;
 static char_t s_print_buffer[BUFFER_LINE_LENGTH] = {};

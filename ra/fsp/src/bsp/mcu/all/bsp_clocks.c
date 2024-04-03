@@ -1836,7 +1836,7 @@ void bsp_clock_init (void)
     R_SYSTEM->SCKDIVCR2 = BSP_PRV_UCK_DIV << BSP_PRV_SCKDIVCR2_UCK_BIT;
   #endif                               /* BSP_FEATURE_BSP_HAS_USB_CLOCK_DIV && !BSP_FEATURE_BSP_HAS_USBCKDIVCR */
 
-    /* If there is a REQ bit in USBCKCR, then follow sequence from section 8.2.29 in RA6M4 hardware manual R01UH0890EJ0050. */
+    /* If there is a REQ bit in USBCKCR, then follow SensorOaqMeasurementState from section 8.2.29 in RA6M4 hardware manual R01UH0890EJ0050. */
   #if BSP_FEATURE_BSP_HAS_USB_CLOCK_REQ
 
     /* Request to change the USB Clock. */

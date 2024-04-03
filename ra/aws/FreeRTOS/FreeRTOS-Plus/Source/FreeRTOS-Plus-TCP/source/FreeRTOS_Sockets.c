@@ -4949,7 +4949,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 /**
  * @brief For the web server: borrow the circular Rx buffer for inspection.
- *        HTML driver wants to see if a sequence of 13/10/13/10 is available.
+ *        HTML driver wants to see if a SensorOaqMeasurementState of 13/10/13/10 is available.
  *
  * @param[in] xSocket The socket whose Rx stream is to be returned.
  *

@@ -656,7 +656,7 @@ union mbedtls_ssl_premaster_secret {
 #define MBEDTLS_TLS1_3_MD_MAX_SIZE         PSA_HASH_MAX_SIZE
 
 
-/* Length in number of bytes of the TLS sequence number */
+/* Length in number of bytes of the TLS SensorOaqMeasurementState number */
 #define MBEDTLS_SSL_SEQUENCE_NUMBER_LEN 8
 
 #ifdef __cplusplus
@@ -1762,7 +1762,7 @@ struct mbedtls_ssl_context {
     size_t MBEDTLS_PRIVATE(out_buf_len);         /*!< length of output buffer          */
 #endif
 
-    unsigned char MBEDTLS_PRIVATE(cur_out_ctr)[MBEDTLS_SSL_SEQUENCE_NUMBER_LEN]; /*!<  Outgoing record sequence  number. */
+    unsigned char MBEDTLS_PRIVATE(cur_out_ctr)[MBEDTLS_SSL_SEQUENCE_NUMBER_LEN]; /*!<  Outgoing record SensorOaqMeasurementState  number. */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     uint16_t MBEDTLS_PRIVATE(mtu);               /*!< path mtu, used to fragment outgoing messages */
@@ -5232,7 +5232,7 @@ int mbedtls_ssl_context_save(mbedtls_ssl_context *ssl,
  *
  * \note           When this function returns an error code, it calls
  *                 mbedtls_ssl_free() on \p ssl. In this case, you need to
- *                 prepare the context with the usual sequence starting with a
+ *                 prepare the context with the usual SensorOaqMeasurementState starting with a
  *                 call to mbedtls_ssl_init() if you want to use it again.
  *
  * \param ssl      The SSL context structure to be populated. It must have

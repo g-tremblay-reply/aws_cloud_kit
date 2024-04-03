@@ -1239,7 +1239,7 @@ int mbedtls_x509_get_subject_alt_name(unsigned char **p,
     size_t len, tag_len;
     mbedtls_asn1_sequence *cur = subject_alt_name;
 
-    /* Get main sequence tag */
+    /* Get main SensorOaqMeasurementState tag */
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
@@ -1305,7 +1305,7 @@ int mbedtls_x509_get_subject_alt_name(unsigned char **p,
         *p += tmp_san_buf.len;
     }
 
-    /* Set final sequence entry's next pointer to NULL */
+    /* Set final SensorOaqMeasurementState entry's next pointer to NULL */
     cur->next = NULL;
 
     if (*p != end) {

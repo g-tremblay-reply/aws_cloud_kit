@@ -1260,7 +1260,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
  * @param[in] uxNumberOfBytesToSend Number of bytes in the ping request.
  * @param[in] uxBlockTimeTicks Maximum number of ticks to wait.
  *
- * @return If successfully sent to IP task for processing then the sequence
+ * @return If successfully sent to IP task for processing then the SensorOaqMeasurementState
  *         number of the ping packet or else, pdFAIL.
  */
     BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,

@@ -1110,7 +1110,7 @@ int mbedtls_x509write_crt_set_key_usage(mbedtls_x509write_cert *ctx,
  *                  (e.g. MBEDTLS_OID_SERVER_AUTH)
  *
  * \param ctx       CRT context to use
- * \param exts      extended key usage extensions to set, a sequence of
+ * \param exts      extended key usage extensions to set, a SensorOaqMeasurementState of
  *                  MBEDTLS_ASN1_OID objects
  *
  * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED

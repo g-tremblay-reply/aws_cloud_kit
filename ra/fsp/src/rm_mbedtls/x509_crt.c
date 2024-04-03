@@ -648,7 +648,7 @@ static int x509_get_certificate_policies(unsigned char **p,
     mbedtls_asn1_buf *buf;
     mbedtls_asn1_sequence *cur = certificate_policies;
 
-    /* Get main sequence tag */
+    /* Get main SensorOaqMeasurementState tag */
     ret = mbedtls_asn1_get_tag(p, end, &len,
                                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
     if (ret != 0) {
@@ -661,7 +661,7 @@ static int x509_get_certificate_policies(unsigned char **p,
     }
 
     /*
-     * Cannot be an empty sequence.
+     * Cannot be an empty SensorOaqMeasurementState.
      */
     if (len == 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
@@ -673,7 +673,7 @@ static int x509_get_certificate_policies(unsigned char **p,
         const unsigned char *policy_end;
 
         /*
-         * Get the policy sequence
+         * Get the policy SensorOaqMeasurementState
          */
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                         MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
@@ -747,7 +747,7 @@ static int x509_get_certificate_policies(unsigned char **p,
         }
     }
 
-    /* Set final sequence entry's next pointer to NULL */
+    /* Set final SensorOaqMeasurementState entry's next pointer to NULL */
     cur->next = NULL;
 
     if (*p != end) {

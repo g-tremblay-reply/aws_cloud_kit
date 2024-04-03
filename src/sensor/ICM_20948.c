@@ -20,10 +20,12 @@
  **********************************************************************************************************************/
 
 #include "ICM_20948.h"
-#include "RmcI2C.h"
 #include "math.h"
-#include "common_utils.h"
+#include <console.h>
 
+#define I2C_TRANSMISSION_IN_PROGRESS        (0)
+#define I2C_TRANSMISSION_COMPLETE           (1)
+#define I2C_TRANSMISSION_ABORTED            (2)
 #define sq(x)  (x*x)
 #define M_PI        3.14159265358979323846
 
@@ -56,6 +58,171 @@ xyzFloat accCorrFactor;
 xyzFloat gyrOffsetVal;
 
 ICM20948_fifoType fifoType;
+static uint8_t transmit_complete_flag;
+
+void SensorIcm20948_GetData(xyzFloat *acc, xyzFloat *gval, xyzFloat *magnitude)
+{
+    *acc = corrAccRaw;
+    *gval = gVal;
+    *magnitude = magValue;
+}
+
+/*******************************************************************************************************************//**
+ * @brief   Send ICM data to the queue
+ * @param[in]   None
+ * @retval      None
+ ***********************************************************************************************************************/
+void send_icm_data_to_queue(void)
+{
+    /* Get value of ICM sensor */
+    ICM_20948_get(); //TODO revamp this as main function
+
+    /* Update value for icm_data variable */
+    /*g_icm_data.acc_data.x = corrAccRaw.x;
+    g_icm_data.acc_data.y = corrAccRaw.y;
+    g_icm_data.acc_data.z = corrAccRaw.z;
+    g_icm_data.gyr_data.x = gVal.x;
+    g_icm_data.gyr_data.y = gVal.y;
+    g_icm_data.gyr_data.z = gVal.z;
+    g_icm_data.mag_data.x = magValue.x;
+    g_icm_data.mag_data.y = magValue.y;
+    g_icm_data.mag_data.z = magValue.z;*/
+
+}
+
+/*******************************************************************************************************************//**
+ * @brief       Initialization of communication layer for ICM
+ * @param[in]
+ * @retval
+ * @retval
+ ***********************************************************************************************************************/
+void RmComDevice_init_Icm(void)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    err = g_comms_i2c_device5.p_api->open (g_comms_i2c_device5.p_ctrl, g_comms_i2c_device5.p_cfg);
+    if (FSP_SUCCESS != err)
+    {
+        APP_DBG_PRINT("\r\nICM20948 sensor open failed: %u\r\n", err);
+        APP_ERR_TRAP(err);
+    }
+    else
+    {
+        APP_PRINT("\r\nICM20948 sensor setup success\r\n");
+    }
+}
+
+/*******************************************************************************************************************//**
+ * @brief       RMComm I2C write
+ * @param[in]   register address, buffer pointer to store read data and number of bytes to read
+ * @retval      FSP_SUCCESS         Upon successful open and start of timer
+ * @retval      Any Other Error code apart from FSP_SUCCESS  Unsuccessful open
+ ***********************************************************************************************************************/
+fsp_err_t RmCom_I2C_w(uint8_t reg, uint8_t *val, uint8_t num)
+{
+    uint16_t timeout = 1000;
+    fsp_err_t err;
+    static uint8_t data[50];
+    data[0] = reg;
+    memcpy (&(data[1]), val, (size_t) num);
+    transmit_complete_flag = I2C_TRANSMISSION_IN_PROGRESS;
+    err = g_comms_i2c_device5.p_api->write (g_comms_i2c_device5.p_ctrl, data, (uint32_t) (num + 1));
+    if (err == FSP_SUCCESS)
+    {
+        while (transmit_complete_flag == I2C_TRANSMISSION_IN_PROGRESS)
+        {
+            if (--timeout == 0)
+            {
+                break;
+            }
+            vTaskDelay (1);
+        }
+
+        transmit_complete_flag = I2C_TRANSMISSION_IN_PROGRESS;
+    }
+
+    if (transmit_complete_flag == I2C_TRANSMISSION_ABORTED)
+    {
+        err = FSP_ERR_ABORTED;
+    }
+    return err;
+}
+
+/*******************************************************************************************************************//**
+ * @brief       I2C callback for ICM sensor
+ * @param[in]   p_args
+ * @retval
+ * @retval
+ ***********************************************************************************************************************/
+void ICM_comms_i2c_callback(rm_comms_callback_args_t *p_args)
+{
+    if (p_args->event == RM_COMMS_EVENT_OPERATION_COMPLETE)
+    {
+        transmit_complete_flag = I2C_TRANSMISSION_COMPLETE;
+    }
+    else
+    {
+        transmit_complete_flag = I2C_TRANSMISSION_ABORTED;
+    }
+}
+
+/*******************************************************************************************************************//**
+ * @brief       RMComm I2C read
+ * @param[in]   register address, buffer pointer to store read data and number of to read
+ * @retval      FSP_SUCCESS         Upon successful open and start of timer
+ * @retval      Any Other Error code apart from FSP_SUCCESS  Unsuccessful open
+ ***********************************************************************************************************************/
+fsp_err_t RmCom_I2C_r(uint8_t reg, uint8_t *val, uint8_t num)
+{
+    uint16_t timeout = 1000;
+    fsp_err_t err;
+    transmit_complete_flag = I2C_TRANSMISSION_IN_PROGRESS;
+    rm_comms_write_read_params_t write_read_params;
+    write_read_params.p_src = &reg;
+    write_read_params.src_bytes = 1;
+    write_read_params.p_dest = val;
+    write_read_params.dest_bytes = (uint8_t) num;
+    err = g_comms_i2c_device5.p_api->writeRead (g_comms_i2c_device5.p_ctrl, write_read_params);
+    if (err == FSP_SUCCESS)
+    {
+        while (transmit_complete_flag == I2C_TRANSMISSION_IN_PROGRESS)
+        {
+            if (--timeout == 0)
+            {
+                break;
+            }
+            vTaskDelay (1);
+        }
+
+        transmit_complete_flag = I2C_TRANSMISSION_IN_PROGRESS;
+    }
+
+    if (transmit_complete_flag == I2C_TRANSMISSION_ABORTED)
+    {
+        err = FSP_ERR_ABORTED;
+    }
+    return err;
+}
+
+/*******************************************************************************************************************//**
+ * @brief       Initialization of ICM20948 sensor
+ * @param[in]
+ * @retval
+ * @retval
+ ***********************************************************************************************************************/
+void ICM20948_Sensor_init(void)
+{
+    whoAmI ();
+    icm20948_init ();
+    initMagnetometer ();
+    R_BSP_SoftwareDelay (1000, BSP_DELAY_UNITS_MILLISECONDS);
+    autoOffsets ();
+    setMagOpMode (AK09916_CONT_MODE_20HZ);
+    setAccRange (ICM20948_ACC_RANGE_4G);
+    setAccDLPF (ICM20948_DLPF_6);
+    setAccSampleRateDivider (10);
+    setGyrRange (ICM20948_GYRO_RANGE_250);
+    setGyrDLPF (ICM20948_DLPF_6);
+}
 
 /**************************************************************************************
  * @brief     Get ICM_20948 Motion Tracking sensor data
@@ -154,7 +321,7 @@ void autoOffsets(void)
         gyrOffsetVal.x += gyrRawVal.x;
         gyrOffsetVal.y += gyrRawVal.y;
         gyrOffsetVal.z += gyrRawVal.z;
-        _delay (1);
+        R_BSP_SoftwareDelay (1, BSP_DELAY_UNITS_MILLISECONDS);
     }
 
     gyrOffsetVal.x /= 50;

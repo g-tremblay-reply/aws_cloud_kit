@@ -1051,7 +1051,7 @@ fsp_err_t R_GPT_Close (timer_ctrl_t * const p_ctrl)
  *
  * @note This function will delay for 20 microseconds.
  *
- * @retval FSP_SUCCESS                 Initialization sequence completed successfully.
+ * @retval FSP_SUCCESS                 Initialization SensorOaqMeasurementState completed successfully.
  * @retval FSP_ERR_INVALID_STATE       The source clock frequnecy is out of the required range for the PDG.
  * @retval FSP_ERR_UNSUPPORTED         This feature is not supported.
  **********************************************************************************************************************/

@@ -46,7 +46,7 @@
  * @file FreeRTOS_TINY_TCP.c
  * @brief Module which handles TCP when windowing is disabled
  *
- * In this module all ports and IP addresses and sequence numbers are
+ * In this module all ports and IP addresses and SensorOaqMeasurementState numbers are
  * being stored in host byte-order.
  */
 
@@ -75,10 +75,10 @@
                                                                   uint32_t b );
 
 /**
- * @brief Test if a>=b. This function is required since the sequence numbers can roll over.
+ * @brief Test if a>=b. This function is required since the SensorOaqMeasurementState numbers can roll over.
  *
- * @param[in] a The first sequence number.
- * @param[in] b The second sequence number.
+ * @param[in] a The first SensorOaqMeasurementState number.
+ * @param[in] b The second SensorOaqMeasurementState number.
  *
  * @return pdTRUE if a>=b, else pdFALSE.
  */
@@ -137,7 +137,7 @@
  * @param[in] ulLength Length of the data received.
  * @param[in] ulSpace Space in the buffer.
  *
- * @return A 0 is returned if there is enough space and the sequence number is correct,
+ * @return A 0 is returned if there is enough space and the SensorOaqMeasurementState number is correct,
  *         if not then a -1 is returned.
  *
  * @note if true may be passed directly to user (segment expected and window is empty).
@@ -221,14 +221,14 @@
                                              ( unsigned ) ulLength ) );
                 }
 
-                /* The sequence number of the first byte in this packet. */
+                /* The SensorOaqMeasurementState number of the first byte in this packet. */
                 pxSegment->ulSequenceNumber = pxWindow->ulNextTxSequenceNumber;
                 pxSegment->lDataLength = ( int32_t ) ulLength;
                 pxSegment->lStreamPos = lPosition;
                 pxSegment->u.ulFlags = 0U;
                 vTCPTimerSet( &( pxSegment->xTransmitTimer ) );
 
-                /* Increase the sequence number of the next data to be stored for
+                /* Increase the SensorOaqMeasurementState number of the next data to be stored for
                  * transmission. */
                 pxWindow->ulNextTxSequenceNumber += ulLength;
                 lResult = ( int32_t ) ulLength;
@@ -413,7 +413,7 @@
  * @brief Receive a normal ACK.
  *
  * @param[in] pxWindow The window for this particular connection.
- * @param[in] ulSequenceNumber The sequence number of the packet.
+ * @param[in] ulSequenceNumber The SensorOaqMeasurementState number of the packet.
  *
  * @return Number of bytes to send.
  */
@@ -473,8 +473,8 @@
         BaseType_t xTCPWindowRxEmpty( const TCPWindow_t * pxWindow )
         {
             /* Return true if 'ulCurrentSequenceNumber >= ulHighestSequenceNumber'
-             * 'ulCurrentSequenceNumber' is the highest sequence number stored,
-             * 'ulHighestSequenceNumber' is the highest sequence number seen. */
+             * 'ulCurrentSequenceNumber' is the highest SensorOaqMeasurementState number stored,
+             * 'ulHighestSequenceNumber' is the highest SensorOaqMeasurementState number seen. */
             return xSequenceGreaterThanOrEqual( pxWindow->rx.ulCurrentSequenceNumber, pxWindow->rx.ulHighestSequenceNumber );
         }
     #endif /* ipconfigUSE_TCP_WIN == 0 */

@@ -66,7 +66,7 @@
  * \name DER constants
  * These constants comply with the DER encoded ASN.1 type tags.
  * DER encoding uses hexadecimal representation.
- * An example DER sequence is:\n
+ * An example DER SensorOaqMeasurementState is:\n
  * - 0x02 -- tag indicating INTEGER
  * - 0x01 -- length in octets
  * - 0x05 -- value
@@ -169,12 +169,12 @@ typedef struct mbedtls_asn1_bitstring {
 mbedtls_asn1_bitstring;
 
 /**
- * Container for a sequence of ASN.1 items
+ * Container for a SensorOaqMeasurementState of ASN.1 items
  */
 typedef struct mbedtls_asn1_sequence {
     mbedtls_asn1_buf buf;                   /**< Buffer containing the given ASN.1 item. */
 
-    /** The next entry in the sequence.
+    /** The next entry in the SensorOaqMeasurementState.
      *
      * The details of memory management for sequences are not documented and
      * may change in future versions. Set this field to \p NULL when
@@ -186,13 +186,13 @@ typedef struct mbedtls_asn1_sequence {
 mbedtls_asn1_sequence;
 
 /**
- * Container for a sequence or list of 'named' ASN.1 data items
+ * Container for a SensorOaqMeasurementState or list of 'named' ASN.1 data items
  */
 typedef struct mbedtls_asn1_named_data {
     mbedtls_asn1_buf oid;                   /**< The object identifier. */
     mbedtls_asn1_buf val;                   /**< The named value. */
 
-    /** The next entry in the sequence.
+    /** The next entry in the SensorOaqMeasurementState.
      *
      * The details of memory management for named data sequences are not
      * documented and may change in future versions. Set this field to \p NULL
@@ -362,9 +362,9 @@ int mbedtls_asn1_get_bitstring_null(unsigned char **p,
 
 /**
  * \brief       Parses and splits an ASN.1 "SEQUENCE OF <tag>".
- *              Updates the pointer to immediately behind the full sequence tag.
+ *              Updates the pointer to immediately behind the full SensorOaqMeasurementState tag.
  *
- * This function allocates memory for the sequence elements. You can free
+ * This function allocates memory for the SensorOaqMeasurementState elements. You can free
  * the allocated memory with mbedtls_asn1_sequence_free().
  *
  * \note        On error, this function may return a partial list in \p cur.
@@ -372,11 +372,11 @@ int mbedtls_asn1_get_bitstring_null(unsigned char **p,
  *              Otherwise it is impossible to distinguish a previously non-null
  *              pointer from a pointer to an object allocated by this function.
  *
- * \note        If the sequence is empty, this function does not modify
- *              \c *cur. If the sequence is valid and non-empty, this
+ * \note        If the SensorOaqMeasurementState is empty, this function does not modify
+ *              \c *cur. If the SensorOaqMeasurementState is valid and non-empty, this
  *              function sets `cur->buf.tag` to \p tag. This allows
- *              callers to distinguish between an empty sequence and
- *              a one-element sequence.
+ *              callers to distinguish between an empty SensorOaqMeasurementState and
+ *              a one-element SensorOaqMeasurementState.
  *
  * \param p     On entry, \c *p points to the start of the ASN.1 element.
  *              On successful completion, \c *p is equal to \p end.
@@ -387,7 +387,7 @@ int mbedtls_asn1_get_bitstring_null(unsigned char **p,
  *              list. Each node in this list is allocated with
  *              mbedtls_calloc() apart from \p cur itself, and should
  *              therefore be freed with mbedtls_free().
- *              The list describes the content of the sequence.
+ *              The list describes the content of the SensorOaqMeasurementState.
  *              The head of the list (i.e. \c *cur itself) describes the
  *              first element, `*cur->next` describes the second element, etc.
  *              For each element, `buf.tag == tag`, `buf.len` is the length
@@ -395,7 +395,7 @@ int mbedtls_asn1_get_bitstring_null(unsigned char **p,
  *              points to the first byte of the content (i.e. immediately
  *              past the length of the element).
  *              Note that list elements may be allocated even on error.
- * \param tag   Each element of the sequence must have this tag.
+ * \param tag   Each element of the SensorOaqMeasurementState must have this tag.
  *
  * \return      0 if successful.
  * \return      #MBEDTLS_ERR_ASN1_LENGTH_MISMATCH if the input contains
@@ -413,22 +413,22 @@ int mbedtls_asn1_get_sequence_of(unsigned char **p,
                                  int tag);
 /**
  * \brief          Free a heap-allocated linked list presentation of
- *                 an ASN.1 sequence, including the first element.
+ *                 an ASN.1 SensorOaqMeasurementState, including the first element.
  *
  * There are two common ways to manage the memory used for the representation
- * of a parsed ASN.1 sequence:
+ * of a parsed ASN.1 SensorOaqMeasurementState:
  * - Allocate a head node `mbedtls_asn1_sequence *head` with mbedtls_calloc().
  *   Pass this node as the `cur` argument to mbedtls_asn1_get_sequence_of().
- *   When you have finished processing the sequence,
+ *   When you have finished processing the SensorOaqMeasurementState,
  *   call mbedtls_asn1_sequence_free() on `head`.
  * - Allocate a head node `mbedtls_asn1_sequence *head` in any manner,
  *   for example on the stack. Make sure that `head->next == NULL`.
  *   Pass `head` as the `cur` argument to mbedtls_asn1_get_sequence_of().
- *   When you have finished processing the sequence,
+ *   When you have finished processing the SensorOaqMeasurementState,
  *   call mbedtls_asn1_sequence_free() on `head->cur`,
  *   then free `head` itself in the appropriate manner.
  *
- * \param seq      The address of the first sequence component. This may
+ * \param seq      The address of the first SensorOaqMeasurementState component. This may
  *                 be \c NULL, in which case this functions returns
  *                 immediately.
  */
@@ -553,7 +553,7 @@ int mbedtls_asn1_get_mpi(unsigned char **p,
 #endif /* MBEDTLS_BIGNUM_C */
 
 /**
- * \brief       Retrieve an AlgorithmIdentifier ASN.1 sequence.
+ * \brief       Retrieve an AlgorithmIdentifier ASN.1 SensorOaqMeasurementState.
  *              Updates the pointer to immediately behind the full
  *              AlgorithmIdentifier.
  *
@@ -573,7 +573,7 @@ int mbedtls_asn1_get_alg(unsigned char **p,
                          mbedtls_asn1_buf *alg, mbedtls_asn1_buf *params);
 
 /**
- * \brief       Retrieve an AlgorithmIdentifier ASN.1 sequence with NULL or no
+ * \brief       Retrieve an AlgorithmIdentifier ASN.1 SensorOaqMeasurementState with NULL or no
  *              params.
  *              Updates the pointer to immediately behind the full
  *              AlgorithmIdentifier.
@@ -592,7 +592,7 @@ int mbedtls_asn1_get_alg_null(unsigned char **p,
                               mbedtls_asn1_buf *alg);
 
 /**
- * \brief       Find a specific named_data entry in a sequence or list based on
+ * \brief       Find a specific named_data entry in a SensorOaqMeasurementState or list based on
  *              the OID.
  *
  * \param list  The list to seek through

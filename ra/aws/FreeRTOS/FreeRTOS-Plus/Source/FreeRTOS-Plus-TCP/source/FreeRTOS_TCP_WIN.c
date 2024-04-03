@@ -32,7 +32,7 @@
  * functions have two versions - one for FreeRTOS+TCP (full) and one for
  * FreeRTOS+TCP (lite).
  *
- * In this module all ports and IP addresses and sequence numbers are
+ * In this module all ports and IP addresses and SensorOaqMeasurementState numbers are
  * being stored in host byte-order.
  */
 
@@ -68,7 +68,7 @@
 
 /** @brief The code to send a single Selective ACK (SACK):
  * NOP (0x01), NOP (0x01), SACK (0x05), LEN (0x0a),
- * followed by a lower and a higher sequence number,
+ * followed by a lower and a higher SensorOaqMeasurementState number,
  * where LEN is 2 + 2*4 = 10 bytes. */
         #if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
             #define OPTION_CODE_SINGLE_SACK    ( 0x0101050aU )
@@ -79,7 +79,7 @@
 /** @brief Normal retransmission:
  * A packet will be retransmitted after a Retransmit Time-Out (RTO).
  * Fast retransmission:
- * When 3 packets with a higher sequence number have been acknowledged
+ * When 3 packets with a higher SensorOaqMeasurementState number have been acknowledged
  * by the peer, it is very unlikely a current packet will ever arrive.
  * It will be retransmitted far before the RTO.
  */
@@ -112,7 +112,7 @@
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 
 /*
- * Find a segment with a given sequence number in the list of received
+ * Find a segment with a given SensorOaqMeasurementState number in the list of received
  * segments: 'pxWindow->xRxSegments'.
  */
     #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -155,12 +155,12 @@
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 
 /*
- * A segment has been received with sequence number 'ulSequenceNumber', where
+ * A segment has been received with SensorOaqMeasurementState number 'ulSequenceNumber', where
  * 'ulCurrentSequenceNumber == ulSequenceNumber', which means that exactly this
  * segment was expected.  xTCPWindowRxConfirm() will check if there is already
- * another segment with a sequence number between (ulSequenceNumber) and
+ * another segment with a SensorOaqMeasurementState number between (ulSequenceNumber) and
  * (ulSequenceNumber+xLength).  Normally none will be found, because the next Rx
- * segment should have a sequence number equal to '(ulSequenceNumber+xLength)'.
+ * segment should have a SensorOaqMeasurementState number equal to '(ulSequenceNumber+xLength)'.
  */
     #if ( ipconfigUSE_TCP_WIN == 1 )
         static TCPSegment_t * xTCPWindowRxConfirm( const TCPWindow_t * pxWindow,
@@ -224,7 +224,7 @@
     #endif
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
-        /* Some 32-bit arithmetic: comparing sequence numbers */
+        /* Some 32-bit arithmetic: comparing SensorOaqMeasurementState numbers */
         static portINLINE BaseType_t xSequenceLessThanOrEqual( uint32_t a,
                                                                uint32_t b );
 
@@ -307,10 +307,10 @@
                                                               uint32_t b );
 
 /**
- * @brief Test if a>=b. This function is required since the sequence numbers can roll over.
+ * @brief Test if a>=b. This function is required since the SensorOaqMeasurementState numbers can roll over.
  *
- * @param[in] a The first sequence number.
- * @param[in] b The second sequence number.
+ * @param[in] a The first SensorOaqMeasurementState number.
+ * @param[in] b The second SensorOaqMeasurementState number.
  *
  * @return pdTRUE if a>=b, else pdFALSE.
  */
@@ -470,10 +470,10 @@
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
 /**
- * @brief Find a segment with a given sequence number in the list of received segments.
+ * @brief Find a segment with a given SensorOaqMeasurementState number in the list of received segments.
  *
  * @param[in] pxWindow The descriptor of the TCP sliding windows.
- * @param[in] ulSequenceNumber the sequence number to look-up
+ * @param[in] ulSequenceNumber the SensorOaqMeasurementState number to look-up
  *
  * @return The address of the segment descriptor found, or NULL when not found.
  */
@@ -484,7 +484,7 @@
             const ListItem_t * pxEnd;
             TCPSegment_t * pxSegment, * pxReturn = NULL;
 
-            /* Find a segment with a given sequence number in the list of received
+            /* Find a segment with a given SensorOaqMeasurementState number in the list of received
              * segments. */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -516,7 +516,7 @@
  * @brief Allocate a new segment object, either for transmission or reception.
  *
  * @param[in] pxWindow The descriptor of the TCP sliding windows.
- * @param[in] ulSequenceNumber The sequence number.
+ * @param[in] ulSequenceNumber The SensorOaqMeasurementState number.
  * @param[in] lCount The number of bytes stored in this segment.
  * @param[in] xIsForRx True when this is a reception segment.
  *
@@ -605,7 +605,7 @@
              * if there are missing packets in the Rx-queue.  It will accept the
              * closure of the connection if both conditions are true:
              * - the Rx-queue is empty
-             * - the highest Rx sequence number has been ACK'ed */
+             * - the highest Rx SensorOaqMeasurementState number has been ACK'ed */
             if( listLIST_IS_EMPTY( ( &pxWindow->xRxSegments ) ) == pdFALSE )
             {
                 /* Rx data has been stored while earlier packets were missing. */
@@ -613,7 +613,7 @@
             }
             else if( xSequenceGreaterThanOrEqual( pxWindow->rx.ulCurrentSequenceNumber + 1U, pxWindow->rx.ulHighestSequenceNumber ) != pdFALSE )
             {
-                /* No Rx packets are being stored and the highest sequence number
+                /* No Rx packets are being stored and the highest SensorOaqMeasurementState number
                  * that has been received has been ACKed. */
                 xReturn = pdTRUE;
             }
@@ -774,7 +774,7 @@
  * @param[in] ulRxWindowLength The length of the receive window.
  * @param[in] ulTxWindowLength The length of the transmit window.
  * @param[in] ulAckNumber The first ACK number.
- * @param[in] ulSequenceNumber The first sequence number.
+ * @param[in] ulSequenceNumber The first SensorOaqMeasurementState number.
  * @param[in] ulMSS The MSS of the connection.
  */
     void vTCPWindowCreate( TCPWindow_t * pxWindow,
@@ -820,7 +820,7 @@
  *
  * @param[in] pxWindow The window to be initialised.
  * @param[in] ulAckNumber The number of the first ACK.
- * @param[in] ulSequenceNumber The first sequence number.
+ * @param[in] ulSequenceNumber The first SensorOaqMeasurementState number.
  * @param[in] ulMSS The MSS of the connection.
  */
     void vTCPWindowInit( TCPWindow_t * pxWindow,
@@ -856,7 +856,7 @@
         /*Start with a timeout of 2 * 500 ms (1 sec). */
         pxWindow->lSRTT = l500ms;
 
-        /* Just for logging, to print relative sequence numbers. */
+        /* Just for logging, to print relative SensorOaqMeasurementState numbers. */
         pxWindow->rx.ulFirstSequenceNumber = ulAckNumber;
 
         /* The segment asked for in the next transmission. */
@@ -870,7 +870,7 @@
         /* The segment asked for in next transmission. */
         pxWindow->tx.ulCurrentSequenceNumber = ulSequenceNumber;
 
-        /* The sequence number given to the next outgoing byte to be added is
+        /* The SensorOaqMeasurementState number given to the next outgoing byte to be added is
          * maintained by lTCPWindowTxAdd(). */
         pxWindow->ulNextTxSequenceNumber = ulSequenceNumber;
 
@@ -920,7 +920,7 @@
  * @brief A expected segment has been received, see if there is overlap with earlier segments.
  *
  * @param[in] pxWindow The descriptor of the TCP sliding windows.
- * @param[in] ulSequenceNumber The sequence number of the segment that was received.
+ * @param[in] ulSequenceNumber The SensorOaqMeasurementState number of the segment that was received.
  * @param[in] ulLength The number of bytes that were received.
  *
  * @return The first segment descriptor involved, or NULL when no matching descriptor was found.
@@ -939,12 +939,12 @@
             const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
             TCPSegment_t * pxSegment;
 
-            /* A segment has been received with sequence number 'ulSequenceNumber',
+            /* A segment has been received with SensorOaqMeasurementState number 'ulSequenceNumber',
              * where 'ulCurrentSequenceNumber == ulSequenceNumber', which means that
              * exactly this segment was expected.  xTCPWindowRxConfirm() will check if
-             * there is already another segment with a sequence number between (ulSequenceNumber)
+             * there is already another segment with a SensorOaqMeasurementState number between (ulSequenceNumber)
              * and (ulSequenceNumber+ulLength).  Normally none will be found, because
-             * the next RX segment should have a sequence number equal to
+             * the next RX segment should have a SensorOaqMeasurementState number equal to
              * '(ulSequenceNumber+ulLength)'. */
 
             /* Iterate through all RX segments that are stored: */
@@ -956,7 +956,7 @@
 
                 /* And see if there is a segment for which:
                  * 'ulSequenceNumber' <= 'pxSegment->ulSequenceNumber' < 'ulNextSequenceNumber'
-                 * If there are more matching segments, the one with the lowest sequence number
+                 * If there are more matching segments, the one with the lowest SensorOaqMeasurementState number
                  * shall be taken */
                 if( ( xSequenceGreaterThanOrEqual( pxSegment->ulSequenceNumber, ulSequenceNumber ) != 0 ) &&
                     ( xSequenceLessThan( pxSegment->ulSequenceNumber, ulNextSequenceNumber ) != 0 ) )
@@ -989,7 +989,7 @@
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
 /**
- * @brief Data has been received with the correct ( expected  ) sequence number.
+ * @brief Data has been received with the correct ( expected  ) SensorOaqMeasurementState number.
  *        It can be added to the RX stream buffer.
  * @param[in] pxWindow The TCP sliding window data of the socket.
  * @param[in] ulLength The number of bytes that can be added.
@@ -1005,7 +1005,7 @@
                 uint32_t ulSavedSequenceNumber = ulCurrentSequenceNumber;
                 TCPSegment_t * pxFound;
 
-                /* Clean up all sequence received between ulSequenceNumber and ulSequenceNumber + ulLength since they are duplicated.
+                /* Clean up all SensorOaqMeasurementState received between ulSequenceNumber and ulSequenceNumber + ulLength since they are duplicated.
                  * If the server is forced to retransmit packets several time in a row it might send a batch of concatenated packet for speed.
                  * So we cannot rely on the packets between ulSequenceNumber and ulSequenceNumber + ulLength to be sequential and it is better to just
                  * clean them out. */
@@ -1065,10 +1065,10 @@
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
 /**
- * @brief Data has been received with a non-expected sequence number.
+ * @brief Data has been received with a non-expected SensorOaqMeasurementState number.
  *        This function will check if the RX data can be accepted.
  * @param[in] pxWindow The TCP sliding window data of the socket.
- * @param[in] ulSequenceNumber The sequence number at which the data should be placed.
+ * @param[in] ulSequenceNumber The SensorOaqMeasurementState number at which the data should be placed.
  * @param[in] ulLength The number of bytes that can be added.
  * @return Return -1 if the data must be refused, otherwise it returns the
  *         offset ( from the head ) at which the data can be placed.
@@ -1116,7 +1116,7 @@
              * Code OPTION_CODE_SINGLE_SACK already in network byte order. */
             pxWindow->ulOptionsData[ 0 ] = OPTION_CODE_SINGLE_SACK;
 
-            /* First sequence number that we received. */
+            /* First SensorOaqMeasurementState number that we received. */
             pxWindow->ulOptionsData[ 1 ] = FreeRTOS_htonl( ulSequenceNumber );
 
             /* Last + 1 */
@@ -1129,7 +1129,7 @@
 
             if( pxFound != NULL )
             {
-                /* This out-of-sequence packet has been received for a
+                /* This out-of-SensorOaqMeasurementState packet has been received for a
                  * second time.  It is already stored but do send a SACK
                  * again. */
                 /* A negative value will be returned to indicate than error. */
@@ -1179,7 +1179,7 @@
  * @brief Check what to do with a new incoming packet: store or ignore.
  *
  * @param[in] pxWindow The descriptor of the TCP sliding windows.
- * @param[in] ulSequenceNumber The sequence number of the packet received.
+ * @param[in] ulSequenceNumber The SensorOaqMeasurementState number of the packet received.
  * @param[in] ulLength The number of bytes received.
  * @param[in] ulSpace The available space in the RX stream buffer.
  * @param[out] pulSkipCount the number of bytes to skip in the receive buffer.
@@ -1233,7 +1233,7 @@
                                          ( unsigned ) ulRxLength,
                                          ( unsigned ) ( ulRxSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
                                          ( int ) lLastDistance ) );
-                /* Increase the sequence number, decrease the length. */
+                /* Increase the SensorOaqMeasurementState number, decrease the length. */
                 ulRxSequenceNumber += ( uint32_t ) ( -lStartDistance );
                 ulRxLength += ( uint32_t ) lStartDistance;
 
@@ -1242,7 +1242,7 @@
                 *( pulSkipCount ) = ( uint32_t ) ( -lStartDistance );
             }
 
-            /* For Selective Ack (SACK), used when out-of-sequence data come in. */
+            /* For Selective Ack (SACK), used when out-of-SensorOaqMeasurementState data come in. */
             pxWindow->ucOptionLength = 0U;
 
             /* Non-zero if TCP-windows contains data which must be popped. */
@@ -1250,7 +1250,7 @@
 
             if( ulCurrentSequenceNumber == ulRxSequenceNumber )
             {
-                /* This is the packet with the lowest sequence number we're waiting
+                /* This is the packet with the lowest SensorOaqMeasurementState number we're waiting
                  * for.  It can be passed directly to the rx stream. */
                 if( ulRxLength > ulSpace )
                 {
@@ -1274,7 +1274,7 @@
                 /* The packet is not the one expected.  See if it falls within the Rx
                  * window so it can be stored. */
 
-                /*  An "out-of-sequence" segment was received, must have missed one.
+                /*  An "out-of-SensorOaqMeasurementState" segment was received, must have missed one.
                  * Prepare a SACK (Selective ACK). */
 
                 if( lLastDistance <= 0 )
@@ -1286,7 +1286,7 @@
                 else if( lLastDistance > ( int32_t ) ulSpace )
                 {
                     /* The new segment is ahead of rx.ulCurrentSequenceNumber.  The
-                     * sequence number of this packet is too far ahead, ignore it. */
+                     * SensorOaqMeasurementState number of this packet is too far ahead, ignore it. */
                     FreeRTOS_debug_printf( ( "lTCPWindowRxCheck: Refuse %d+%u bytes, due to lack of space (%u)\n",
                                              ( int ) lLastDistance,
                                              ( unsigned ) ulRxLength,
@@ -1358,7 +1358,7 @@
  *        will be filled-up to a maximum of MSS ( maximum segment size ).
  *
  * @param[in] pxWindow The descriptor of the TCP sliding windows.
- * @param[in] pxSegment The TX segment with the highest sequence number,
+ * @param[in] pxSegment The TX segment with the highest SensorOaqMeasurementState number,
  *                       i.e. the "front segment".
  * @param[in] lBytesLeft The number of bytes that must be added.
  *
@@ -1378,7 +1378,7 @@
                 pxWindow->pxHeadSegment = NULL;
             }
 
-            /* ulNextTxSequenceNumber is the sequence number of the next byte to
+            /* ulNextTxSequenceNumber is the SensorOaqMeasurementState number of the next byte to
              * be stored for transmission. */
             pxWindow->ulNextTxSequenceNumber += ( uint32_t ) lToWrite;
 
@@ -1697,7 +1697,7 @@
                     /* Some detailed logging. */
                     if( ( xTCPWindowLoggingLevel != 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) ) )
                     {
-                        FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u,%u]: WaitQueue %d bytes for sequence number %u (0x%X)\n",
+                        FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u,%u]: WaitQueue %d bytes for SensorOaqMeasurementState number %u (0x%X)\n",
                                                  pxWindow->usPeerPortNumber,
                                                  pxWindow->usOurPortNumber,
                                                  ( int ) pxSegment->lDataLength,
@@ -1763,14 +1763,14 @@
                     pxWindow->pxHeadSegment = NULL;
                 }
 
-                /* pxWindow->tx.highest registers the highest sequence
+                /* pxWindow->tx.highest registers the highest SensorOaqMeasurementState
                  * number in our transmission window. */
                 pxWindow->tx.ulHighestSequenceNumber = pxSegment->ulSequenceNumber + ( ( uint32_t ) pxSegment->lDataLength );
 
                 /* ...and more detailed logging */
                 if( ( xTCPWindowLoggingLevel >= 2 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) ) )
                 {
-                    FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u,%u]: XmitQueue %d bytes for sequence number %u (ws %u)\n",
+                    FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u,%u]: XmitQueue %d bytes for SensorOaqMeasurementState number %u (ws %u)\n",
                                              pxWindow->usPeerPortNumber,
                                              pxWindow->usOurPortNumber,
                                              ( int ) pxSegment->lDataLength,
@@ -1817,7 +1817,7 @@
                  * space or timeouts. */
                 if( xTCPWindowLoggingLevel != 0 )
                 {
-                    FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u,%u]: PrioQueue %d bytes for sequence number %u (ws %u)\n",
+                    FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u,%u]: PrioQueue %d bytes for SensorOaqMeasurementState number %u (ws %u)\n",
                                              pxWindow->usPeerPortNumber,
                                              pxWindow->usOurPortNumber,
                                              ( int ) pxSegment->lDataLength,
@@ -1932,8 +1932,8 @@
  *        Note that the segments are stored in xTxSegments in a strict sequential order.
  *
  * @param[in] pxWindow The TCP-window object of the current connection.
- * @param[in] ulFirst The sequence number of the first byte that was acknowledged.
- * @param[in] ulLast The sequence number of the last byte ( minus one ) that was acknowledged.
+ * @param[in] ulFirst The SensorOaqMeasurementState number of the first byte that was acknowledged.
+ * @param[in] ulLast The SensorOaqMeasurementState number of the last byte ( minus one ) that was acknowledged.
  *
  * @return number of bytes that the tail of txStream may be advanced.
  */
@@ -2012,7 +2012,7 @@
                         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
                             {
                                 uint32_t ulFirstSeq = pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber;
-                                FreeRTOS_debug_printf( ( "prvTCPWindowTxCheckAck[%u.%u]: %u - %u Partial sequence number %u - %u\n",
+                                FreeRTOS_debug_printf( ( "prvTCPWindowTxCheckAck[%u.%u]: %u - %u Partial SensorOaqMeasurementState number %u - %u\n",
                                                          pxWindow->usPeerPortNumber,
                                                          pxWindow->usOurPortNumber,
                                                          ( unsigned ) ( ulFirstSeq - pxWindow->tx.ulFirstSequenceNumber ),
@@ -2046,7 +2046,7 @@
                 {
                     if( ( xTCPWindowLoggingLevel >= 2 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) ) )
                     {
-                        FreeRTOS_debug_printf( ( "prvTCPWindowTxCheckAck: %u - %u Ready sequence number %u\n",
+                        FreeRTOS_debug_printf( ( "prvTCPWindowTxCheckAck: %u - %u Ready SensorOaqMeasurementState number %u\n",
                                                  ( unsigned ) ( ulFirst - pxWindow->tx.ulFirstSequenceNumber ),
                                                  ( unsigned ) ( ulLast - pxWindow->tx.ulFirstSequenceNumber ),
                                                  ( unsigned ) ( pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ) ) );
@@ -2086,7 +2086,7 @@
  * @brief See if there are segments that need a fast retransmission.
  *
  * @param[in] pxWindow The descriptor of the TCP sliding windows.
- * @param[in] ulFirst The sequence number of the first segment that must be checked.
+ * @param[in] ulFirst The SensorOaqMeasurementState number of the first segment that must be checked.
  *
  * @return The number of segments that need a fast retransmission.
  */
@@ -2117,7 +2117,7 @@
                 pxIterator = listGET_NEXT( pxIterator );
 
                 /* Fast retransmission:
-                 * When 3 packets with a higher sequence number have been acknowledged
+                 * When 3 packets with a higher SensorOaqMeasurementState number have been acknowledged
                  * by the peer, it is very unlikely a current packet will ever arrive.
                  * It will be retransmitted far before the RTO. */
                 if( pxSegment->u.bits.bAcked == pdFALSE_UNSIGNED )
@@ -2134,7 +2134,7 @@
                              * which might lead to a second fast rexmit. */
                             if( ( xTCPWindowLoggingLevel >= 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) ) )
                             {
-                                FreeRTOS_debug_printf( ( "prvTCPWindowFastRetransmit: Requeue sequence number %u < %u\n",
+                                FreeRTOS_debug_printf( ( "prvTCPWindowFastRetransmit: Requeue SensorOaqMeasurementState number %u < %u\n",
                                                          ( unsigned ) ( pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ),
                                                          ( unsigned ) ( ulFirst - pxWindow->tx.ulFirstSequenceNumber ) ) );
                                 FreeRTOS_flush_logging();
@@ -2163,7 +2163,7 @@
  * @brief Receive a normal ACK.
  *
  * @param[in] pxWindow Window in which a data is receive.
- * @param[in] ulSequenceNumber The sequence number of the ACK.
+ * @param[in] ulSequenceNumber The SensorOaqMeasurementState number of the ACK.
  *
  * @return The location where the packet should be added.
  */

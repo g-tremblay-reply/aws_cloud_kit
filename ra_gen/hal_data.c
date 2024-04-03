@@ -79,7 +79,8 @@ const gpt_extended_cfg_t g_timer2_extend =
 const timer_cfg_t g_timer2_cfg = { .mode = TIMER_MODE_PERIODIC,
 /* Actual period: 0.001 seconds. Actual duty: 50%. */.period_counts =
 		(uint32_t) 0x186a0, .duty_cycle_counts = 0xc350, .source_div =
-		(timer_source_div_t) 0, .channel = 2, .p_callback = TimerCallback,
+		(timer_source_div_t) 0, .channel = 2, .p_callback =
+		SensorIcp10101_TimerCallback,
 /** If NULL then do not add & */
 #if defined(NULL)
     .p_context           = NULL,
@@ -174,7 +175,8 @@ const gpt_extended_cfg_t g_timer1_extend =
 const timer_cfg_t g_timer1_cfg = { .mode = TIMER_MODE_PERIODIC,
 /* Actual period: 1 seconds. Actual duty: 50%. */.period_counts =
 		(uint32_t) 0x5f5e100, .duty_cycle_counts = 0x2faf080, .source_div =
-		(timer_source_div_t) 0, .channel = 1, .p_callback = g_user_timer_cb,
+		(timer_source_div_t) 0, .channel = 1, .p_callback =
+		CloudApp_PeriodicDataPush,
 /** If NULL then do not add & */
 #if defined(NULL)
     .p_context           = NULL,

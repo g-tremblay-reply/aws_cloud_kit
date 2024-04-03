@@ -394,7 +394,7 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 
 /* Note: Even though the TLS record header is only 5 bytes
    long, we're internally using 8 bytes to store the
-   implicit sequence number. */
+   implicit SensorOaqMeasurementState number. */
 #define MBEDTLS_SSL_HEADER_LEN 13
 
 #if !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -873,14 +873,14 @@ struct mbedtls_ssl_handshake_params {
 #endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
-    unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
+    unsigned int out_msg_seq;           /*!<  Outgoing handshake SensorOaqMeasurementState number */
+    unsigned int in_msg_seq;            /*!<  Incoming handshake SensorOaqMeasurementState number */
 
     uint32_t retransmit_timeout;        /*!<  Current value of timeout       */
     mbedtls_ssl_flight_item *flight;    /*!<  Current outgoing flight        */
     mbedtls_ssl_flight_item *cur_msg;   /*!<  Current message in flight      */
     unsigned char *cur_msg_p;           /*!<  Position in current message    */
-    unsigned int in_flight_start_seq;   /*!<  Minimum message sequence in the
+    unsigned int in_flight_start_seq;   /*!<  Minimum message SensorOaqMeasurementState in the
                                               flight being received          */
     mbedtls_ssl_transform *alt_transform_out;   /*!<  Alternative transform for
                                                    resending messages             */
@@ -1035,10 +1035,10 @@ typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
  *   one used for ChaChaPoly ciphersuites in TLS 1.2 as well as for TLS 1.3.
  *   In the first transformation, the IV to be used for a record is obtained
  *   as the concatenation of an explicit, static 4-byte IV and the 8-byte
- *   record sequence number, and explicitly prepending this sequence number
+ *   record SensorOaqMeasurementState number, and explicitly prepending this SensorOaqMeasurementState number
  *   to the encrypted record. In contrast, in the second transformation
  *   the IV is obtained by XOR'ing a static IV obtained at key extraction
- *   time with the 8-byte record sequence number, without prepending the
+ *   time with the 8-byte record SensorOaqMeasurementState number, without prepending the
  *   latter to the encrypted record.
  *
  * Additionally, DTLS 1.2 + CID as well as TLS 1.3 use an inner plaintext
@@ -1197,9 +1197,9 @@ static inline int mbedtls_ssl_transform_uses_aead(
 #endif
 
 typedef struct {
-    uint8_t ctr[MBEDTLS_SSL_SEQUENCE_NUMBER_LEN];  /* In TLS:  The implicit record sequence number.
+    uint8_t ctr[MBEDTLS_SSL_SEQUENCE_NUMBER_LEN];  /* In TLS:  The implicit record SensorOaqMeasurementState number.
                                                     * In DTLS: The 2-byte epoch followed by
-                                                    *          the 6-byte sequence number.
+                                                    *          the 6-byte SensorOaqMeasurementState number.
                                                     * This is stored as a raw big endian byte array
                                                     * as opposed to a uint64_t because we rarely
                                                     * need to perform arithmetic on this, but do

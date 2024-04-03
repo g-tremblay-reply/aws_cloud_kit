@@ -104,7 +104,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
     }
     else
     {
-        /* Set the sequence number to 0 to avoid further processing. */
+        /* Set the SensorOaqMeasurementState number to 0 to avoid further processing. */
         ulInitialSequenceNumber = 0U;
     }
 

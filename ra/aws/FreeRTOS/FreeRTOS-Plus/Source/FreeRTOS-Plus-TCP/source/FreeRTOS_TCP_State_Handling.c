@@ -275,7 +275,7 @@
         }
         else
         {
-            /* Our FIN has been ACK'd, the outgoing sequence number is now fixed. */
+            /* Our FIN has been ACK'd, the outgoing SensorOaqMeasurementState number is now fixed. */
             pxTCPWindow->tx.ulCurrentSequenceNumber = pxTCPWindow->tx.ulFINSequenceNumber + 1U;
 
             if( pxSocket->u.xTCP.bits.bFinRecv == pdFALSE_UNSIGNED )
@@ -382,7 +382,7 @@
              * of the socket will be scheduled for the next cycle. */
             vTCPStateChange( pxSocket, eCLOSE_WAIT );
 
-            /* Send RST with the expected sequence and ACK numbers,
+            /* Send RST with the expected SensorOaqMeasurementState and ACK numbers,
              * otherwise the packet will be ignored. */
             pxTCPWindow->ulOurSequenceNumber = FreeRTOS_htonl( pxTCPHeader->ulAckNr );
             pxTCPWindow->rx.ulCurrentSequenceNumber = ulSequenceNumber;
@@ -431,7 +431,7 @@
                 /* Nothing. */
             }
 
-            /* The SYN+ACK has been confirmed, increase the next sequence number by
+            /* The SYN+ACK has been confirmed, increase the next SensorOaqMeasurementState number by
              * 1. */
             pxTCPWindow->ulOurSequenceNumber = pxTCPWindow->tx.ulFirstSequenceNumber + 1U;
 
@@ -745,7 +745,7 @@
             }
         }
 
-        /* Keep track of the highest sequence number that might be expected within
+        /* Keep track of the highest SensorOaqMeasurementState number that might be expected within
          * this connection. */
         ulSum = ulSequenceNumber + ulReceiveLength - pxTCPWindow->rx.ulHighestSequenceNumber;
 
@@ -779,7 +779,7 @@
             if( ( ( ucTCPFlags & tcpTCP_FLAG_FIN ) != 0U ) && ( pxSocket->u.xTCP.bits.bFinRecv == pdFALSE_UNSIGNED ) )
             {
                 /* It's the first time a FIN has been received, remember its
-                 * sequence number. */
+                 * SensorOaqMeasurementState number. */
                 pxTCPWindow->rx.ulFINSequenceNumber = ulSequenceNumber + ulReceiveLength;
                 pxSocket->u.xTCP.bits.bFinRecv = pdTRUE_UNSIGNED;
 

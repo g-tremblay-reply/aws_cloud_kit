@@ -21,7 +21,7 @@
  * Description  : The main menu controller.
  *********************************************************************************************************************/
 #include <console_menu/menu_flash.h>
-#include "common_utils.h"
+#include <console.h>
 
 #ifndef MENU_MAIN_H_
 #define MENU_MAIN_H_

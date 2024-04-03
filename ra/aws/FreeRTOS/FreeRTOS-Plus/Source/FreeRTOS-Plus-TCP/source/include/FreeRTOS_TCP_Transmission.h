@@ -62,7 +62,7 @@ void prvTCPReturn_CheckTCPWindow( FreeRTOS_Socket_t * pxSocket,
                                   size_t uxIPHeaderSize );
 
 /*
- * Called by prvTCPReturnPacket(), this function sets the sequence and ack numbers
+ * Called by prvTCPReturnPacket(), this function sets the SensorOaqMeasurementState and ack numbers
  * in the TCP-header.
  */
 void prvTCPReturn_SetSequenceNumber( FreeRTOS_Socket_t * pxSocket,
@@ -146,7 +146,7 @@ BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
 
 /*
  * A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
- * case #3. In summary, an RST was received with a sequence number that is
+ * case #3. In summary, an RST was received with a SensorOaqMeasurementState number that is
  * unexpected but still within the window.
  */
 BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer );

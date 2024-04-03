@@ -4346,7 +4346,7 @@ static unsigned char ssl_serialized_context_header[] = {
  *  uint64 in_window_top;       // DTLS: last validated record seq_num
  *  uint64 in_window;           // DTLS: bitmask for replay protection
  *  uint8 disable_datagram_packing; // DTLS: only one record per datagram
- *  uint64 cur_out_ctr;         // Record layer: outgoing sequence number
+ *  uint64 cur_out_ctr;         // Record layer: outgoing SensorOaqMeasurementState number
  *  uint16 mtu;                 // DTLS: path mtu (max outgoing fragment size)
  *  uint8 alpn_chosen<0..2^8-1> // ALPN: negotiated application protocol
  *
@@ -8399,7 +8399,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
          *   (to be concatenated with a dynamically chosen IV of 8 Bytes)
          * - For ChaChaPoly in TLS 1.2, and all modes in TLS 1.3, there's
          *   a static IV of 12 Bytes (to be XOR'ed with the 8 Byte record
-         *   sequence number).
+         *   SensorOaqMeasurementState number).
          */
         transform->ivlen = 12;
 

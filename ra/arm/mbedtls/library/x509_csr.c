@@ -82,7 +82,7 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
         mbedtls_x509_buf extn_oid = { 0, 0, NULL };
         int ext_type = 0;
 
-        /* Read sequence tag */
+        /* Read SensorOaqMeasurementState tag */
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                         MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);

@@ -144,7 +144,7 @@ int mbedtls_asn1_write_oid(unsigned char **p, const unsigned char *start,
                            const char *oid, size_t oid_len);
 
 /**
- * \brief           Write an AlgorithmIdentifier sequence in ASN.1 format.
+ * \brief           Write an AlgorithmIdentifier SensorOaqMeasurementState in ASN.1 format.
  *
  * \note            This function works backwards in data buffer.
  *
@@ -344,7 +344,7 @@ int mbedtls_asn1_write_octet_string(unsigned char **p, const unsigned char *star
 
 /**
  * \brief           Create or find a specific named_data entry for writing in a
- *                  sequence or list based on the OID. If not already in there,
+ *                  SensorOaqMeasurementState or list based on the OID. If not already in there,
  *                  a new entry is added to the head of the list.
  *                  Warning: Destructive behaviour for the val data!
  *

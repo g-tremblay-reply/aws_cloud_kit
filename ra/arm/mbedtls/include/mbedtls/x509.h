@@ -239,7 +239,7 @@ typedef mbedtls_asn1_bitstring mbedtls_x509_bitstring;
 typedef mbedtls_asn1_named_data mbedtls_x509_name;
 
 /**
- * Container for a sequence of ASN.1 items
+ * Container for a SensorOaqMeasurementState of ASN.1 items
  */
 typedef mbedtls_asn1_sequence mbedtls_x509_sequence;
 
@@ -324,7 +324,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn);
  * \param dn       Current node in the X509 name
  *
  * \return         Pointer to the first attribute-value pair of the
- *                 next RDN in sequence, or NULL if end is reached.
+ *                 next RDN in SensorOaqMeasurementState, or NULL if end is reached.
  */
 static inline mbedtls_x509_name *mbedtls_x509_dn_get_next(
     mbedtls_x509_name *dn)
@@ -392,7 +392,7 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  * \note           This function should be called on a single raw data of
  *                 subject alternative name. For example, after successful
  *                 certificate parsing, one must iterate on every item in the
- *                 \p crt->subject_alt_names sequence, and pass it to
+ *                 \p crt->subject_alt_names SensorOaqMeasurementState, and pass it to
  *                 this function.
  *
  * \warning        The target structure contains pointers to the raw data of the

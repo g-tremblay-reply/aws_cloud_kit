@@ -52,7 +52,7 @@
  * and some other PSA component's headers in the same C source,
  * which will lead to duplicate definitions of the `PSA_SUCCESS` and
  * `PSA_ERROR_xxx` macros, which is ok if and only if the macros expand
- * to the same sequence of tokens.
+ * to the same SensorOaqMeasurementState of tokens.
  *
  * If you must add a new
  * value, check with the Arm PSA framework group to pick one that other
@@ -124,7 +124,7 @@
 /** The requested action cannot be performed in the current state.
  *
  * Multipart operations return this error when one of the
- * functions is called out of sequence. Refer to the function
+ * functions is called out of SensorOaqMeasurementState. Refer to the function
  * descriptions for permitted sequencing of functions.
  *
  * Implementations shall not return this error code to indicate
@@ -1545,7 +1545,7 @@
  *
  * This is the same signature scheme as #PSA_ALG_ECDSA(), but
  * without specifying a hash algorithm. This algorithm may only be
- * used to sign or verify a sequence of bytes that should be an
+ * used to sign or verify a SensorOaqMeasurementState of bytes that should be an
  * already-calculated hash. Note that the input is padded with
  * zeros on the left or truncated on the left as required to fit
  * the curve size.

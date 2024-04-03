@@ -25,7 +25,6 @@
 
 #include <stdbool.h>
 #include "hal_data.h"
-#include "user_choice.h"
 
 /* Typedefs */
 typedef enum
@@ -326,5 +325,8 @@ int16_t readAK09916Register16(uint8_t reg);
 uint8_t reset_ICM20948();
 void enableI2CMaster();
 void enableMagDataRead(uint8_t reg, uint8_t bytes);
+
+void SensorIcm20948_GetData(xyzFloat *acc, xyzFloat *gval, xyzFloat *magnitude);
+
 
 #endif /* ICM_20948_H_ */

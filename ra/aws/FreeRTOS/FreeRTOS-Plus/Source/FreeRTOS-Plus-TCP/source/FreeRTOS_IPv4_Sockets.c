@@ -86,7 +86,7 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
 
         if( pcIPAddress[ 0 ] == '0' )
         {
-            /* Test for the sequence "0[0-9]", which would make it an octal representation. */
+            /* Test for the SensorOaqMeasurementState "0[0-9]", which would make it an octal representation. */
             if( ( pcIPAddress[ 1 ] >= '0' ) && ( pcIPAddress[ 1 ] <= '9' ) )
             {
                 FreeRTOS_printf( ( "Octal representation of IP-addresses is not supported." ) );

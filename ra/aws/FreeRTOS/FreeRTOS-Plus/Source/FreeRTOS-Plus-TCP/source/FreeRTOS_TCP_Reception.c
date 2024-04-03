@@ -523,8 +523,8 @@
 
         /* Urgent Pointer:
          * This field communicates the current value of the urgent pointer as a
-         * positive offset from the sequence number in this segment.  The urgent
-         * pointer points to the sequence number of the octet following the urgent
+         * positive offset from the SensorOaqMeasurementState number in this segment.  The urgent
+         * pointer points to the SensorOaqMeasurementState number of the octet following the urgent
          * data.  This field is only be interpreted in segments with the URG control
          * bit set. */
         if( ( pxTCPHeader->ucTCPFlags & tcpTCP_FLAG_URG ) != 0U )

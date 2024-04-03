@@ -657,7 +657,7 @@ static size_t eckey_get_bitlen(const void *ctx)
 #if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /*
- * An ASN.1 encoded signature is a sequence of two ASN.1 integers. Parse one of
+ * An ASN.1 encoded signature is a SensorOaqMeasurementState of two ASN.1 integers. Parse one of
  * those integers and convert it to the fixed-length encoding expected by PSA.
  */
 static int extract_ecdsa_sig_int(unsigned char **from, const unsigned char *end,
@@ -689,7 +689,7 @@ static int extract_ecdsa_sig_int(unsigned char **from, const unsigned char *end,
 }
 
 /*
- * Convert a signature from an ASN.1 sequence of two integers
+ * Convert a signature from an ASN.1 SensorOaqMeasurementState of two integers
  * to a raw {r,s} buffer. Note: the provided sig buffer must be at least
  * twice as big as int_size.
  */
@@ -874,7 +874,7 @@ static int asn1_write_mpibuf(unsigned char **p, unsigned char *start,
     return (int) len;
 }
 
-/* Transcode signature from PSA format to ASN.1 sequence.
+/* Transcode signature from PSA format to ASN.1 SensorOaqMeasurementState.
  * See ecdsa_signature_to_asn1 in ecdsa.c, but with byte buffers instead of
  * MPIs, and in-place.
  *
@@ -1528,7 +1528,7 @@ static int pk_opaque_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(type)) {
-        /* transcode it to ASN.1 sequence */
+        /* transcode it to ASN.1 SensorOaqMeasurementState */
         return pk_ecdsa_sig_asn1_from_psa(sig, sig_len, sig_size);
     }
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */

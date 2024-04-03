@@ -24,13 +24,12 @@
 #include <stdio.h>
 #include <string.h>
 #include "common_data.h"
-#include "common_utils.h"
+#include <console.h>
 #include "menu_kis.h"
-#include "console.h"
 #include "menu_flash.h"
 #include "flash/flash_hp.h"
 
-extern TaskHandle_t app_thread; // @suppress("Global (API or Non-API) variable prefix")
+extern TaskHandle_t cloud_app_thread; // @suppress("Global (API or Non-API) variable prefix")
 extern int8_t g_selected_menu;
 static char_t s_print_buffer[BUFFER_LENGTH_SHORT] = { };
 static bool cred_save_success_flag = false;
@@ -72,6 +71,7 @@ test_fn get_version(void)
     while (CONNECTION_ABORT_CRTL != key_pressed)
     {
         /* Wait for space key to be pressed to return to main menu */
+        key_pressed = wait_for_keypress ();
         key_pressed = wait_for_keypress ();
         if ((MENU_EXIT_CRTL == key_pressed) || (CONNECTION_ABORT_CRTL == key_pressed))
         {
@@ -200,7 +200,7 @@ test_fn start_app(void)
         cred_save_success_flag = true;
         printf_colour ("\r\n[GREEN]Starting AWS cloud Application....[WHITE]\r\n");
         /* Send notify to start aws thread */
-        xTaskNotifyFromISR(app_thread, 1, 1, NULL);
+        xTaskNotifyFromISR(cloud_app_thread, 1, 1, NULL);
     }
     else
     {

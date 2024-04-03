@@ -92,7 +92,7 @@ void mbedtls_pem_init(mbedtls_pem_context *ctx);
  *                  the length to skip)
  *
  * \note            Attempts to check password correctness by verifying if
- *                  the decrypted text starts with an ASN.1 sequence of
+ *                  the decrypted text starts with an ASN.1 SensorOaqMeasurementState of
  *                  appropriate length
  *
  * \note            \c mbedtls_pem_free must be called on PEM context before

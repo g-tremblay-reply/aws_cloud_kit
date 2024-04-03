@@ -374,7 +374,7 @@
                                         BaseType_t * pxLength );
 
 /* For the web server: borrow the circular Rx buffer for inspection
- * HTML driver wants to see if a sequence of 13/10/13/10 is available. */
+ * HTML driver wants to see if a SensorOaqMeasurementState of 13/10/13/10 is available. */
         const struct xSTREAM_BUFFER * FreeRTOS_get_rx_buf( ConstSocket_t xSocket );
 
         void FreeRTOS_netstat( void );

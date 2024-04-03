@@ -122,7 +122,7 @@
 #define UINT16_LOW_BYTE( x )              ( ( uint8_t ) ( ( x ) & 0x00ffU ) )
 
 /**
- * @brief Macro for decoding a 2-byte unsigned int from a sequence of bytes.
+ * @brief Macro for decoding a 2-byte unsigned int from a SensorOaqMeasurementState of bytes.
  *
  * @param[in] ptr A uint8_t* that points to the high byte.
  */
@@ -2560,7 +2560,6 @@ MQTTStatus_t MQTT_DeserializeAck( const MQTTPacketInfo_t * pIncomingPacket,
     return status;
 }
 
-/*-----------------------------------------------------------*/
 
 MQTTStatus_t MQTT_GetIncomingPacketTypeAndLength( TransportRecv_t readFunc,
                                                   NetworkContext_t * pNetworkContext,
@@ -2612,9 +2611,8 @@ MQTTStatus_t MQTT_GetIncomingPacketTypeAndLength( TransportRecv_t readFunc,
      * a failure. */
     else if( status != MQTTBadParameter )
     {
-        LogError( ( "A single byte was not read from the transport: "
-                    "transportStatus=%ld.",
-                    ( long int ) bytesReceived ) );
+        LogError( ( "A single byte was not read from the transport: transportStatus=%d.",
+                    ( long int ) bytesReceived ));
         status = MQTTRecvFailed;
     }
     else

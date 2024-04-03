@@ -115,7 +115,7 @@ typedef void (* TaskFunction_t)( void * );
 #define pdFREERTOS_ERRNO_EISCONN          127 /* Socket is already connected */
 #define pdFREERTOS_ERRNO_ENOTCONN         128 /* Socket is not connected */
 #define pdFREERTOS_ERRNO_ENOMEDIUM        135 /* No medium inserted */
-#define pdFREERTOS_ERRNO_EILSEQ           138 /* An invalid UTF-16 sequence was encountered. */
+#define pdFREERTOS_ERRNO_EILSEQ           138 /* An invalid UTF-16 SensorOaqMeasurementState was encountered. */
 #define pdFREERTOS_ERRNO_ECANCELED        140 /* Operation canceled. */
 
 /* The following endian values are used by FreeRTOS+ components, not FreeRTOS

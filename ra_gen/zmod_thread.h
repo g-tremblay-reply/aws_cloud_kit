@@ -31,14 +31,14 @@ extern rm_zmod4xxx_lib_extended_cfg_t g_zmod4xxx_sensor0_extended_cfg;
 extern const rm_zmod4xxx_instance_t g_zmod4xxx_sensor0;
 extern rm_zmod4xxx_instance_ctrl_t g_zmod4xxx_sensor0_ctrl;
 extern const rm_zmod4xxx_cfg_t g_zmod4xxx_sensor0_cfg;
-#ifndef zmod4xxx_comms_i2c_callback
-void zmod4xxx_comms_i2c_callback(rm_zmod4xxx_callback_args_t *p_args);
+#ifndef Sensor_OaqCommCallback
+void Sensor_OaqCommCallback(rm_zmod4xxx_callback_args_t *p_args);
 #endif
 #ifndef rm_zmod4xxx_irq_callback
 void rm_zmod4xxx_irq_callback(external_irq_callback_args_t *p_args);
 #endif
-#ifndef zmod4xxx_irq0_callback
-void zmod4xxx_irq0_callback(rm_zmod4xxx_callback_args_t *p_args);
+#ifndef Sensor_OaqEndOfMeasurement
+void Sensor_OaqEndOfMeasurement(rm_zmod4xxx_callback_args_t *p_args);
 #endif
 FSP_FOOTER
 #endif /* ZMOD_THREAD_H_ */

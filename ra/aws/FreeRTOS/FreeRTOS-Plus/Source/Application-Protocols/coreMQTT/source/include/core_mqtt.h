@@ -339,11 +339,11 @@ MQTTStatus_t MQTT_Init( MQTTContext_t * pContext,
  * @param[in] pOutgoingPublishRecords Pointer to memory which will be used to store state of outgoing
  * publishes.
  * @param[in] outgoingPublishCount Maximum number of records which can be kept in the memory
- * pointed to by @p pOutgoingPublishRecords.
+ * pointed to by @p CloudProvOutgoingPublishRecords.
  * @param[in] pIncomingPublishRecords Pointer to memory which will be used to store state of incoming
  * publishes.
  * @param[in] incomingPublishCount Maximum number of records which can be kept in the memory
- * pointed to by @p pIncomingPublishRecords.
+ * pointed to by @p CloudProvIncomingPublishRecords.
  *
  * @return #MQTTBadParameter if invalid parameters are passed;
  * #MQTTSuccess otherwise.

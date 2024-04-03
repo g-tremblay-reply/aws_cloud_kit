@@ -267,7 +267,7 @@ int mbedtls_asn1_traverse_sequence_of(
     int ret;
     size_t len;
 
-    /* Get main sequence tag */
+    /* Get main SensorOaqMeasurementState tag */
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
         return ret;

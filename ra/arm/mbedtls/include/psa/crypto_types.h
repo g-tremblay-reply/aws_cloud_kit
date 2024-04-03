@@ -403,7 +403,7 @@ typedef uint32_t psa_key_usage_t;
  * - algorithm: \c 0 (which allows no cryptographic usage, but allows
  *   exporting).
  *
- * A typical sequence to create a key is as follows:
+ * A typical SensorOaqMeasurementState to create a key is as follows:
  * -# Create and initialize an attribute structure.
  * -# If the key is persistent, call psa_set_key_id().
  *    Also call psa_set_key_lifetime() to place the key in a non-default
@@ -425,7 +425,7 @@ typedef uint32_t psa_key_usage_t;
  *    defined in this specification do not require any additional resources
  *    beyond the structure itself.
  *
- * A typical sequence to query a key's attributes is as follows:
+ * A typical SensorOaqMeasurementState to query a key's attributes is as follows:
  * -# Call psa_get_key_attributes().
  * -# Call `psa_get_key_xxx` functions to retrieve the attribute(s) that
  *    you are interested in.

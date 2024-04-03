@@ -945,7 +945,7 @@ read_record_header:
      * Record layer:
      *     0  .   0   message type
      *     1  .   2   protocol version
-     *     3  .   11  DTLS: epoch + record sequence number
+     *     3  .   11  DTLS: epoch + record SensorOaqMeasurementState number
      *     3  .   4   message length
      */
     MBEDTLS_SSL_DEBUG_MSG(3, ("client hello, message type: %d",
@@ -962,7 +962,7 @@ read_record_header:
     MBEDTLS_SSL_DEBUG_MSG(3, ("client hello, protocol version: [%d:%d]",
                               buf[1], buf[2]));
 
-    /* For DTLS if this is the initial handshake, remember the client sequence
+    /* For DTLS if this is the initial handshake, remember the client SensorOaqMeasurementState
      * number to use it in our next message (RFC 6347 4.2.1) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM
@@ -1036,7 +1036,7 @@ read_record_header:
      * Handshake layer:
      *     0  .   0   handshake type
      *     1  .   3   handshake length
-     *     4  .   5   DTLS only: message sequence number
+     *     4  .   5   DTLS only: message SensorOaqMeasurementState number
      *     6  .   8   DTLS only: fragment offset
      *     9  .  11   DTLS only: fragment length
      */
@@ -1078,7 +1078,7 @@ read_record_header:
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         /*
          * Copy the client's handshake message_seq on initial handshakes,
-         * check sequence number on renego.
+         * check SensorOaqMeasurementState number on renego.
          */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         if (ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS) {

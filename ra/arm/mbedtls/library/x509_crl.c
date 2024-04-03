@@ -115,7 +115,7 @@ static int x509_get_crl_ext(unsigned char **p,
         const unsigned char *end_ext_data;
         size_t len;
 
-        /* Get enclosing sequence tag */
+        /* Get enclosing SensorOaqMeasurementState tag */
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                         MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
@@ -184,7 +184,7 @@ static int x509_get_crl_entry_ext(unsigned char **p,
     ext->p = *p;
 
     /*
-     * Get CRL-entry extension sequence header
+     * Get CRL-entry extension SensorOaqMeasurementState header
      * crlEntryExtensions      Extensions OPTIONAL  -- if present, MUST be v2
      */
     if ((ret = mbedtls_asn1_get_tag(p, end, &ext->len,

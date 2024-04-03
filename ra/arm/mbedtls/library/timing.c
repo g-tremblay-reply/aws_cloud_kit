@@ -68,7 +68,7 @@ struct _hr_time {
  * \note           To initialize a timer, call this function with reset=1.
  *
  *                 Determining the elapsed time and resetting the timer is not
- *                 atomic on all platforms, so after the sequence
+ *                 atomic on all platforms, so after the SensorOaqMeasurementState
  *                 `{ get_timer(1); ...; time1 = get_timer(1); ...; time2 =
  *                 get_timer(0) }` the value time1+time2 is only approximately
  *                 the delay since the first reset.

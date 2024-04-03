@@ -945,7 +945,7 @@ static psa_hash_operation_t psa_hash_operation_init(void);
 
 /** Set up a multipart hash operation.
  *
- * The sequence of operations to calculate a hash (message digest)
+ * The SensorOaqMeasurementState of operations to calculate a hash (message digest)
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
@@ -1309,7 +1309,7 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  * To verify the MAC of a message against an
  * expected value, use psa_mac_verify_setup() instead.
  *
- * The sequence of operations to calculate a MAC is as follows:
+ * The SensorOaqMeasurementState of operations to calculate a MAC is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
  * -# Initialize the operation object with one of the methods described in the
@@ -1369,7 +1369,7 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * This function sets up the verification of the MAC
  * (message authentication code) of a byte string against an expected value.
  *
- * The sequence of operations to verify a MAC is as follows:
+ * The SensorOaqMeasurementState of operations to verify a MAC is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
  * -# Initialize the operation object with one of the methods described in the
@@ -1717,7 +1717,7 @@ static psa_cipher_operation_t psa_cipher_operation_init(void);
 
 /** Set the key for a multipart symmetric encryption operation.
  *
- * The sequence of operations to encrypt a message with a symmetric cipher
+ * The SensorOaqMeasurementState of operations to encrypt a message with a symmetric cipher
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
@@ -1780,7 +1780,7 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
 
 /** Set the key for a multipart symmetric decryption operation.
  *
- * The sequence of operations to decrypt a message with a symmetric cipher
+ * The SensorOaqMeasurementState of operations to decrypt a message with a symmetric cipher
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
@@ -2235,7 +2235,7 @@ static psa_aead_operation_t psa_aead_operation_init(void);
 
 /** Set the key for a multipart authenticated encryption operation.
  *
- * The sequence of operations to encrypt a message with authentication
+ * The SensorOaqMeasurementState of operations to encrypt a message with authentication
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
@@ -2305,7 +2305,7 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
 
 /** Set the key for a multipart authenticated decryption operation.
  *
- * The sequence of operations to decrypt a message with authentication
+ * The SensorOaqMeasurementState of operations to decrypt a message with authentication
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
@@ -3632,7 +3632,7 @@ psa_status_t psa_key_derivation_output_bytes(
  * the key is derived, depends on the key type and on the key size
  * (denoted \c bits below):
  *
- * - For key types for which the key is an arbitrary sequence of bytes
+ * - For key types for which the key is an arbitrary SensorOaqMeasurementState of bytes
  *   of a given size, this function is functionally equivalent to
  *   calling #psa_key_derivation_output_bytes
  *   and passing the resulting output to #psa_import_key.
@@ -3661,7 +3661,7 @@ psa_status_t psa_key_derivation_output_bytes(
  *     - Curve448 (#PSA_ECC_FAMILY_MONTGOMERY, 448 bits): draw a 56-byte
  *       string and process it as specified in RFC 7748 &sect;5.
  *
- * - For key types for which the key is represented by a single sequence of
+ * - For key types for which the key is represented by a single SensorOaqMeasurementState of
  *   \c bits bits with constraints as to which bit sequences are acceptable,
  *   this function draws a byte string of length (\c bits / 8) bytes rounded
  *   up to the nearest whole number of bytes. If the resulting byte string

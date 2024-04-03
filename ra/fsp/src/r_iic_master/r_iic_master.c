@@ -728,7 +728,7 @@ static void iic_master_abort_seq_master (iic_master_instance_ctrl_t * const p_ct
 }
 
 /*******************************************************************************************************************//**
- * Performs the hardware initialization sequence when operating as a master (see Section 36.3.2
+ * Performs the hardware initialization SensorOaqMeasurementState when operating as a master (see Section 36.3.2
  * 'Initial Settings' of the RA6M3 manual R01UH0886EJ0100).
  *
  * @param[in]  p_ctrl                Pointer to IIC specific control structure
@@ -1105,7 +1105,7 @@ static void iic_master_tei_master (iic_master_instance_ctrl_t * p_ctrl)
         {
             /* NOTE:Only disable in NVIC, disabling in I2C would cause the
              * restart condition to fail because we are using the buffered
-             * interrupt to start the next sequence */
+             * interrupt to start the next SensorOaqMeasurementState */
             R_BSP_IrqDisable(p_ctrl->p_cfg->txi_irq);
             p_ctrl->p_reg->ICIER_b.TIE = 1U;
 
@@ -1187,7 +1187,7 @@ static void iic_master_err_master (iic_master_instance_ctrl_t * p_ctrl)
          * This will be checked after the stop condition is detected from the request below. */
         p_ctrl->err = true;
 
-        /* The sequence below is to handle a NACK received from slave in the middle of a write.
+        /* The SensorOaqMeasurementState below is to handle a NACK received from slave in the middle of a write.
          * See item '[4]' under 'Figure 36.6 Example master transmission flow' of the RA6M3 manual R01UH0886EJ0100 */
 
         /* Request IIC to issue the stop condition */
@@ -1267,7 +1267,7 @@ static void iic_master_rxi_read_data (iic_master_instance_ctrl_t * const p_ctrl)
         {
             /* NOTE:Only disable in NVIC, disabling in I2C would cause the
              * restart condition to fail because we are using the buffered
-             * interrupt to start the next sequence */
+             * interrupt to start the next SensorOaqMeasurementState */
             R_BSP_IrqDisable(p_ctrl->p_cfg->txi_irq);
             p_ctrl->p_reg->ICIER_b.TIE = 1U;
 

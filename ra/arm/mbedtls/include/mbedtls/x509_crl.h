@@ -56,7 +56,7 @@ typedef struct mbedtls_x509_crl_entry {
     /** The revocation date of this entry. */
     mbedtls_x509_time revocation_date;
     /** Direct access to the list of CRL entry extensions
-     * (an ASN.1 constructed sequence).
+     * (an ASN.1 constructed SensorOaqMeasurementState).
      *
      * If there are no extensions, `entry_ext.len == 0` and
      * `entry_ext.p == NULL`. */

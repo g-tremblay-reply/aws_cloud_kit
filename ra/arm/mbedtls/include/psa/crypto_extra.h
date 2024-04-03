@@ -1424,7 +1424,7 @@ psa_status_t psa_crypto_driver_pake_get_cipher_suite(
 
 /** Set the session information for a password-authenticated key exchange.
  *
- * The sequence of operations to set up a password-authenticated key exchange
+ * The SensorOaqMeasurementState of operations to set up a password-authenticated key exchange
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
@@ -1433,14 +1433,14 @@ psa_status_t psa_crypto_driver_pake_get_cipher_suite(
  *    #PSA_PAKE_OPERATION_INIT.
  * -# Call psa_pake_setup() to specify the cipher suite.
  * -# Call \c psa_pake_set_xxx() functions on the operation to complete the
- *    setup. The exact sequence of \c psa_pake_set_xxx() functions that needs
+ *    setup. The exact SensorOaqMeasurementState of \c psa_pake_set_xxx() functions that needs
  *    to be called depends on the algorithm in use.
  *
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
  * for more information.
  *
- * A typical sequence of calls to perform a password-authenticated key
+ * A typical SensorOaqMeasurementState of calls to perform a password-authenticated key
  * exchange:
  * -# Call psa_pake_output(operation, #PSA_PAKE_STEP_KEY_SHARE, ...) to get the
  *    key share that needs to be sent to the peer.
@@ -1674,7 +1674,7 @@ psa_status_t psa_pake_set_role(psa_pake_operation_t *operation,
  * Depending on the algorithm being executed, you might need to call this
  * function several times or you might not need to call this at all.
  *
- * The exact sequence of calls to perform a password-authenticated key
+ * The exact SensorOaqMeasurementState of calls to perform a password-authenticated key
  * exchange depends on the algorithm in use.  Refer to the documentation of
  * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
  * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more
@@ -1735,7 +1735,7 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  * Depending on the algorithm being executed, you might need to call this
  * function several times or you might not need to call this at all.
  *
- * The exact sequence of calls to perform a password-authenticated key
+ * The exact SensorOaqMeasurementState of calls to perform a password-authenticated key
  * exchange depends on the algorithm in use.  Refer to the documentation of
  * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
  * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more
@@ -1801,7 +1801,7 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  * #PSA_KEY_DERIVATION_INPUT_SECRET is used when placing the shared key
  * material in the key derivation operation.
  *
- * The exact sequence of calls to perform a password-authenticated key
+ * The exact SensorOaqMeasurementState of calls to perform a password-authenticated key
  * exchange depends on the algorithm in use.  Refer to the documentation of
  * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
  * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more

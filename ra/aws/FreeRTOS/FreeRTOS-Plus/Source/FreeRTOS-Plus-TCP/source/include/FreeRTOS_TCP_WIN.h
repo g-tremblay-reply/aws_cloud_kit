@@ -49,7 +49,7 @@ typedef struct xTCPTimerStruct
  *         is sent in a single TCP packet, at most 1460 bytes. */
 typedef struct xTCP_SEGMENT
 {
-    uint32_t ulSequenceNumber; /**< The sequence number of the first byte in this packet */
+    uint32_t ulSequenceNumber; /**< The SensorOaqMeasurementState number of the first byte in this packet */
     int32_t lMaxLength;        /**< Maximum space, number of bytes which can be stored in this segment */
     int32_t lDataLength;       /**< Actual number of bytes */
     int32_t lStreamPos;        /**< reference to the [t|r]xStream of the socket */
@@ -109,17 +109,17 @@ typedef struct xTCP_WINDOW
     struct
     {
         uint32_t ulFirstSequenceNumber;                                    /**< Logging & debug: the first segment received/sent in this connection
-                                                                            * for Tx: initial send sequence number (ISS)
-                                                                            * for Rx: initial receive sequence number (IRS) */
-        uint32_t ulCurrentSequenceNumber;                                  /**< Tx/Rx: the oldest sequence number not yet confirmed, also SND.UNA / RCV.NXT
-                                                                            * In other words: the sequence number of the left side of the sliding window */
-        uint32_t ulFINSequenceNumber;                                      /**< The sequence number which carried the FIN flag */
+                                                                            * for Tx: initial send SensorOaqMeasurementState number (ISS)
+                                                                            * for Rx: initial receive SensorOaqMeasurementState number (IRS) */
+        uint32_t ulCurrentSequenceNumber;                                  /**< Tx/Rx: the oldest SensorOaqMeasurementState number not yet confirmed, also SND.UNA / RCV.NXT
+                                                                            * In other words: the SensorOaqMeasurementState number of the left side of the sliding window */
+        uint32_t ulFINSequenceNumber;                                      /**< The SensorOaqMeasurementState number which carried the FIN flag */
         uint32_t ulHighestSequenceNumber;                                  /**< Sequence number of the right-most byte + 1 */
     } rx,                                                                  /**< Sequence number of the incoming data stream. */
       tx;                                                                  /**< Sequence number of the outgoing data stream. */
     uint32_t ulOurSequenceNumber;                                          /**< The SEQ number we're sending out */
     uint32_t ulUserDataLength;                                             /**< Number of bytes in Rx buffer which may be passed to the user, after having received a 'missing packet' */
-    uint32_t ulNextTxSequenceNumber;                                       /**< The sequence number given to the next byte to be added for transmission */
+    uint32_t ulNextTxSequenceNumber;                                       /**< The SensorOaqMeasurementState number given to the next byte to be added for transmission */
     int32_t lSRTT;                                                         /**< Smoothed Round Trip Time, it may increment quickly and it decrements slower */
     uint8_t ucOptionLength;                                                /**< Number of valid bytes in ulOptionsData[] */
     #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -128,8 +128,8 @@ typedef struct xTCP_WINDOW
         List_t xWaitQueue;                                                 /**< Waiting queue:  outstanding segments */
         TCPSegment_t * pxHeadSegment;                                      /**< points to a segment which has not been transmitted and it's size is still growing (user data being added) */
         uint32_t ulOptionsData[ ipSIZE_TCP_OPTIONS / sizeof( uint32_t ) ]; /**< Contains the options we send out */
-        List_t xTxSegments;                                                /**< A linked list of all transmission segments, sorted on sequence number */
-        List_t xRxSegments;                                                /**< A linked list of reception segments, order depends on sequence of arrival */
+        List_t xTxSegments;                                                /**< A linked list of all transmission segments, sorted on SensorOaqMeasurementState number */
+        List_t xRxSegments;                                                /**< A linked list of reception segments, order depends on SensorOaqMeasurementState of arrival */
     #else
         /* For tiny TCP, there is only 1 outstanding TX segment */
         TCPSegment_t xTxSegment; /**< Priority queue */

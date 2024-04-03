@@ -82,7 +82,7 @@ typedef enum eTCP_STATE
  * The meaning of the TCP flags:
  */
 #define tcpTCP_FLAG_FIN     ( ( uint8_t ) 0x01U )                           /**< No more data from sender. */
-#define tcpTCP_FLAG_SYN     ( ( uint8_t ) 0x02U )                           /**< Synchronize sequence numbers. */
+#define tcpTCP_FLAG_SYN     ( ( uint8_t ) 0x02U )                           /**< Synchronize SensorOaqMeasurementState numbers. */
 #define tcpTCP_FLAG_RST     ( ( uint8_t ) 0x04U )                           /**< Reset the connection. */
 #define tcpTCP_FLAG_PSH     ( ( uint8_t ) 0x08U )                           /**< Push function: please push buffered data to the recv application. */
 #define tcpTCP_FLAG_ACK     ( ( uint8_t ) 0x10U )                           /**< Acknowledgment field is significant. */

@@ -190,7 +190,7 @@
  * DigestAlgorithmIdentifier :: = AlgorithmIdentifier
  * Digest :: = OCTET STRING
  *
- * This is the DigestInfo sequence, digest algorithm, and the octet string/length
+ * This is the DigestInfo SensorOaqMeasurementState, digest algorithm, and the octet string/length
  * for the digest, without the actual digest itself.
  */
 #define pkcs11STUFF_APPENDED_TO_RSA_SIG    { 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20 }
@@ -303,7 +303,7 @@ CK_RV xFindObjectWithLabelAndClass( CK_SESSION_HANDLE xSession,
 /* @[declare_pkcs11_core_xfindobjectwithlabelandclass] */
 
 /**
- * \brief Appends digest algorithm sequence to SHA-256 hash for RSA signatures
+ * \brief Appends digest algorithm SensorOaqMeasurementState to SHA-256 hash for RSA signatures
  *
  * This function pre-appends the digest algorithm identifier to the SHA-256
  * hash of a message.

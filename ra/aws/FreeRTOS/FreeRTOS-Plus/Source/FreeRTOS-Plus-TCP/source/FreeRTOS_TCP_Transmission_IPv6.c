@@ -199,7 +199,7 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
                 IPv6_Address_t xTempAddress;
 
                 /* Sending data without a socket, probably replying with a RST flag
-                 * Just swap the two sequence numbers. */
+                 * Just swap the two SensorOaqMeasurementState numbers. */
                 vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
                 ( void ) memcpy( xTempAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 ( void ) memcpy( pxIPHeader->xDestinationAddress.ucBytes, pxIPHeader->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -383,7 +383,7 @@ BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
 
     if( xReturn != pdFALSE )
     {
-        /* Get a difficult-to-predict initial sequence number for this 4-tuple. */
+        /* Get a difficult-to-predict initial SensorOaqMeasurementState number for this 4-tuple. */
         ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( pxSocket->xLocalAddress.ulIP_IPv4,
                                                                       pxSocket->usLocalPort,
                                                                       pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
@@ -464,8 +464,8 @@ BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
         /* Set the value of usMSS for this socket. */
         prvSocketSetMSS( pxSocket );
 
-        /* The initial sequence numbers at our side are known.  Later
-         * vTCPWindowInit() will be called to fill in the peer's sequence numbers, but
+        /* The initial SensorOaqMeasurementState numbers at our side are known.  Later
+         * vTCPWindowInit() will be called to fill in the peer's SensorOaqMeasurementState numbers, but
          * first wait for a SYN+ACK reply. */
         prvTCPCreateWindow( pxSocket );
     }

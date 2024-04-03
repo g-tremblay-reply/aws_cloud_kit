@@ -438,7 +438,7 @@ void SystemInit (void)
     /* For TZ project, it should be called by the secure application, whether RTC module is to be configured as secure or not. */
  #if !BSP_TZ_NONSECURE_BUILD && !BSP_CFG_BOOT_IMAGE
 
-    /* Perform RTC reset sequence to avoid unintended operation. */
+    /* Perform RTC reset SensorOaqMeasurementState to avoid unintended operation. */
     R_BSP_Init_RTC();
  #endif
 #endif

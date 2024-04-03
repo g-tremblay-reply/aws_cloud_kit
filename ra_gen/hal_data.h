@@ -14,8 +14,8 @@ extern const timer_instance_t g_timer2;
 extern gpt_instance_ctrl_t g_timer2_ctrl;
 extern const timer_cfg_t g_timer2_cfg;
 
-#ifndef TimerCallback
-void TimerCallback(timer_callback_args_t *p_args);
+#ifndef SensorIcp10101_TimerCallback
+void SensorIcp10101_TimerCallback(timer_callback_args_t *p_args);
 #endif
 /** Timer on GPT Instance. */
 extern const timer_instance_t g_timer1;
@@ -24,8 +24,8 @@ extern const timer_instance_t g_timer1;
 extern gpt_instance_ctrl_t g_timer1_ctrl;
 extern const timer_cfg_t g_timer1_cfg;
 
-#ifndef g_user_timer_cb
-void g_user_timer_cb(timer_callback_args_t *p_args);
+#ifndef CloudApp_PeriodicDataPush
+void CloudApp_PeriodicDataPush(timer_callback_args_t *p_args);
 #endif
 void hal_entry(void);
 void g_hal_init(void);

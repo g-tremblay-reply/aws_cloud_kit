@@ -230,7 +230,7 @@ BaseType_t xProcessReceivedTCPPacket_IPV4( NetworkBufferDescriptor_t * pxDescrip
                     }
                     else
                     {
-                        /* Check whether the packet matches the next expected sequence number. */
+                        /* Check whether the packet matches the next expected SensorOaqMeasurementState number. */
                         if( ulSequenceNumber == pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber )
                         {
                             vTCPStateChange( pxSocket, eCLOSED );

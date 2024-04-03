@@ -35,7 +35,7 @@
 #include <string.h>
 
 /*
- * State sequence:
+ * State SensorOaqMeasurementState:
  *
  *   psa_pake_setup()
  *   |
@@ -85,56 +85,56 @@
  * It's simpler to share the same sequences numbers of the first
  * set of KEY_SHARE/ZK_PUBLIC/ZK_PROOF outputs/inputs in both PAKE steps.
  *
- * State sequence with step, state & sequence enums:
+ * State SensorOaqMeasurementState with step, state & SensorOaqMeasurementState enums:
  *   => Input & Output Step = PSA_PAKE_STEP_INVALID
  *   => state = PSA_PAKE_STATE_INVALID
  *   psa_pake_setup()
  *   => Input & Output Step = PSA_PAKE_STEP_X1_X2
  *   => state = PSA_PAKE_STATE_SETUP
- *   => sequence = PSA_PAKE_SEQ_INVALID
+ *   => SensorOaqMeasurementState = PSA_PAKE_SEQ_INVALID
  *   |
  *   |--- In any order: (First round input before or after first round output)
  *   |   | First call of psa_pake_output() or psa_pake_input() sets
  *   |   | state = PSA_PAKE_STATE_READY
  *   |   |
  *   |   |------ In Order: => state = PSA_PAKE_OUTPUT_X1_X2
- *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_KEY_SHARE
- *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_ZK_PUBLIC
- *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_ZK_PROOF
- *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X2_STEP_KEY_SHARE
- *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X2_STEP_ZK_PUBLIC
- *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X2_STEP_ZK_PROOF
+ *   |   |       | psa_pake_output() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_KEY_SHARE
+ *   |   |       | psa_pake_output() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_output() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_ZK_PROOF
+ *   |   |       | psa_pake_output() => SensorOaqMeasurementState = PSA_PAKE_X2_STEP_KEY_SHARE
+ *   |   |       | psa_pake_output() => SensorOaqMeasurementState = PSA_PAKE_X2_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_output() => SensorOaqMeasurementState = PSA_PAKE_X2_STEP_ZK_PROOF
  *   |   |       | => state = PSA_PAKE_STATE_READY
- *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
+ *   |   |       | => SensorOaqMeasurementState = PSA_PAKE_SEQ_INVALID
  *   |   |       | => Output Step = PSA_PAKE_STEP_X2S
  *   |   |
  *   |   |------ In Order: => state = PSA_PAKE_INPUT_X1_X2
- *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_KEY_SHARE
- *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_ZK_PUBLIC
- *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_ZK_PROOF
- *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X2_STEP_KEY_SHARE
- *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X2_STEP_ZK_PUBLIC
- *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X2_STEP_ZK_PROOF
+ *   |   |       | psa_pake_input() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_KEY_SHARE
+ *   |   |       | psa_pake_input() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_input() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_ZK_PROOF
+ *   |   |       | psa_pake_input() => SensorOaqMeasurementState = PSA_PAKE_X2_STEP_KEY_SHARE
+ *   |   |       | psa_pake_input() => SensorOaqMeasurementState = PSA_PAKE_X2_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_input() => SensorOaqMeasurementState = PSA_PAKE_X2_STEP_ZK_PROOF
  *   |   |       | => state = PSA_PAKE_STATE_READY
- *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
+ *   |   |       | => SensorOaqMeasurementState = PSA_PAKE_SEQ_INVALID
  *   |   |       | => Output Step = PSA_PAKE_INPUT_X4S
  *   |
  *   |--- In any order: (Second round input before or after second round output)
  *   |   |
  *   |   |------ In Order: => state = PSA_PAKE_OUTPUT_X2S
- *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_KEY_SHARE
- *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_ZK_PUBLIC
- *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_ZK_PROOF
+ *   |   |       | psa_pake_output() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_KEY_SHARE
+ *   |   |       | psa_pake_output() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_output() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_ZK_PROOF
  *   |   |       | => state = PSA_PAKE_STATE_READY
- *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
+ *   |   |       | => SensorOaqMeasurementState = PSA_PAKE_SEQ_INVALID
  *   |   |       | => Output Step = PSA_PAKE_STEP_DERIVE
  *   |   |
  *   |   |------ In Order: => state = PSA_PAKE_INPUT_X4S
- *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_KEY_SHARE
- *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_ZK_PUBLIC
- *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_ZK_PROOF
+ *   |   |       | psa_pake_input() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_KEY_SHARE
+ *   |   |       | psa_pake_input() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_input() => SensorOaqMeasurementState = PSA_PAKE_X1_STEP_ZK_PROOF
  *   |   |       | => state = PSA_PAKE_STATE_READY
- *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
+ *   |   |       | => SensorOaqMeasurementState = PSA_PAKE_SEQ_INVALID
  *   |   |       | => Output Step = PSA_PAKE_STEP_DERIVE
  *   |
  *   psa_pake_get_implicit_key()
@@ -285,7 +285,7 @@ static psa_status_t mbedtls_psa_pake_output_internal(
      * The MbedTLS JPAKE API outputs the whole X1+X2 and X2S steps data
      * at once, on the other side the PSA CRYPTO PAKE api requires
      * the KEY_SHARE/ZP_PUBLIC/ZK_PROOF parts of X1, X2 & X2S to be
-     * retrieved in sequence.
+     * retrieved in SensorOaqMeasurementState.
      *
      * In order to achieve API compatibility, the whole X1+X2 or X2S steps
      * data is stored in an intermediate buffer at first step output call,
@@ -356,7 +356,7 @@ static psa_status_t mbedtls_psa_pake_output_internal(
 
         operation->buffer_offset += length;
 
-        /* Reset buffer after ZK_PROOF sequence */
+        /* Reset buffer after ZK_PROOF SensorOaqMeasurementState */
         if ((step == PSA_JPAKE_X2_STEP_ZK_PROOF) ||
             (step == PSA_JPAKE_X2S_STEP_ZK_PROOF)) {
             mbedtls_platform_zeroize(operation->buffer, sizeof(operation->buffer));
@@ -404,7 +404,7 @@ static psa_status_t mbedtls_psa_pake_input_internal(
      * The MbedTLS JPAKE API takes the whole X1+X2 or X4S steps data
      * at once as input, on the other side the PSA CRYPTO PAKE api requires
      * the KEY_SHARE/ZP_PUBLIC/ZK_PROOF parts of X1, X2 & X4S to be
-     * given in sequence.
+     * given in SensorOaqMeasurementState.
      *
      * In order to achieve API compatibility, each X1+X2 or X4S step data
      * is stored sequentially in an intermediate buffer and given to the

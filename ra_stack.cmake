@@ -485,7 +485,7 @@ target_sources(${CURRENT_EXE_NAME} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/ra/fsp/src/rm_zmod4xxx/rm_zmod4xxx_ra_driver.c
 
         # ra_gen sources
-        ${CMAKE_CURRENT_LIST_DIR}/ra_gen/app_thread.c
+        ${CMAKE_CURRENT_LIST_DIR}/ra_gen/cloud_app_thread.c
         ${CMAKE_CURRENT_LIST_DIR}/ra_gen/common_data.c
         ${CMAKE_CURRENT_LIST_DIR}/ra_gen/console_thread.c
         ${CMAKE_CURRENT_LIST_DIR}/ra_gen/hal_data.c

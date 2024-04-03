@@ -25,7 +25,7 @@ FSP_HEADER
 #define PSA_CRYPTO_IS_PLAINTEXT_SUPPORT_REQUIRED(type)    ((type) & PSA_CRYPTO_CFG_PLAINTEXT_KEY_SUPPORT)
 
 #define PSA_CRYPTO_CFG_AES_FORMAT 3
-#define PSA_CRYPTO_CFG_ECC_FORMAT 3
+#define PSA_CRYPTO_CFG_ECC_FORMAT 1
 #define PSA_CRYPTO_CFG_RSA_FORMAT 3
 
 #define RM_PSA_CRYPTO_CFG_RSA3K_KEYGEN_ENABLED 0
@@ -449,9 +449,9 @@ FSP_HEADER
  * macros as described above. The only difference is that you have to make sure
  * that you provide functionality for both .c files.
  */
-#if 1
-#define MBEDTLS_ECP_ALT
-#endif
+#if 0
+            #define MBEDTLS_ECP_ALT
+            #endif
 
 /**
  * \def MBEDTLS_SHA256_PROCESS_ALT
@@ -532,12 +532,12 @@ FSP_HEADER
 #if 0
             #define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
             #endif
-#if 1
-#define MBEDTLS_ECDSA_VERIFY_ALT
-#endif
-#if 1
-#define MBEDTLS_ECDSA_SIGN_ALT
-#endif
+#if 0
+            #define MBEDTLS_ECDSA_VERIFY_ALT
+            #endif
+#if 0
+            #define MBEDTLS_ECDSA_SIGN_ALT
+            #endif
 #if 0
             #define MBEDTLS_ECDSA_GENKEY_ALT
             #endif
@@ -1711,9 +1711,9 @@ FSP_HEADER
  */
 #if 1
 #define MBEDTLS_ECDH_C
-#if 1
-#define MBEDTLS_ECDH_ALT
-#endif
+#if 0
+            #define MBEDTLS_ECDH_ALT
+            #endif
 #endif
 
 /**

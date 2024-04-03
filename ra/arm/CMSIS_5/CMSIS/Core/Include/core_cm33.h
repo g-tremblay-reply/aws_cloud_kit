@@ -2349,7 +2349,7 @@ typedef struct
 
 /**
   \brief   Set Priority Grouping
-  \details Sets the priority grouping field using the required unlock sequence.
+  \details Sets the priority grouping field using the required unlock SensorOaqMeasurementState.
            The parameter PriorityGroup is assigned to the field SCB->AIRCR [10:8] PRIGROUP field.
            Only values from 0..7 are used.
            In case of a conflict between priority grouping and available
@@ -2726,7 +2726,7 @@ __NO_RETURN __STATIC_INLINE void __NVIC_SystemReset(void)
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
 /**
   \brief   Set Priority Grouping (non-secure)
-  \details Sets the non-secure priority grouping field when in secure state using the required unlock sequence.
+  \details Sets the non-secure priority grouping field when in secure state using the required unlock SensorOaqMeasurementState.
            The parameter PriorityGroup is assigned to the field SCB->AIRCR [10:8] PRIGROUP field.
            Only values from 0..7 are used.
            In case of a conflict between priority grouping and available
