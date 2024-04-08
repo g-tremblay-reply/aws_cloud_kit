@@ -22,16 +22,19 @@
  ***********************************************************************************************************************/
 #include "sensor_thread.h"
 #include <console.h>
-#include "sensor/ICM_20948.h"
+#include <sensor_config.h>
 #include <sensor_iaq.h>
 #include <sensor_oaq.h>
 #include <sensor_hs3001.h>
 #include <sensor_icp10101.h>
-#include <cloud_app.h>
+#include <sensor_icm20948.h>
 
 #define UNUSED(x)  ((void)(x))
 #define INT_CHANNEL (1)
-
+/* Define macros for I2C pins */
+/* I2C channel 0 */
+#define I2C_SDA_0 (BSP_IO_PORT_04_PIN_01)
+#define I2C_SCL_0 (BSP_IO_PORT_04_PIN_00)
 
 
 extern TaskHandle_t sensor_thread;
@@ -47,7 +50,7 @@ extern TaskHandle_t console_thread;
  * @param[in]   SDA SDA pin of the IIC bus
  * @retval      None
  ***********************************************************************************************************************/
-void bsp_recover_iic(const bsp_io_port_pin_t SCL, const bsp_io_port_pin_t SDA)
+void Sensor_RecoverI2cBus(const bsp_io_port_pin_t SCL, const bsp_io_port_pin_t SDA)
 {
     const bsp_io_port_pin_t PIN_SCL = SCL;
     const bsp_io_port_pin_t PIN_SDA = SDA;
@@ -86,7 +89,7 @@ void bsp_recover_iic(const bsp_io_port_pin_t SCL, const bsp_io_port_pin_t SDA)
  * @retval
  * @retval
  ***********************************************************************************************************************/
-void g_comms_i2c_bus0_quick_setup(void)
+void Sensor_I2cBus0Init(void)
 {
     fsp_err_t err;
     i2c_master_instance_t *p_driver_instance = (i2c_master_instance_t*) g_comms_i2c_bus0_extended_cfg.p_driver_instance;
@@ -103,7 +106,7 @@ void g_comms_i2c_bus0_quick_setup(void)
     }
 
     /* Recover if I2C0 bus is busy */
-    bsp_recover_iic(I2C_SCL_0, I2C_SDA_0);
+    Sensor_RecoverI2cBus(I2C_SCL_0, I2C_SDA_0);
 
     /* Create a semaphore for blocking if a semaphore is not NULL */
     if (NULL != g_comms_i2c_bus0_extended_cfg.p_blocking_semaphore)
@@ -126,7 +129,7 @@ void g_comms_i2c_bus0_quick_setup(void)
  * @param[in]   None
  * @retval      None
  ***********************************************************************************************************************/
-static void reset_zmod_sensor(void)
+static void Sensor_ResetZmod(void)
 {
     R_BSP_PinAccessEnable ();
 
@@ -155,20 +158,20 @@ void sensor_thread_entry(void *pvParameters)
 {
     FSP_PARAMETER_NOT_USED(pvParameters);
 
-    g_comms_i2c_bus0_quick_setup ();
-    reset_zmod_sensor ();
+    Sensor_I2cBus0Init();
+    Sensor_ResetZmod();
 
     /* Start Oximeter thread execution */
     xTaskNotifyFromISR(oximeter_thread, 1, 1, NULL);
 
 #if  _HS3001_SENSOR_ENABLE_
     /* Open HS3001 */
-    Sensor_Hs3001Init();
+    SensorHs3001_Init();
 #endif
 
 #if  _ZMOD4410_SENSOR_ENABLE_
     /* Open IAQ ZMOD4410 */
-    Sensor_IaqInit();
+    SensorIaq_Init();
 #endif
 
     /* Start sensing ZMOD 4410 sensor data */
@@ -176,7 +179,7 @@ void sensor_thread_entry(void *pvParameters)
 
 #if _ZMOD4510_SENSOR_ENABLE_
     /* Open ZMOD4510 */
-    Sensor_OaqInit();
+    SensorOaq_Init();
 #endif
 
 #if	_ICP10101_SENSOR_ENABLE_
@@ -186,8 +189,7 @@ void sensor_thread_entry(void *pvParameters)
 
 #if _ICM20948_SENSOR_ENABLE_
     /* Open ICM20948 */
-    RmComDevice_init_Icm ();
-    ICM20948_Sensor_init ();
+    SensorIcm20948_Init ();
 #endif
 	xTaskNotifyFromISR(console_thread, 1, 1, NULL);
 
@@ -199,7 +201,7 @@ void sensor_thread_entry(void *pvParameters)
 
 #if _HS3001_SENSOR_ENABLE_
         /* Read HS3001 sensor data */
-        Sensor_Hs3001MainFunction();
+        SensorHs3001_MainFunction();
 #endif
 
 #if  _ICP10101_SENSOR_ENABLE_
@@ -209,12 +211,12 @@ void sensor_thread_entry(void *pvParameters)
 
 #if _ZMOD4510_SENSOR_ENABLE_
         /* Read ZMOD4510 sensor data */
-        Sensor_OaqMainFunction();
+        SensorOaq_MainFunction();
 #endif
 
 #if _ICM20948_SENSOR_ENABLE_
         /* Read ICM20948 sensor data and send it to the queue */
-        send_icm_data_to_queue ();
+        SensorIcm20948_MainFunction();
 #endif
         vTaskDelay (5);
 

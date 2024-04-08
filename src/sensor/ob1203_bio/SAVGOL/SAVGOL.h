@@ -1,7 +1,7 @@
 #ifndef __SAVGOL_H__
 #define __SAVGOL_H__
 
-#include "../SPO2/SPO2.h"
+#include "SPO2.h"
 
 //#define CALC_DER //Define this to calculate the derivative and second derivative
 #define _SG sg[filt_num]

@@ -3830,7 +3830,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     break;
                 }
 
-                /* Is it allowed to sleep more? */
+                /* Is it allowed to setIcmSleepMode more? */
                 if( xTaskCheckForTimeOut( &xTimeOut, &xRemainingTime ) != pdFALSE )
                 {
                     xResult = -pdFREERTOS_ERRNO_ETIMEDOUT;
@@ -4038,7 +4038,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     break;
                 }
 
-                /* Put the calling task to 'sleep' until a down-stream event is received. */
+                /* Put the calling task to 'setIcmSleepMode' until a down-stream event is received. */
                 ( void ) xEventGroupWaitBits( pxSocket->xEventGroup,
                                               ( EventBits_t ) eSOCKET_ACCEPT,
                                               pdTRUE /*xClearOnExit*/,
@@ -4508,7 +4508,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             } /* if( xByteCount > 0 ) */
 
             /* Not all bytes have been sent. In case the socket is marked as
-             * blocking sleep for a while. */
+             * blocking setIcmSleepMode for a while. */
             if( xTimed == pdFALSE )
             {
                 /* Only in the first round, check for non-blocking. */
@@ -4764,7 +4764,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  *        - Send a keep-alive packet
  *        - Check for timeout (in non-connected states only)
  *
- * @param[in] xWillSleep Whether the calling task is going to sleep.
+ * @param[in] xWillSleep Whether the calling task is going to setIcmSleepMode.
  *
  * @return Minimum amount of time before the timer shall expire.
  */
@@ -4826,12 +4826,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             /* In xEventBits the driver may indicate that the socket has
              * important events for the user.  These are only done just before the
-             * IP-task goes to sleep. */
+             * IP-task goes to setIcmSleepMode. */
             if( pxSocket->xEventBits != 0U )
             {
                 if( xWillSleep != pdFALSE )
                 {
-                    /* The IP-task is about to go to sleep, so messages can be
+                    /* The IP-task is about to go to setIcmSleepMode, so messages can be
                      * sent to the socket owners. */
                     vSocketWakeUpUser( pxSocket );
                 }
@@ -6260,7 +6260,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
                     FreeRTOS_FD_CLR( pxSocket, pxSocketSet, ( EventBits_t ) ~xEventBits );
                 }
 
-                /* And sleep until an event happens or a time-out. */
+                /* And setIcmSleepMode until an event happens or a time-out. */
                 xReturn = FreeRTOS_select( pxSocketSet, timeout );
 
                 /* Now set the return events, copying from the socked field 'xSocketBits'. */

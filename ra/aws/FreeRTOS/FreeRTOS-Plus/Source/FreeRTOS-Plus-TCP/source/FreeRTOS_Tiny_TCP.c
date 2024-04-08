@@ -353,13 +353,13 @@
     #if ( ipconfigUSE_TCP_WIN == 0 )
 
 /**
- * @brief Check data to be sent and calculate the time period the process may sleep.
+ * @brief Check data to be sent and calculate the time period the process may setIcmSleepMode.
  *
  * @param[in] pxWindow The window to be checked.
  * @param[in] ulWindowSize Size of the window.
- * @param[out] pulDelay The time period (in ticks) that the process may sleep.
+ * @param[out] pulDelay The time period (in ticks) that the process may setIcmSleepMode.
  *
- * @return pdTRUE if the process should sleep or pdFALSE.
+ * @return pdTRUE if the process should setIcmSleepMode or pdFALSE.
  */
         BaseType_t xTCPWindowTxHasData( TCPWindow_t const * pxWindow,
                                         uint32_t ulWindowSize,

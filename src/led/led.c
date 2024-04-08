@@ -18,8 +18,8 @@
  * CONTRACT OR TORT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE CONTENTS. Third-party contents
  * included in this file may be subject to different terms.
  **********************************************************************************************************************/
-#include <console.h>
-#include "usr_hal.h"
+#include "console.h"
+#include "led.h"
 
 /***********************************************************************************************************************
  * @brief       This function turns ON/OFF the LED based on the type(Colored LED) and its requested action.

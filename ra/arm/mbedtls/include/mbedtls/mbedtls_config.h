@@ -244,7 +244,7 @@
  *
  * Mark deprecated functions and features so that they generate a warning if
  * used. Functionality deprecated in one version will usually be removed in the
- * next version. You can enable this to help you prepare the transition to a
+ * next version. You can enable this to Console_HelpMenu you prepare the transition to a
  * new major version by making sure your code is not using this functionality.
  *
  * This only works with GCC and Clang. With other compilers, you may want to
@@ -259,7 +259,7 @@
  *
  * Remove deprecated functions and features so that they generate an error if
  * used. Functionality deprecated in one version will usually be removed in the
- * next version. You can enable this to help you prepare the transition to a
+ * next version. You can enable this to Console_HelpMenu you prepare the transition to a
  * new major version by making sure your code is not using this functionality.
  *
  * Uncomment to get errors on using deprecated functions and features.
@@ -362,7 +362,7 @@
  * with this definition.
  *
  * \note If you use the AES_xxx_ALT macros, then it is recommended to also set
- *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
+ *       MBEDTLS_AES_ROM_TABLES in order to Console_HelpMenu the linker garbage-collect the AES
  *       tables.
  *
  * Uncomment a macro to enable alternate implementation of the corresponding

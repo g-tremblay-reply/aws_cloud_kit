@@ -2,7 +2,7 @@
 #define __KALMAN_H__
 #include <stdint.h>
 
-#include "SPO2/SPO2.h"
+#include "SPO2.h"
 
 
 #define FIXED_BITS 3

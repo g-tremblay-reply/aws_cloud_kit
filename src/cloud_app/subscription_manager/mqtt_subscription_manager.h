@@ -1,5 +1,5 @@
 /*
- * AWS IoT Device SDK for Embedded C 202103.00
+ * AWS IoT Device SDK for Embedded C 202211.00
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -29,10 +29,39 @@
 #ifndef MQTT_SUBSCRIPTION_MANAGER_H_
 #define MQTT_SUBSCRIPTION_MANAGER_H_
 
+/**************************************************/
+/******* DO NOT CHANGE the following order ********/
+/**************************************************/
+
+/* Logging related header files are required to be included in the following order:
+ * 1. Include the header file "logging_levels.h".
+ * 2. Define LIBRARY_LOG_NAME and  LIBRARY_LOG_LEVEL.
+ * 3. Include the header file "logging_stack.h".
+ */
+
+/* Include header that defines log levels. */
+#include "logging_levels.h"
+
+/* Logging configuration for the Subscription Manager module. */
+#ifndef LIBRARY_LOG_NAME
+#define LIBRARY_LOG_NAME     "Subscription Manager"
+#endif
+#ifndef LIBRARY_LOG_LEVEL
+#define LIBRARY_LOG_LEVEL    LOG_DEBUG
+#endif
+
+#include "logging_stack.h"
+
+/************ End of logging configuration ****************/
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+extern "C" {
+#endif
+/* *INDENT-ON* */
+
 /* Include MQTT library. */
 #include "core_mqtt.h"
-
-#define MAX_SUBSCRIPTION_CALLBACK_RECORDS    9
 
 /* Enumeration type for return status value from Subscription Manager API. */
 typedef enum SubscriptionManagerStatus
@@ -116,5 +145,11 @@ SubscriptionManagerStatus_t SubscriptionManager_RegisterCallback( const char * p
 void SubscriptionManager_RemoveCallback( const char * pTopicFilter,
                                          uint16_t topicFilterLength );
 
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+}
+#endif
+/* *INDENT-ON* */
 
 #endif /* ifndef MQTT_SUBSCRIPTION_MANAGER_H_ */

@@ -26,13 +26,8 @@
 /*************************************************************************************
  * Macro definitions
  ************************************************************************************/
-
-
 extern TaskHandle_t sensor_thread;
-extern char g_certificate[2048];
-extern char g_private_key[2048];
-extern char g_mqtt_endpoint[128];
-
+extern TaskHandle_t console_thread;
 
 
 /*************************************************************************************
@@ -56,8 +51,8 @@ extern char g_mqtt_endpoint[128];
  ***********************************************************************************************************************/
 void cloud_app_thread_entry(void *pvParameters)
 {
-
     MQTTContext_t CloudAppMqtt;
+    MQTTStatus_t mqttStatus = MQTTServerRefused;
 
     FSP_PARAMETER_NOT_USED (pvParameters);
 
@@ -65,15 +60,49 @@ void cloud_app_thread_entry(void *pvParameters)
      * come from Console thread that takes user input before starting cloud app */
     xTaskNotifyWait(pdFALSE, pdFALSE, NULL, portMAX_DELAY);
 
-    /* Initializes CloudApp's IP stack */
-    CloudApp_InitIPStack();
+    /* Try to initialize CloudApp with stored credentials from CLoudProv */
+    mqttStatus = CloudProv_Init(&CloudAppMqtt, CloudApp_MqttCallback);
 
-    /* Provision IoT device and connect MQTT context with AWS server */
-    CloudProv_ConnectDevice(&CloudAppMqtt, CloudApp_MqttCallback);
+    if(mqttStatus == MQTTIllegalState)
+    {
+        /* MQTT endpoint is unreachable, thus don't try further to provision device */
+        while(1)
+        {
+            APP_WARN_PRINT("MQTT Broker endpoint is not reachable"
+                           "\r\nPlease reset Cloud Kit [ORANGE]while spamming SPACE BAR[YELLOW] "
+                           "to open MENU and try new MQTT Broker endpoint\r\n\r\n");
+            vTaskDelay(10000);
+        }
+    }
+    else if(mqttStatus != MQTTSuccess)
+    {
+        /* Connection to MQTT was unsuccessful. This might be caused by the certificate chain being invalid,
+         * Thus, try to provision device via fleet provisioning */
+        mqttStatus = CloudProv_ProvisionDevice(&CloudAppMqtt, CloudApp_MqttCallback);
+        if(mqttStatus != MQTTSuccess)
+        {
+            /* MQTT endpoint is unreachable, thus don't try further to provision device */
 
-    CloudApp_SubscribeTopics(&CloudAppMqtt);
+            APP_WARN_PRINT("CloudApp could not authenticate with given credentials."
+                           "\r\nPlease reset Cloud Kit [ORANGE]while spamming SPACE BAR[YELLOW] "
+                           "to open MENU and try new credentials\r\n\r\n");
+        }
+    }
 
-    APP_PRINT("Device is Ready for Publishing and Receiving Publish of Messages \r\n\r\n");
+    if(mqttStatus == MQTTSuccess)
+    {
+        mqttStatus = CloudApp_SubscribeTopics(&CloudAppMqtt);
+    }
+
+    if(mqttStatus == MQTTSuccess)
+    {
+        APP_PRINT(("Device is ready for Receiving/Publishing messages from AWS Iot \r\n\r\n"));
+    }
+    else
+    {
+        APP_WARN_PRINT(("Device is not connected to AWS IoT server, but will still print sensor reading" \
+        " on Console. \r\n\r\n"));
+    }
 
     xTaskNotifyFromISR(sensor_thread, 1, 1, NULL);
 

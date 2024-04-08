@@ -2,13 +2,12 @@
 # although it is not necessary to add header files, we also do that for easing the management of IDE.
 target_sources(${CURRENT_EXE_NAME}
     PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/ICM_20948.c
-        ${CMAKE_CURRENT_LIST_DIR}/ICM_20948.h
+        ${CMAKE_CURRENT_LIST_DIR}/sensor_icm20948.c
+        ${CMAKE_CURRENT_LIST_DIR}/sensor_icm20948.h
         ${CMAKE_CURRENT_LIST_DIR}/sensor_icp10101.c
         ${CMAKE_CURRENT_LIST_DIR}/sensor_icp10101.h
         ${CMAKE_CURRENT_LIST_DIR}/sensor_hs3001.c
         ${CMAKE_CURRENT_LIST_DIR}/sensor_hs3001.h
-        ${CMAKE_CURRENT_LIST_DIR}/usr_data.h
         ${CMAKE_CURRENT_LIST_DIR}/sensor_ob1203.c
         ${CMAKE_CURRENT_LIST_DIR}/sensor_ob1203.h
         ${CMAKE_CURRENT_LIST_DIR}/sensor_iaq.c

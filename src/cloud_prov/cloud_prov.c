@@ -7,7 +7,7 @@
 #include <cloud_prov_serializer.h>
 #include <cloud_prov_pkcs11.h>
 #include <console.h>
-#include <usr_hal.h>
+#include "led/led.h"
 #include <FreeRTOS_DNS.h>
 #include <fleet_provisioning.h>
 #include <backoff_algorithm.h>
@@ -21,7 +21,7 @@
 /**
  * @brief Size of buffer in which to hold the certificate signing request (CSR).
  */
-#define CLOUD_PROV_CERT_BUFFER_SIZE                              4096
+#define CLOUD_PROV_CERT_BUFFER_SIZE                   (2048)
 
 /**
  * @brief The length of the outgoing publish records array used by the coreMQTT
@@ -55,6 +55,8 @@
  * See https://docs.aws.amazon.com/iot/latest/apireference/API_CreateThing.html#iot-CreateThing-request-thingName
  */
 #define CLOUD_PROV_THING_NAME_BUFFER_SIZE                128
+
+#define CLOUD_PROV_MQTT_ENDPOINT_BUFFER_SIZE                     128
 
 /*************************************************************************************
  * Type Definitions
@@ -111,7 +113,7 @@ static MQTTFixedBuffer_t CloudProvMqttBuffer =
 
 /** @brief Copy of publish info invoked in MQTT application callback
  * @details This should be used to access payload of the latest received publish message */
-MQTTDeserializedInfo_t CloudProvPublishInfo;
+MQTTPublishInfo_t CloudProvPublishInfo;
 
 /** @brief Array to track the outgoing publish records for outgoing publisheswith QoS > 0.
  * @details This is passed into #MQTT_InitStatefulQoS to allow for QoS > 0. */
@@ -127,7 +129,10 @@ static MQTTPubAckInfo_t CloudProvIncomingPublishRecords[ CLOUD_PROV_INCOMING_PUB
  */
 static char CloudProvThingName[ CLOUD_PROV_THING_NAME_BUFFER_SIZE ];
 
-static char USER_MQTT_ENDPOINT[128]; //TODO figure out how to handle this
+static FleetProvisioningTopic_t CloudProvFleetTopic = FleetProvisioningInvalidTopic;
+
+
+static char CloudProvMqttEndpoint[CLOUD_PROV_MQTT_ENDPOINT_BUFFER_SIZE] = CLOUD_PROV_DEFAULT_MQTT_BROKER_ENDPOINT;
 
 /*************************************************************************************
  * Local Function Prototypes
@@ -173,7 +178,7 @@ static TlsTransportStatus_t CloudProv_ConnectTLS(NetworkContext_t * networkConte
  * publishes and incoming acks from MQTT library.
  * @return The MQTT status of the final connection attempt.
  */
-MQTTStatus_t CloudProv_ConnectMQTT(MQTTContext_t * mqttContext, MQTTEventCallback_t appMqttCallback);
+static MQTTStatus_t CloudProv_ConnectMQTT(MQTTContext_t * mqttContext, MQTTEventCallback_t appMqttCallback);
 
 /**
  * @brief Function to resend the publishes if a session is re-established with
@@ -261,17 +266,18 @@ static void CloudProv_MqttCallback(MQTTContext_t * pxMqttContext,
         {
             /* Copy topic + packet info to global struct. This can be used after the callback */
             memcpy((void *)&CloudProvPublishInfo,
-                   (void *)pxDeserializedInfo,
-                   sizeof(MQTTDeserializedInfo_t));
-
+                   (void *)pxDeserializedInfo->pPublishInfo,
+                   sizeof(MQTTPublishInfo_t));
+            APP_INFO_PRINT( ( "Response from Fleet Provisioning Topic: %.*s.\r\n"),
+                            ( int ) pxPublishInfo->topicNameLength,
+                            ( const char * ) pxPublishInfo->pTopicName );
             switch (xApi)
             {
                 case FleetProvCborCreateCertFromCsrAccepted:
                 case FleetProvCborRegisterThingAccepted:
-                    //TODO parse CSR here ? no, too long
-                    break;
                 case FleetProvCborCreateCertFromCsrRejected:
                 case FleetProvCborRegisterThingRejected:
+                    CloudProvFleetTopic = xApi;
                     break;
                 default:
                     APP_ERR_PRINT( ( "Received message on currently unsupported Fleet Provisioning topic.\r\n"));
@@ -348,7 +354,7 @@ static TlsTransportStatus_t CloudProv_ConnectTLS(NetworkContext_t * networkConte
     #if CLOUD_PROV_MQTT_BROKER_PORT != 443U
     #error "Connections to AWS IoT Core with custom authentication must connect to TCP port 443 with the \"mqtt\" alpn."
     #endif /* CLOUD_PROV_MQTT_BROKER_PORT != 443U */
-#else /* if !defined( democonfigCLIENT_USERNAME ) */
+#else /* if !defined( CLOUD_PROV_CLIENT_USERNAME ) */
     /* Otherwise, use the "x-amzn-mqtt-ca" alpn to connect to AWS IoT Core using
      * x509 Certificate Authentication. */
     static const char * ppcAlpnProtocols[] = { "x-amzn-mqtt-ca", NULL };
@@ -380,14 +386,12 @@ static TlsTransportStatus_t CloudProv_ConnectTLS(NetworkContext_t * networkConte
     /* Attempt to connect to MQTT broker. If connection fails, retry after a timeout managed by backoff algorithm */
     do
     {
-        /* Establish a TLS connection with the MQTT broker. This example connects to
-         * the MQTT broker as specified in CLOUD_PROV_DEV_MQTT_BROKER_ENDPOINT and
-         * CLOUD_PROV_MQTT_BROKER_PORT at the top of this file. */
+        /* Establish a TLS connection with the MQTT broker */
         LogInfo( ( "Create a TLS connection to %s:%d.",
-                CLOUD_PROV_DEV_MQTT_BROKER_ENDPOINT,
+                CloudProvMqttEndpoint,
                 CLOUD_PROV_MQTT_BROKER_PORT ) );
         connectionStatus = TLS_FreeRTOS_Connect(networkContext,
-                                                CLOUD_PROV_DEV_MQTT_BROKER_ENDPOINT,
+                                                CloudProvMqttEndpoint,
                                                 CLOUD_PROV_MQTT_BROKER_PORT,
                                                 &networkCredentials,
                                                 CLOUD_PROV_MQTT_SEND_RECV_TIMEOUT_MS,
@@ -406,12 +410,12 @@ static TlsTransportStatus_t CloudProv_ConnectTLS(NetworkContext_t * networkConte
 
             if(backoffAlgStatus == BackoffAlgorithmRetriesExhausted )
             {
-                LogError( ( "Connection to the broker failed, all attempts exhausted." ) );
+                APP_ERR_PRINT( ( "Connection to the broker failed, all attempts exhausted.\r\n" ) );
             }
             else if(backoffAlgStatus == BackoffAlgorithmSuccess )
             {
-                LogWarn( ( "Connection to the broker failed. "
-                           "Retrying connection with backoff and jitter." ) );
+                APP_WARN_PRINT( ( "Connection to the broker failed. "
+                           "Retrying connection with backoff and jitter.\r\n" ) );
                 vTaskDelay( pdMS_TO_TICKS( usNextRetryBackOff ) );
             }
         }
@@ -420,14 +424,15 @@ static TlsTransportStatus_t CloudProv_ConnectTLS(NetworkContext_t * networkConte
     return connectionStatus;
 }
 
-MQTTStatus_t CloudProv_ConnectMQTT(MQTTContext_t * mqttContext, MQTTEventCallback_t appMqttCallback)
+static MQTTStatus_t CloudProv_ConnectMQTT(MQTTContext_t * mqttContext, MQTTEventCallback_t appMqttCallback)
 {
-    MQTTStatus_t mqttStatus;
+    MQTTStatus_t mqttStatus = MQTTBadParameter;
     MQTTConnectInfo_t connectInfo;
     TransportInterface_t transportInterface;
     TlsTransportStatus_t tlsStatus;
     bsp_unique_id_t const *deviceUniqueId = R_BSP_UniqueIdGet();
     bool sessionPresent = false;
+    CK_RV xResult = CKR_OK;
 
     tlsStatus = CloudProv_ConnectTLS(&CloudProvNetworkContext);
 
@@ -447,26 +452,26 @@ MQTTStatus_t CloudProv_ConnectMQTT(MQTTContext_t * mqttContext, MQTTEventCallbac
                                CloudProv_GetTimeMs,
                                appMqttCallback,
                                &CloudProvMqttBuffer);
+        if(mqttStatus != MQTTSuccess)
+        {
+            APP_ERR_PRINT( "MQTT_Init failed with status %s.", MQTT_Status_strerror(mqttStatus ) );
+        }
     }
 
-    if(mqttStatus != MQTTSuccess)
-    {
-        LogError( ( "MQTT_Init failed with status %s.", MQTT_Status_strerror(mqttStatus ) ) );
-    }
-    else
+    if(mqttStatus == MQTTSuccess)
     {
         mqttStatus = MQTT_InitStatefulQoS(mqttContext,
                                           CloudProvOutgoingPublishRecords,
                                           CLOUD_PROV_OUTGOING_PUBLISH_RECORD_LEN,
                                           CloudProvIncomingPublishRecords,
                                           CLOUD_PROV_INCOMING_PUBLISH_RECORD_LEN );
+        if(mqttStatus != MQTTSuccess)
+        {
+            APP_ERR_PRINT("MQTT_InitStatefulQos failed with status %s.", MQTT_Status_strerror(mqttStatus));
+        }
     }
 
-    if(mqttStatus != MQTTSuccess)
-    {
-        LogError(("MQTT_InitStatefulQos failed with status %s.", MQTT_Status_strerror(mqttStatus)));
-    }
-    else
+    if(mqttStatus == MQTTSuccess)
     {
         /* Prepare send CONNECT packet. Init connectInfo struct */
         ( void ) memset(( void * ) &connectInfo, 0x00, sizeof( connectInfo ) );
@@ -480,7 +485,8 @@ MQTTStatus_t CloudProv_ConnectMQTT(MQTTContext_t * mqttContext, MQTTEventCallbac
         /* The client identifier is used to uniquely identify this MQTT client to
          * the MQTT broker. In a production device the identifier can be something
          * unique, such as a device serial number. */
-        connectInfo.pClientIdentifier = (const char *)deviceUniqueId; //TODO test this
+
+        connectInfo.pClientIdentifier = (const char *)deviceUniqueId;
         connectInfo.clientIdentifierLength = ( uint16_t ) CLOUD_PROV_DEVICE_UUID_SIZE_BYTES;
         connectInfo.keepAliveSeconds = CLOUD_PROV_MQTT_KEEP_ALIVE_TIMEOUT_SEC;
 #if defined( CLOUD_PROV_CLIENT_USERNAME )
@@ -489,8 +495,8 @@ MQTTStatus_t CloudProv_ConnectMQTT(MQTTContext_t * mqttContext, MQTTEventCallbac
         connectInfo.userNameLength = ( uint16_t ) strlen( CLOUD_PROV_CLIENT_USERNAME AWS_IOT_METRICS_STRING );
 
         /* Use the provided password as-is */
-        connectInfo.pPassword = democonfigCLIENT_PASSWORD;
-        connectInfo.passwordLength = ( uint16_t ) strlen( democonfigCLIENT_PASSWORD );
+        connectInfo.pPassword = CLOUD_PROV_CLIENT_PASSWORD;
+        connectInfo.passwordLength = ( uint16_t ) strlen( CLOUD_PROV_CLIENT_PASSWORD );
 #else
         /* If no username is needed, only send the metrics string */
         connectInfo.pUserName = NULL; // TODO reset to AWS_IOT_METRICS_STRING once MQTT_Conenct debugged
@@ -505,15 +511,13 @@ MQTTStatus_t CloudProv_ConnectMQTT(MQTTContext_t * mqttContext, MQTTEventCallbac
                                   NULL,
                                   CLOUD_PROV_MQTT_CONNACK_RECV_TIMEOUT_MS,
                                   &sessionPresent );
+        if(mqttStatus != MQTTSuccess )
+        {
+            APP_ERR_PRINT(( "MQTT_Connect() returns status code %s.\r\n"), MQTT_Status_strerror(mqttStatus ));
+        }
     }
 
-    if(mqttStatus != MQTTSuccess )
-    {
-        LogError( ( "Connection with MQTT broker failed with status %s.",
-                MQTT_Status_strerror(mqttStatus ) ) );
-        APP_ERR_PRINT(( "MQTT_Connect() returns status code %d.\r\n"), mqttStatus);
-    }
-    else
+    if(mqttStatus == MQTTSuccess )
     {
         LogInfo( ( "MQTT connection successfully established with broker.\n\n" ) );
     }
@@ -586,54 +590,6 @@ static MQTTStatus_t CloudProv_ManageFleetProvTopics(MQTTContext_t *mqttContext, 
     return mqttStatus;
 }
 
-static MQTTStatus_t CloudProv_UnSubscribeFleetProvTopics(MQTTContext_t *mqttContext)
-{
-    MQTTStatus_t mqttStatus;
-    MQTTSubscribeInfo_t pSubscriptionList[ CLOUD_PROV_FLEET_PROV_TOPIC_COUNT ] = {0u};
-    uint16_t packetId;
-
-    /* Populate subscription list with hardcoded topic info */
-    pSubscriptionList[0u].pTopicFilter = FP_CBOR_CREATE_CERT_ACCEPTED_TOPIC;
-    pSubscriptionList[0u].topicFilterLength = FP_CBOR_CREATE_CERT_ACCEPTED_LENGTH;
-    pSubscriptionList[1u].pTopicFilter = FP_CBOR_CREATE_CERT_REJECTED_TOPIC;
-    pSubscriptionList[1u].topicFilterLength = FP_CBOR_CREATE_CERT_REJECTED_LENGTH;
-    pSubscriptionList[2u].pTopicFilter = FP_CBOR_REGISTER_ACCEPTED_TOPIC(CLOUD_PROV_TEMPLATE_NAME );
-    pSubscriptionList[2u].topicFilterLength = FP_CBOR_REGISTER_ACCEPTED_LENGTH(CLOUD_PROV_TEMPLATE_NAME_LENGTH);
-    pSubscriptionList[3u].pTopicFilter = FP_CBOR_REGISTER_REJECTED_TOPIC(CLOUD_PROV_TEMPLATE_NAME );
-    pSubscriptionList[3u].topicFilterLength = FP_CBOR_REGISTER_REJECTED_LENGTH(CLOUD_PROV_TEMPLATE_NAME_LENGTH );
-
-    /* Use QOS1 for all the topics */
-    for(uint8_t topic=0u; topic < CLOUD_PROV_FLEET_PROV_TOPIC_COUNT; topic++)
-    {
-        pSubscriptionList[topic].qos = MQTTQoS1;
-    }
-
-    /* Generate packet identifier for the SUBSCRIBE packet. */
-    packetId = MQTT_GetPacketId( mqttContext );
-
-    /* Send SUBSCRIBE packet. */
-    mqttStatus = MQTT_Subscribe(mqttContext,
-                                pSubscriptionList,
-                                CLOUD_PROV_FLEET_PROV_TOPIC_COUNT,
-                                packetId );
-    if(mqttStatus != MQTTSuccess )
-    {
-        LogError( ( "Failed to send SUBSCRIBE packet to broker with error = %s.",
-                MQTT_Status_strerror(mqttStatus ) ) );
-    }
-    else
-    {
-        mqttStatus = MQTT_ProcessLoop( mqttContext);
-        if(mqttStatus != MQTTSuccess)
-        {
-            LogError( ( "Failed to receive SUBACK packet to broker with error = %s.",
-                    MQTT_Status_strerror(mqttStatus ) ) );
-        }
-    }
-
-    return mqttStatus;
-}
-
 static bool CloudProv_RequestCertificate(MQTTContext_t *mqttContext,
                                   uint8_t *ownershipToken,
                                   size_t *ownershipTokenLength)
@@ -642,7 +598,7 @@ static bool CloudProv_RequestCertificate(MQTTContext_t *mqttContext,
     uint8_t payloadBuffer[CLOUD_PROV_MQTT_BUFFER_SIZE];
     size_t certLength = 0u;
     uint8_t certIdBuffer[CLOUD_PROV_CERT_ID_BUFFER_SIZE];
-    size_t certIdLength = 0u;
+    size_t certIdLength = CLOUD_PROV_CERT_ID_BUFFER_SIZE;
     size_t payloadLength = 0u;
     bool status = false;
     MQTTStatus_t mqttStatus = MQTTBadParameter;
@@ -671,6 +627,7 @@ static bool CloudProv_RequestCertificate(MQTTContext_t *mqttContext,
             .payloadLength = payloadLength,
             .qos = MQTTQoS1
             };
+
         mqttStatus = MQTT_Publish(mqttContext, &pubInfo, packetId);
         if(mqttStatus != MQTTSuccess)
         {
@@ -683,37 +640,45 @@ static bool CloudProv_RequestCertificate(MQTTContext_t *mqttContext,
 
     if(mqttStatus == MQTTSuccess)
     {
-        mqttStatus = MQTT_ProcessLoop( mqttContext);
-        if(mqttStatus != MQTTSuccess)
+        /* increase wait time here because Server takes a long time to write CSR and send response */
+        uint16_t timeMs = 0u;
+        while((timeMs <= 5000u) && (CloudProvFleetTopic == FleetProvisioningInvalidTopic))
         {
-            LogError( ( "Failed to receive PUBACK packet from broker on "\
-                        "$aws/certificates/create-from-csr/ topic with error = %s.",
-                MQTT_Status_strerror(mqttStatus ) ) );
-            status = false;
+            mqttStatus = MQTT_ProcessLoop( mqttContext);
+            timeMs += 1000u;
+            vTaskDelay(pdMS_TO_TICKS(1000u));
         }
     }
 
-    if(mqttStatus == MQTTSuccess)
+    if((mqttStatus == MQTTSuccess) && (CloudProvFleetTopic == FleetProvCborCreateCertFromCsrAccepted))
     {
         /* From the response, extract the certificate, certificate ID, and
          * certificate ownership token. */
-        status = CloudProv_DeserializeCsrResponse((const uint8_t *)CloudProvPublishInfo.pPublishInfo->pPayload,
-                                                   CloudProvPublishInfo.pPublishInfo->payloadLength,
+        /* set certLength to buffer size, since this is an input/output parameter that takes max buff
+         * size as input and gives string length written into buffer as output */
+        certLength = CLOUD_PROV_CERT_BUFFER_SIZE;
+        status = CloudProv_DeserializeCsrResponse((const uint8_t *)CloudProvPublishInfo.pPayload,
+                                                   CloudProvPublishInfo.payloadLength,
                                                    (char *)certBuffer,
                                                    &certLength,
                                                    (char *)certIdBuffer,
                                                    &certIdLength,
                                                    (char *)ownershipToken,
-                                                   &ownershipTokenLength);
+                                                   ownershipTokenLength);
+        if(status == true)
+        {
+            status = CloudProv_LoadCertificate(CloudProvP11Session,
+                                               (const char *)certBuffer,
+                                               certLength);
+        }
     }
-
-    if(status == true)
+    else
     {
-        status = CloudProv_LoadCertificate(CloudProvP11Session,
-                                  (const char *)certBuffer,
-                                  certLength);
+        status = false;
     }
 
+    /* Reset cloud provision fleet topic for next publish */
+    CloudProvFleetTopic = FleetProvisioningInvalidTopic;
     return status;
 }
 
@@ -727,11 +692,16 @@ static MQTTStatus_t CloudProv_RegisterDevice(MQTTContext_t *mqttContext,
     CborError cborStatus;
     MQTTStatus_t mqttStatus = MQTTBadParameter;
     size_t thingNameLength = CLOUD_PROV_THING_NAME_BUFFER_SIZE;
+    char deviceId[36u];
+    sprintf(deviceId, (void *) "%08x-%08x-%08x-%08x",
+            (uint32_t) deviceUniqueId->unique_id_words[0], (uint32_t) deviceUniqueId->unique_id_words[1],
+            (uint32_t) deviceUniqueId->unique_id_words[2], (uint32_t) deviceUniqueId->unique_id_words[3]);
+    APP_INFO_PRINT( ( "Device Unique ID : %s\r\n"),deviceId );
 
     cborStatus = CloudProv_SerializeRegisterThingRequest( (const char *)ownershipToken,
                                              ownershipTokenLength,
-                                             (const char *)deviceUniqueId->unique_id_bytes,
-                                            CLOUD_PROV_DEVICE_UUID_SIZE_BYTES,
+                                                          deviceId,
+                                                          strlen(deviceId),
                                             CLOUD_PROV_MQTT_BUFFER_SIZE,
                                             payloadBuffer,
                                             &payloadLength );
@@ -757,30 +727,38 @@ static MQTTStatus_t CloudProv_RegisterDevice(MQTTContext_t *mqttContext,
 
     if(mqttStatus == MQTTSuccess)
     {
-        mqttStatus = MQTT_ProcessLoop( mqttContext);
-        if(mqttStatus != MQTTSuccess)
+        /* increase wait time here because Server takes a long time to write CSR and send response */
+        uint16_t timeMs = 0u;
+        while((timeMs <= 5000u) && (CloudProvFleetTopic == FleetProvisioningInvalidTopic))
         {
-            LogError( ( "Failed to receive PUBACK packet from broker on "\
-                        "provision/cbor topic with error = %s.",
-                    MQTT_Status_strerror(mqttStatus ) ) );
+            mqttStatus = MQTT_ProcessLoop( mqttContext);
+            timeMs += 1000u;
+            vTaskDelay(pdMS_TO_TICKS(1000u));
         }
     }
-    if(mqttStatus == MQTTSuccess)
+
+    if((mqttStatus == MQTTSuccess) && (CloudProvFleetTopic == FleetProvCborRegisterThingAccepted))
     {
-        cborStatus = CloudProv_DeserializeThingName((const uint8_t *)CloudProvPublishInfo.pPublishInfo->pPayload,
-                                       CloudProvPublishInfo.pPublishInfo->payloadLength,
+        cborStatus = CloudProv_DeserializeThingName((const uint8_t *)CloudProvPublishInfo.pPayload,
+                                       CloudProvPublishInfo.payloadLength,
                                        CloudProvThingName,
                                        &thingNameLength);
         if(cborStatus == CborNoError)
         {
             APP_INFO_PRINT( ( "Received AWS IoT Thing name: %.*s\r\n"), ( int ) thingNameLength, CloudProvThingName );
+
         }
         else
         {
-            /* Must provide feedback that something failed. Since mqtt didnt fail, the most generic error is sent
+            /* Must provide feedback that something failed. Since mqtt didn't fail, the most generic error is sent
              * to signify that somethign went wrong (cbor in this case) */
             mqttStatus = MQTTBadParameter;
         }
+    }
+    else
+    {
+        /* Register thing was not accepted, so return a failed status */
+        mqttStatus = MQTTBadParameter;
     }
     return mqttStatus;
 }
@@ -790,60 +768,23 @@ static MQTTStatus_t CloudProv_RegisterDevice(MQTTContext_t *mqttContext,
  * global functions
  ************************************************************************************/
 
-MQTTStatus_t CloudProv_ConnectDevice(MQTTContext_t *mqttContext, MQTTEventCallback_t mqttCallback)
+MQTTStatus_t CloudProv_ProvisionDevice(MQTTContext_t *mqttContext, MQTTEventCallback_t mqttCallback)
 {
     fsp_err_t fspError;
-    uint8_t lfsStatus = LFS_ERR_CORRUPT;
     CK_RV xPkcs11Ret = CKR_CANCEL;
     CK_OBJECT_HANDLE certHandle = 0u;
     CK_OBJECT_HANDLE pkHandle = 0u;
     MQTTStatus_t mqttStatus = MQTTRecvFailed;
-    static uint32_t ipAddress = 0u;
+    bool connected = false;
     bool status = false;
     uint8_t ownershipToken[ CLOUD_PROV_OWNERSHIP_TOKEN_BUFFER_SIZE ];
-    size_t ownershipTokenLength;
+    size_t ownershipTokenLength = CLOUD_PROV_OWNERSHIP_TOKEN_BUFFER_SIZE;
 
 
-    /* Initialize the crypto hardware acceleration. */
-    fspError = mbedtls_platform_setup(NULL);
-    if (fspError != FSP_SUCCESS)
+    xPkcs11Ret = xDestroyDefaultCryptoObjects(CloudProvP11Session );
+    if(xPkcs11Ret != CKR_OK)
     {
-        APP_ERR_PRINT("** HW SCE Init failed **\r\n");
-        APP_ERR_TRAP(fspError);
-    }
-    else
-    {
-        /* Get the IP address for the MQTT END POINT used for the application */ //TODO figure out how to import endpoit
-        ipAddress = FreeRTOS_gethostbyname((char*)CLOUD_PROV_DEV_MQTT_BROKER_ENDPOINT);
-
-        if(0u != ipAddress)
-        {
-            FAILURE_INDICATION;
-            APP_ERR_PRINT("FreeRTOS_gethostbyname  Failed to get the End point address for %s",USER_MQTT_ENDPOINT);
-            APP_ERR_TRAP(RESET_VALUE);
-        }
-    }
-
-    if(0u != ipAddress )
-    {
-        /* Convert the IP address to a string to print on to the console. */
-        FreeRTOS_inet_ntoa(ipAddress, ( char * ) cBuffer);
-        APP_PRINT("\r\nDNS Lookup for \"%s\" is      : %s  \r\n", USER_MQTT_ENDPOINT, cBuffer);
-
-        /* Initialize littleFS to store crypto secrets with corePKCS11 */
-        lfsStatus = CloudProv_InitLittleFs();
-    }
-
-    if(lfsStatus == LFS_ERR_OK)
-    {
-        /* Init PKCS11 session */
-        /* Initialize the PKCS #11 module */
-        xInitializePkcs11Session( &CloudProvP11Session );
-        xPkcs11Ret = xDestroyDefaultCryptoObjects(CloudProvP11Session );
-        if(xPkcs11Ret != CKR_OK)
-        {
-            APP_ERR_PRINT( ( "Failed to Destroy corePKCS11 Crypto Objects.\r\n" ) );
-        }
+        APP_ERR_PRINT( ( "Failed to Destroy corePKCS11 Crypto Objects.\r\n" ) );
     }
 
     if( xPkcs11Ret == CKR_OK )
@@ -856,7 +797,7 @@ MQTTStatus_t CloudProv_ConnectDevice(MQTTContext_t *mqttContext, MQTTEventCallba
                                           &pkHandle );
         if(xPkcs11Ret != CKR_OK)
         {
-            APP_ERR_PRINT( ( "Failed to provision claim private key.\r\n" ) );
+            APP_WARN_PRINT( ( "Failed to provision claim private key.\r\n" ) );
         }
     }
 
@@ -870,7 +811,7 @@ MQTTStatus_t CloudProv_ConnectDevice(MQTTContext_t *mqttContext, MQTTEventCallba
                                            &certHandle );
         if(xPkcs11Ret != CKR_OK)
         {
-            APP_ERR_PRINT( ( "Failed to provision claim certificate.\r\n" ) );
+            APP_WARN_PRINT( ( "Failed to provision claim certificate.\r\n" ) );
         }
     }
 
@@ -884,6 +825,7 @@ MQTTStatus_t CloudProv_ConnectDevice(MQTTContext_t *mqttContext, MQTTEventCallba
 
     if(mqttStatus == MQTTSuccess)
     {
+        connected = true;
         /* Subscribe to Fleet Provisioning MQTT topics */
         mqttStatus = CloudProv_ManageFleetProvTopics(mqttContext, CloudProv_Subscribe);
     }
@@ -906,11 +848,9 @@ MQTTStatus_t CloudProv_ConnectDevice(MQTTContext_t *mqttContext, MQTTEventCallba
     }
 
     /* Send MQTT DISCONNECT. */
-    mqttStatus = MQTT_Disconnect( mqttContext );
-    if( mqttStatus != MQTTSuccess )
+    if(connected == true)
     {
-        LogError( ( "Sending MQTT DISCONNECT failed with status=%s.",
-                MQTT_Status_strerror( mqttStatus ) ) );
+        MQTT_Disconnect( mqttContext );
     }
     /* Close TLS connection.  */
     TLS_FreeRTOS_Disconnect( &CloudProvNetworkContext );
@@ -919,7 +859,96 @@ MQTTStatus_t CloudProv_ConnectDevice(MQTTContext_t *mqttContext, MQTTEventCallba
     {
         /* Reconnect with new generated device credentials */
         mqttStatus = CloudProv_ConnectMQTT(mqttContext, mqttCallback);
+
+        /* Try to read incoming packets for come seconds, in case the TLS connection is cut by the client
+         * in case of bad chain of certificate */
+        uint16_t timeMs = 0u;
+        while((timeMs <= 2000u))
+        {
+            mqttStatus = MQTT_ProcessLoop( mqttContext);
+            timeMs += 1000u;
+            vTaskDelay(pdMS_TO_TICKS(1000u));
+        }
+        if(mqttStatus == MQTTRecvFailed)
+        {
+            APP_WARN_PRINT( ( "There is a strong possibility that the certificate chain is invalid. "\
+                                    "Make sure the claim certificate + claim private key + root CA are correctly "\
+                                  "associated to a provision template on AWS IoT.\r\n"),
+                            MQTT_Status_strerror(mqttStatus) );
+        }
+    }
+
+    if((status != true) || (mqttStatus != MQTTSuccess))
+    {
+        APP_ERR_PRINT(("Could not Provision device on AWS IoT Server. \r\n"));
+        mqttStatus = MQTTServerRefused;
     }
 
     return mqttStatus;
+}
+
+MQTTStatus_t CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t appMqttCallback)
+{
+    uint8_t lfsStatus = LFS_ERR_CORRUPT;
+    MQTTStatus_t mqttStatus = MQTTBadParameter;
+    fsp_err_t fspError = FSP_ERR_ASSERTION;
+    CK_RV   pkcs11status = CKR_GENERAL_ERROR;
+    uint32_t ipAddress = 0u;
+
+    /* Initialize littleFS to store crypto secrets with corePKCS11 */
+    lfsStatus = CloudProv_InitLittleFs();
+
+    if(lfsStatus == LFS_ERR_OK)
+    {
+        /* Initialize the PKCS #11 module */
+        mbedtls_platform_setup(NULL);
+        pkcs11status = xInitializePkcs11Session( &CloudProvP11Session );
+    }
+
+    if(pkcs11status == CKR_OK)
+    {
+        /* Initialize FreeRTOS's IP network stack */
+        CloudProv_InitIPStack();
+        /* Get the IP address for the MQTT END POINT used for the application */
+        ipAddress = FreeRTOS_gethostbyname((char*)CloudProvMqttEndpoint);
+    }
+
+    if(0u == ipAddress)
+    {
+        FAILURE_INDICATION;
+        APP_WARN_PRINT("FreeRTOS_gethostbyname() Failed to get IP address from End point address for %s\r\n\r\n",
+                      CloudProvMqttEndpoint);
+        /* Endpoint is not reachable, thus use niche error code so that caller knows it is a mqtt endpoint error */
+        mqttStatus = MQTTIllegalState;
+    }
+    else
+    {
+        /* Convert the IP address to a string to print on to the console. */
+        FreeRTOS_inet_ntoa(ipAddress, ( char * ) cBuffer);
+        APP_PRINT("\r\nDNS Lookup for \"%s\" is      : %s  \r\n", CloudProvMqttEndpoint, cBuffer);
+
+        /* Try to connect to MQTT with MQTT Broker endpoint + Device credentials if they exist */
+/*
+        mqttStatus = CloudProv_ConnectMQTT(mqttContext, appMqttCallback); TODO reenable after testing deviceName in provisioning
+*/
+    }
+
+    return mqttStatus;
+}
+
+uint8_t CloudProv_ImportMqttEndpoint(uint8_t *endpointBuffer, size_t endpointLength)
+{
+    uint8_t status = 0u;
+
+    if(endpointLength < CLOUD_PROV_MQTT_ENDPOINT_BUFFER_SIZE)
+    {
+        memset(CloudProvMqttEndpoint, 0, strlen (CloudProvMqttEndpoint));
+        memcpy((void*)CloudProvMqttEndpoint, (void *)endpointBuffer, endpointLength);
+    }
+    else
+    {
+        APP_ERR_PRINT("\r\nCannot import MQTT Broker Endpoint into CloudProv module, buffer insufficient");
+        status = 1u;
+    }
+    return status;
 }

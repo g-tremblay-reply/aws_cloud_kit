@@ -7,7 +7,9 @@
 
 #include <core_mqtt.h>
 
-MQTTStatus_t CloudProv_ConnectDevice(MQTTContext_t *mqttContext, MQTTEventCallback_t mqttCallback);
-
+MQTTStatus_t CloudProv_ProvisionDevice(MQTTContext_t *mqttContext, MQTTEventCallback_t mqttCallback);
+uint8_t CloudProv_ImportMqttEndpoint(uint8_t *endpointBuffer, size_t endpointLength);
+void CloudProv_InitIPStack(void);
+MQTTStatus_t CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t appMqttCallback);
 
 #endif //CLOUD_PROV_H

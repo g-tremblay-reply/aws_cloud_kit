@@ -122,18 +122,18 @@ struct xNetworkEndpoint;
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Calculate the maximum sleep time remaining. It will go through all
+ * @brief Calculate the maximum setIcmSleepMode time remaining. It will go through all
  *        timers to see which timer will expire first. That will be the amount
  *        of time to block in the next call to xQueueReceive().
  *
- * @return The maximum sleep time or ipconfigMAX_IP_TASK_SLEEP_TIME,
+ * @return The maximum setIcmSleepMode time or ipconfigMAX_IP_TASK_SLEEP_TIME,
  *         whichever is smaller.
  */
 TickType_t xCalculateSleepTime( void )
 {
     TickType_t uxMaximumSleepTime;
 
-    /* Start with the maximum sleep time, then check this against the remaining
+    /* Start with the maximum setIcmSleepMode time, then check this against the remaining
      * time in any other timers that are active. */
     uxMaximumSleepTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
 
@@ -275,7 +275,7 @@ void vCheckNetworkTimers( void )
             BaseType_t xCheckTCPSockets;
 
             /* If the IP task has messages waiting to be processed then
-             * it will not sleep in any case. */
+             * it will not setIcmSleepMode in any case. */
             if( uxQueueMessagesWaiting( xNetworkEventQueue ) == 0U )
             {
                 xWillSleep = pdTRUE;

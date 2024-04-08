@@ -8,7 +8,7 @@
 #include <cloud_prov_pkcs11.h>
 #include <cloud_prov_config.h>
 #include <console.h>
-#include <x509_csr.h>
+#include "mbedtls/x509_csr.h"
 #include <mbedtls_utils.h>
 
 
@@ -40,6 +40,42 @@
 /*************************************************************************************
  * global functions
  ************************************************************************************/
+
+int lMbedCryptoRngCallbackPKCS11( void * pvCtx,
+                                  unsigned char * pucOutput,
+                                  size_t uxLen )
+{
+    int lRslt;
+    CK_FUNCTION_LIST_PTR pxFunctionList = NULL;
+    CK_SESSION_HANDLE * pxSessionHandle = ( CK_SESSION_HANDLE * ) pvCtx;
+
+    if( pucOutput == NULL )
+    {
+        lRslt = -1;
+    }
+    else if( pvCtx == NULL )
+    {
+        lRslt = -1;
+        LogError( ( "pvCtx must not be NULL." ) );
+    }
+    else
+    {
+        lRslt = ( int ) C_GetFunctionList( &pxFunctionList );
+    }
+
+    if( ( lRslt != CKR_OK ) ||
+        ( pxFunctionList == NULL ) ||
+        ( pxFunctionList->C_GenerateRandom == NULL ) )
+    {
+        lRslt = -1;
+    }
+    else
+    {
+        lRslt = ( int ) pxFunctionList->C_GenerateRandom( *pxSessionHandle, pucOutput, uxLen );
+    }
+
+    return lRslt;
+}
 
 CK_RV CloudProv_GenerateKeyPairEC(CK_SESSION_HANDLE xSession,
                                   CK_OBJECT_HANDLE_PTR xPrivateKeyHandlePtr,

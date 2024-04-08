@@ -18,10 +18,9 @@
  * CONTRACT OR TORT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE CONTENTS. Third-party contents
  * included in this file may be subject to different terms.
  **********************************************************************************************************************/
-
-#include "sensor_icp10101.h"
 #include <console.h>
-
+#include <sensor_icp10101.h>
+#include <sensor_thread.h>
 
 #define I2C_TRANSMISSION_IN_PROGRESS        (0)
 #define I2C_TRANSMISSION_COMPLETE           (1)
@@ -152,10 +151,14 @@ static bool isConnected(void){
     uint8_t id_buf[2];
     uint16_t id;
     uint16_t cmd = ICP_CMD_READ_ID;
-    SensorIcp10101_Write((uint8_t *) &cmd, 2u);
+    uint8_t cmdBuff[2]={0};
+    cmdBuff[0] = (uint8_t)((cmd >> 8) & 0xFF);
+    cmdBuff[1] = (uint8_t)(cmd & 0xFF);
+
+    SensorIcp10101_Write((uint8_t *) cmdBuff, 2u);
     SensorIcp10101_Read(id_buf, 2);
-    id = (uint16_t)(((uint16_t)(id_buf[Marco_Zero]) << 8) | id_buf[Marco_One]);
-    if ((id & 0x03f) == 0x8)
+    id = (uint16_t)(((uint16_t)(id_buf[0u]) << 8) | id_buf[1u]);
+    if ((id & 0x3F) == 0x8)
     {
         return true;
     }
@@ -190,7 +193,11 @@ static fsp_err_t SensorIcp10101_StartMeasurement(SensorIcp10101_MeasureMode_t mo
             SensorIcpMeasurementDuration = 7;
             break;
 	}
-    err = SensorIcp10101_Write((uint8_t *) &cmd, 2u);
+
+    uint8_t cmdBuff[2]={0};
+    cmdBuff[0] = (uint8_t)((cmd >> 8) & 0xFF);
+    cmdBuff[1] = (uint8_t)(cmd & 0xFF);
+    err = SensorIcp10101_Write((uint8_t *) &cmdBuff, 2u);
 
     if(err == FSP_SUCCESS)
     {
@@ -238,9 +245,13 @@ static void SensorIcp10101_ReadCalibration(void)
             0x00, 0x66, 0x9c };
     uint8_t otp_buf[3];
     uint16_t readCmd = ICP_CMD_READ_OTP;
+    uint8_t cmdBuff[2]={0};
+
+    cmdBuff[0] = (uint8_t)((readCmd >> 8) & 0xFF);
+    cmdBuff[1] = (uint8_t)(readCmd & 0xFF);
     SensorIcp10101_Write(addr_otp_cmd, 5);
     for (int i=0; i<4; i++) {
-        SensorIcp10101_Write((uint8_t *) &readCmd, 2u);
+        SensorIcp10101_Write((uint8_t *) &cmdBuff, 2u);
         SensorIcp10101_Read(otp_buf, 3u);
         SensorIcpCalibration[i] = (float) ((otp_buf[0] << 8) | otp_buf[1]);
     }
@@ -336,7 +347,7 @@ void SensorIcp10101_MainFunction(void)
 
             SensorIcpPressurePa = SensorIcp10101_CalculatePressure(rawPressure);
             SensorIcpTemperatureC = SensorIcp10101_CalculateTempC(rawTemp);
-
+            SensorIcpState = SENSOR_ICP10101_START_MEASUREMENT;
             break;
         }
         default:

@@ -136,7 +136,7 @@ static size_t findInRecord( const MQTTPubAckInfo_t * records,
  * @brief Compact records.
  *
  * Records are arranged in the relative order to maintain message ordering.
- * This will lead to fragmentation and this function will help in defragmenting
+ * This will lead to fragmentation and this function will Console_HelpMenu in defragmenting
  * the records array.
  *
  * @param[in] records State record array.
@@ -741,7 +741,7 @@ static MQTTStatus_t updateStateAck( MQTTPubAckInfo_t * records,
 
             /* For QoS2 messages, in order to preserve the message ordering, when
              * a PUBREC is received for an outgoing publish, the record should be
-             * moved to the last. This move will help preserve the order in which
+             * moved to the last. This move will Console_HelpMenu preserve the order in which
              * a PUBREL needs to be resent in case of a session reestablishment. */
             if( newState == MQTTPubRelSend )
             {

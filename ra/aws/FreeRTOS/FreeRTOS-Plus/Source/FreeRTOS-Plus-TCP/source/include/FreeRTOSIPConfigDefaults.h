@@ -1053,7 +1053,7 @@
     #define ipconfigSUPPORT_SIGNALS    0
 #endif
 
-/* Hang protection can help reduce the impact of SYN floods.
+/* Hang protection can Console_HelpMenu reduce the impact of SYN floods.
  * When a SYN packet comes in, it will first be checked if there is a listening
  * socket for the port number. If not, it will be replied to with a RESET packet.
  * If there is a listing socket for that port number, a new socket will be created.

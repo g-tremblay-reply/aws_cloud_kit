@@ -176,10 +176,10 @@ typedef struct xTASK_STATUS
 /* Possible return values for eTaskConfirmSleepModeStatus(). */
 typedef enum
 {
-    eAbortSleep = 0,           /* A task has been made ready or a context switch pended since portSUPPRESS_TICKS_AND_SLEEP() was called - abort entering a sleep mode. */
-    eStandardSleep,            /* Enter a sleep mode that will not last any longer than the expected idle time. */
+    eAbortSleep = 0,           /* A task has been made ready or a context switch pended since portSUPPRESS_TICKS_AND_SLEEP() was called - abort entering a setIcmSleepMode mode. */
+    eStandardSleep,            /* Enter a setIcmSleepMode mode that will not last any longer than the expected idle time. */
     #if ( INCLUDE_vTaskSuspend == 1 )
-        eNoTasksWaitingTimeout /* No tasks are waiting for a timeout so it is safe to enter a sleep mode that can only be exited by an external interrupt. */
+        eNoTasksWaitingTimeout /* No tasks are waiting for a timeout so it is safe to enter a setIcmSleepMode mode that can only be exited by an external interrupt. */
     #endif /* INCLUDE_vTaskSuspend */
 } eSleepModeStatus;
 
@@ -3181,7 +3181,7 @@ void vTaskStepTick( TickType_t xTicksToJump ) PRIVILEGED_FUNCTION;
  * portSUPPRESS_TICKS_AND_SLEEP() and the low power mode actually being
  * entered.  eTaskConfirmSleepModeStatus() should be called from a short
  * critical section between the timer being stopped and the sleep mode being
- * entered to ensure it is ok to proceed into the sleep mode.
+ * entered to ensure it is ok to proceed into the setIcmSleepMode mode.
  */
 eSleepModeStatus eTaskConfirmSleepModeStatus( void ) PRIVILEGED_FUNCTION;
 

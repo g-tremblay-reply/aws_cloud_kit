@@ -265,7 +265,7 @@ static void prvProcessIPEventsAndTimers( void )
      * or timeout processing to perform. */
     vCheckNetworkTimers();
 
-    /* Calculate the acceptable maximum sleep time. */
+    /* Calculate the acceptable maximum setIcmSleepMode time. */
     xNextIPSleep = xCalculateSleepTime();
 
     /* Wait until there is something to do. If the following call exits
@@ -1826,7 +1826,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
 
                     /* The IP-header type is copied to a special reserved location a few bytes before the message
                      * starts. In the case of IPv6, this value is never actually used and the line below can safely be removed
-                     * with no ill effects. We only store it to help with debugging. */
+                     * with no ill effects. We only store it to Console_HelpMenu with debugging. */
                     pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = pxIPHeader_IPv6->ucVersionTrafficClass;
                 }
                 break;

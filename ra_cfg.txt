@@ -1228,7 +1228,7 @@ FSP Configuration
       Extra: RS-485: DE Pin Polarity: Active High
       Extra: RS-485: DE Port Number: Disabled
       Extra: RS-485: DE Pin Number: Disabled
-      Interrupts: Callback: user_uart_callback
+      Interrupts: Callback: Console_UartCallback
       Interrupts: Receive Interrupt Priority: Priority 12
       Interrupts: Transmit Data Empty Interrupt Priority: Priority 12
       Interrupts: Transmit End Interrupt Priority: Priority 12
@@ -1237,7 +1237,7 @@ FSP Configuration
     Instance "user_flash Flash (r_flash_hp)"
       Name: user_flash
       Data Flash Background Operation: Disabled
-      Callback: flash_callback
+      Callback: Console_FlashCallback
       Flash Ready Interrupt Priority: Priority 2
       Flash Error Interrupt Priority: Priority 2
       
@@ -1252,7 +1252,7 @@ FSP Configuration
     
     Instance "g_hs300x_sensor0 HS300X Temperature/Humidity Sensor (rm_hs300x)"
       Name: g_hs300x_sensor0
-      Callback: Sensor_Hs3001Callback
+      Callback: SensorHs3001_Callback
       
       Instance "g_comms_i2c_device0 I2C Communication Device (rm_comms_i2c)"
         Name: g_comms_i2c_device0
@@ -1283,8 +1283,8 @@ FSP Configuration
             
     Instance "g_zmod4xxx_sensor1 ZMOD4XXX Gas Sensor (rm_zmod4xxx)"
       Name: g_zmod4xxx_sensor1
-      Comms I2C Callback: Sensor_IaqCommCallback
-      IRQ Callback: Sensor_IaqEndOfMeasurement
+      Comms I2C Callback: SensorIaq_CommCallback
+      IRQ Callback: SensorIaq_EndOfMeasurement
       
       Instance "ZMOD4510 OAQ 1st Generation (rm_zmod4xxx)"
         
@@ -1356,7 +1356,7 @@ FSP Configuration
       Semaphore Timeout (RTOS only): 0xFFFFFFFF
       Slave Address: 0x68
       Address Mode: 7-Bit
-      Callback: ICM_comms_i2c_callback
+      Callback: SensorIcm20948_CommCallback
       
       Instance "g_comms_i2c_bus0 I2C Shared Bus (rm_comms_i2c)"
         Name: g_comms_i2c_bus0
@@ -1610,8 +1610,8 @@ FSP Configuration
     
     Instance "g_zmod4xxx_sensor0 ZMOD4XXX Gas Sensor (rm_zmod4xxx)"
       Name: g_zmod4xxx_sensor0
-      Comms I2C Callback: Sensor_OaqCommCallback
-      IRQ Callback: Sensor_OaqEndOfMeasurement
+      Comms I2C Callback: SensorOaq_CommCallback
+      IRQ Callback: SensorOaq_EndOfMeasurement
       
       Instance "ZMOD4410 IAQ 1st Generation (rm_zmod4xxx)"
         Operation Mode: Continuous

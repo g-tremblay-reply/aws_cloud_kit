@@ -1,5 +1,5 @@
 /***********************************************************************************************************************
- * File Name    : ICM_20948.c
+ * File Name    : sensor_icm20948.c
  * Description  : Contains data structures and functions used in Console related application
  **********************************************************************************************************************/
 /***********************************************************************************************************************
@@ -19,9 +19,11 @@
  * included in this file may be subject to different terms.
  **********************************************************************************************************************/
 
-#include "ICM_20948.h"
-#include "math.h"
 #include <console.h>
+#include "sensor_icm20948.h"
+#include <sensor_thread.h>
+
+
 
 #define I2C_TRANSMISSION_IN_PROGRESS        (0)
 #define I2C_TRANSMISSION_COMPLETE           (1)
@@ -41,83 +43,113 @@ float resultantG;
 
 int i2cAddress;
 
-uint8_t currentBank;
-uint8_t buffer[20];
-uint8_t accRangeFactor;
-uint8_t gyrRangeFactor;
-uint8_t regVal;   // intermediate storage of register values
+static uint8_t currentBank;
+static uint8_t AccelResultsBuffer[20];
+static uint8_t accRangeFactor = 1u;
+static uint8_t gyrRangeFactor = 1u;
+static uint8_t regVal;   // intermediate storage of register values
 
-xyzFloat corrAccRaw;
-xyzFloat accRaw;
-xyzFloat gVal;
-xyzFloat gyrRaw;
-xyzFloat gyr;
-xyzFloat magValue;
-xyzFloat accOffsetVal;
-xyzFloat accCorrFactor;
-xyzFloat gyrOffsetVal;
+static xyzFloat corrAccRaw;
+static xyzFloat accRaw;
+static xyzFloat gVal;
+static xyzFloat gyrRaw;
+static xyzFloat gyr;
+static xyzFloat magValue;
+static xyzFloat accOffsetVal = {0};
+static xyzFloat accCorrFactor = {1.0,
+                            1.0,
+                            1.0};
+static xyzFloat gyrOffsetVal = {0};
 
-ICM20948_fifoType fifoType;
+static ICM20948_fifoType fifoType;
 static uint8_t transmit_complete_flag;
 
-void SensorIcm20948_GetData(xyzFloat *acc, xyzFloat *gval, xyzFloat *magnitude)
-{
-    *acc = corrAccRaw;
-    *gval = gVal;
-    *magnitude = magValue;
-}
+/* Basic settings */
+static void configIcmOffsets();
+static void setGyrOffsets(float xOffset, float yOffset, float zOffset);
+static void setAccRange(ICM20948_accRange accRange);
+static void setAccDLPF(ICM20948_dlpf dlpf);
+static void setAccSampleRateDivider(uint16_t accSplRateDiv);
+static void setGyrRange(ICM20948_gyroRange gyroRange);
+static void setGyrDLPF(ICM20948_dlpf dlpf);
+static void setGyrSampleRateDivider(uint8_t gyrSplRateDiv);
+static void setTempDLPF(ICM20948_dlpf dlpf);
+static void setI2CMstSampleRate(uint8_t rateExp);
+static void setIcmSleepMode(bool sleep);
 
-/*******************************************************************************************************************//**
- * @brief   Send ICM data to the queue
- * @param[in]   None
- * @retval      None
- ***********************************************************************************************************************/
-void send_icm_data_to_queue(void)
-{
-    /* Get value of ICM sensor */
-    ICM_20948_get(); //TODO revamp this as main function
 
-    /* Update value for icm_data variable */
-    /*g_icm_data.acc_data.x = corrAccRaw.x;
-    g_icm_data.acc_data.y = corrAccRaw.y;
-    g_icm_data.acc_data.z = corrAccRaw.z;
-    g_icm_data.gyr_data.x = gVal.x;
-    g_icm_data.gyr_data.y = gVal.y;
-    g_icm_data.gyr_data.z = gVal.z;
-    g_icm_data.mag_data.x = magValue.x;
-    g_icm_data.mag_data.y = magValue.y;
-    g_icm_data.mag_data.z = magValue.z;*/
+/* x,y,z results */
+static void getAccRawValues(xyzFloat*a);
+static void getCorrectedAccRawValues(xyzFloat*a);
+static void getGValues(xyzFloat*a);
+static void getCorrectedAccRawValuesFromFifo(xyzFloat*a);
+static double getResultantG(xyzFloat gVal);
+static float getTemperature();
+static void getGyrRawValues(xyzFloat*a);
+static void getCorrectedGyrRawValues(xyzFloat*a);
+static void getGyrValues(xyzFloat*a);
+static xyzFloat getGyrValuesFromFifo();
+static void getMagValues(xyzFloat*a);
+static void readAccelResults(uint8_t *data);
 
-}
+/* Angles and Orientation */
+static void getAngles(xyzFloat*a);
+static ICM20948_orientation getOrientation();
+static float getPitch();
+static float getRoll();
 
-/*******************************************************************************************************************//**
- * @brief       Initialization of communication layer for ICM
- * @param[in]
- * @retval
- * @retval
- ***********************************************************************************************************************/
-void RmComDevice_init_Icm(void)
-{
-    fsp_err_t err = FSP_SUCCESS;
-    err = g_comms_i2c_device5.p_api->open (g_comms_i2c_device5.p_ctrl, g_comms_i2c_device5.p_cfg);
-    if (FSP_SUCCESS != err)
-    {
-        APP_DBG_PRINT("\r\nICM20948 sensor open failed: %u\r\n", err);
-        APP_ERR_TRAP(err);
-    }
-    else
-    {
-        APP_PRINT("\r\nICM20948 sensor setup success\r\n");
-    }
-}
+/* Power, Sleep, Standby */
+static void enableCycle(ICM20948_cycle cycle);
+static void enableLowPower(bool enLP);
+static void setGyrAverageInCycleMode(ICM20948_gyroAvgLowPower avg);
+static void setAccAverageInCycleMode(ICM20948_accAvgLowPower avg);
+static uint8_t requestIcmReset();
 
-/*******************************************************************************************************************//**
- * @brief       RMComm I2C write
- * @param[in]   register address, buffer pointer to store read data and number of bytes to read
- * @retval      FSP_SUCCESS         Upon successful open and start of timer
- * @retval      Any Other Error code apart from FSP_SUCCESS  Unsuccessful open
- ***********************************************************************************************************************/
-fsp_err_t RmCom_I2C_w(uint8_t reg, uint8_t *val, uint8_t num)
+/* Interrupts */
+static void setIntPinPolarity(ICM20948_intPinPol pol);
+static void enableIntLatch(bool latch);
+static void enableClearIntByAnyRead(bool clearByAnyRead);
+static void setFSyncIntPolarity(ICM20948_intPinPol pol);
+static void enableInterrupt(ICM20948_intType intType);
+static void disableInterrupt(ICM20948_intType intType);
+static uint8_t readAndClearInterrupts();
+static bool checkInterrupt(uint8_t source, ICM20948_intType type);
+static void setWakeOnMotionThreshold(uint8_t womThresh, ICM20948_womCompEn womCompEn);
+
+/* FIFO */
+static void enableFifo(bool fifo);
+static void setFifoMode(ICM20948_fifoMode mode);
+static void startFifo(ICM20948_fifoType fifo);
+static void stopFifo();
+static void resetFifo();
+static int16_t getFifoCount();
+static int16_t getNumberOfFifoDataSets();
+static void findFifoBegin();
+
+/* Magnetometer */
+static void enableMagDataRead(uint8_t reg, uint8_t bytes);
+static void initSlaveMagnetometer(void);
+static int16_t whoAmIMag();
+static void setMagOpMode(AK09916_opMode opMode);
+static void resetMag();
+
+void setClockToAutoSelect();
+void correctAccRawValues(xyzFloat *a);
+void correctGyrRawValues(xyzFloat *a);
+void switchBank(uint8_t newBank);
+fsp_err_t writeRegister8(uint8_t bank, uint8_t reg, uint8_t val);
+fsp_err_t writeRegister16(uint8_t bank, uint8_t reg, uint16_t val);
+uint8_t readRegister8(uint8_t bank, uint8_t reg);
+int16_t readRegister16(uint8_t bank, uint8_t reg);
+static int16_t readAK09916Register16(uint8_t reg);
+static uint8_t readAK09916Register8(uint8_t reg);
+static void writeAK09916Register8(uint8_t reg, uint8_t val);
+void readICM20948xyzValFromFifo(xyzFloat*a);
+static fsp_err_t writeDevice(uint8_t reg, uint8_t *val, uint8_t num);
+static fsp_err_t readDevice(uint8_t reg, uint8_t *val, uint8_t num);
+
+
+fsp_err_t writeDevice(uint8_t reg, uint8_t *val, uint8_t num)
 {
     uint16_t timeout = 1000;
     fsp_err_t err;
@@ -148,30 +180,12 @@ fsp_err_t RmCom_I2C_w(uint8_t reg, uint8_t *val, uint8_t num)
 }
 
 /*******************************************************************************************************************//**
- * @brief       I2C callback for ICM sensor
- * @param[in]   p_args
- * @retval
- * @retval
- ***********************************************************************************************************************/
-void ICM_comms_i2c_callback(rm_comms_callback_args_t *p_args)
-{
-    if (p_args->event == RM_COMMS_EVENT_OPERATION_COMPLETE)
-    {
-        transmit_complete_flag = I2C_TRANSMISSION_COMPLETE;
-    }
-    else
-    {
-        transmit_complete_flag = I2C_TRANSMISSION_ABORTED;
-    }
-}
-
-/*******************************************************************************************************************//**
  * @brief       RMComm I2C read
  * @param[in]   register address, buffer pointer to store read data and number of to read
  * @retval      FSP_SUCCESS         Upon successful open and start of timer
  * @retval      Any Other Error code apart from FSP_SUCCESS  Unsuccessful open
  ***********************************************************************************************************************/
-fsp_err_t RmCom_I2C_r(uint8_t reg, uint8_t *val, uint8_t num)
+fsp_err_t readDevice(uint8_t reg, uint8_t *val, uint8_t num)
 {
     uint16_t timeout = 1000;
     fsp_err_t err;
@@ -203,79 +217,6 @@ fsp_err_t RmCom_I2C_r(uint8_t reg, uint8_t *val, uint8_t num)
     return err;
 }
 
-/*******************************************************************************************************************//**
- * @brief       Initialization of ICM20948 sensor
- * @param[in]
- * @retval
- * @retval
- ***********************************************************************************************************************/
-void ICM20948_Sensor_init(void)
-{
-    whoAmI ();
-    icm20948_init ();
-    initMagnetometer ();
-    R_BSP_SoftwareDelay (1000, BSP_DELAY_UNITS_MILLISECONDS);
-    autoOffsets ();
-    setMagOpMode (AK09916_CONT_MODE_20HZ);
-    setAccRange (ICM20948_ACC_RANGE_4G);
-    setAccDLPF (ICM20948_DLPF_6);
-    setAccSampleRateDivider (10);
-    setGyrRange (ICM20948_GYRO_RANGE_250);
-    setGyrDLPF (ICM20948_DLPF_6);
-}
-
-/**************************************************************************************
- * @brief     Get ICM_20948 Motion Tracking sensor data
- * @param[in]
- * @retval
- **************************************************************************************/
-void ICM_20948_get(void)
-{
-    vTaskDelay (50);
-
-    readSensor ();
-    getAccRawValues (&accRaw);
-    getCorrectedAccRawValues (&corrAccRaw);
-    getGValues (&gVal);
-    resultantG = (float) getResultantG (gVal);
-    getGyrValues (&gyr);
-    getMagValues (&magValue); // returns magnetic flux density [µT]
-
-    vTaskDelay (50);
-}
-
-/**************************************************************************************
- * @brief     Initialize ICM_20948 Motion Tracking sensor
- * @param[in]
- * @retval
- **************************************************************************************/
-
-bool icm20948_init(void)
-{
-    reset_ICM20948 ();
-    accOffsetVal.x = 0.0;
-    accOffsetVal.y = 0.0;
-    accOffsetVal.z = 0.0;
-
-    accCorrFactor.x = 1.0;
-    accCorrFactor.y = 1.0;
-    accCorrFactor.z = 1.0;
-
-    accRangeFactor = 1.0;
-
-    gyrOffsetVal.x = 0.0;
-    gyrOffsetVal.y = 0.0;
-    gyrOffsetVal.z = 0.0;
-
-    gyrRangeFactor = 1.0;
-
-    fifoType = ICM20948_FIFO_ACC;
-    sleep (false);
-    writeRegister8 (2, ICM20948_ODR_ALIGN_EN, 1);
-
-    writeRegister8 (2, ICM20948_ODR_ALIGN_EN, 1);
-    return 0;
-}
 
 /**************************************************************************************
  * @brief     Set offset values for ICM_20948 Motion Tracking sensor
@@ -283,7 +224,7 @@ bool icm20948_init(void)
  * @retval
  **************************************************************************************/
 
-void autoOffsets(void)
+void configIcmOffsets(void)
 {
     xyzFloat accRawVal, gyrRawVal;
     accOffsetVal.x = 0.0;
@@ -300,7 +241,7 @@ void autoOffsets(void)
 
     for (int i = 0; i < 50; i++)
     {
-        readSensor ();
+        readAccelResults(AccelResultsBuffer);
         getAccRawValues (&accRawVal);
         accOffsetVal.x += accRawVal.x;
         accOffsetVal.y += accRawVal.y;
@@ -315,7 +256,7 @@ void autoOffsets(void)
 
     for (int i = 0; i < 50; i++)
     {
-        readSensor ();
+        readAccelResults(AccelResultsBuffer);
         getGyrRawValues (&gyrRawVal);
 
         gyrOffsetVal.x += gyrRawVal.x;
@@ -344,20 +285,6 @@ void setGyrOffsets(float xOffset, float yOffset, float zOffset)
 
 /* Sub Functions */
 
-/**************************************************************************************
- * @brief     Read ICM_20948 Motion Tracking sensor Identification Number
- * @param[in]
- * @retval    TRUE if identified as a ICM 20948,FALSE otherwise
- **************************************************************************************/
-
-uint8_t whoAmI(void)
-{
-    uint8_t icm20948_id = readRegister8 (0, ICM20948_WHO_AM_I);
-    if (icm20948_id == 0xEA)
-        return true;
-    else
-        return false;
-}
 
 /**************************************************************************************
  * @brief     Set Accelerometer range ICM_20948 Motion Tracking sensor
@@ -369,9 +296,9 @@ void setAccRange(ICM20948_accRange accRange)
 {
     regVal = readRegister8 (2, ICM20948_ACCEL_CONFIG);
     regVal = (uint8_t) (regVal & ~(ICM20948_PWR_MGMT_1 ));
-    regVal = (uint8_t) (regVal | (accRange << Marco_One ));
-    writeRegister8 (MACRO_TWO, ICM20948_ACCEL_CONFIG, regVal);
-    accRangeFactor = (uint8_t) (Marco_One << accRange);
+    regVal = (uint8_t) (regVal | (accRange << 1u ));
+    writeRegister8 (2u, ICM20948_ACCEL_CONFIG, regVal);
+    accRangeFactor = (uint8_t) (1u << accRange);
 }
 
 /**************************************************************************************
@@ -421,7 +348,7 @@ void setGyrRange(ICM20948_gyroRange gyroRange)
     regVal = (uint8_t) (regVal & (~(ICM20948_YG_OFFS_USRL )));
     regVal |= (uint8_t) (gyroRange << (uint8_t) 1);
     writeRegister8 (Bank_2, ICM20948_GYRO_CONFIG_1, regVal);
-    gyrRangeFactor = (uint8_t) (Marco_One << gyroRange);
+    gyrRangeFactor = (uint8_t) (1u << gyroRange);
 }
 
 /**************************************************************************************
@@ -459,16 +386,6 @@ void setGyrSampleRateDivider(uint8_t gyrSplRateDiv)
 }
 
 /**************************************************************************************
- * @brief     Read Sensor Data
- * @param[in]
- * @retval
- **************************************************************************************/
-void readSensor(void)
-{
-    readAllData (buffer);
-}
-
-/**************************************************************************************
  * @brief     Get Accelerometer raw data
  * @param[in] a pointer to axis structure
  * @retval
@@ -476,9 +393,9 @@ void readSensor(void)
 
 void getAccRawValues(xyzFloat *a)
 {
-    a->x = (int16_t) (((buffer[0]) << 8) | buffer[1]) * 1.0;
-    a->y = (int16_t) (((buffer[2]) << 8) | buffer[3]) * 1.0;
-    a->z = (int16_t) (((buffer[4]) << 8) | buffer[5]) * 1.0;
+    a->x = (int16_t) (((AccelResultsBuffer[0]) << 8) | AccelResultsBuffer[1]) * 1.0;
+    a->y = (int16_t) (((AccelResultsBuffer[2]) << 8) | AccelResultsBuffer[3]) * 1.0;
+    a->z = (int16_t) (((AccelResultsBuffer[4]) << 8) | AccelResultsBuffer[5]) * 1.0;
 }
 
 /**************************************************************************************
@@ -507,15 +424,6 @@ void getGValues(xyzFloat *a)
     a->z = accRawVal.z * accRangeFactor / 16384.0;
 }
 
-/**************************************************************************************
- * @brief     Get  Accelerometer Raw  data from FIFO
- * @param[in] a pointer to axis structure
- * @retval
- **************************************************************************************/
-void getAccRawValuesFromFifo(xyzFloat *a)
-{
-    readICM20948xyzValFromFifo (a);
-}
 
 /**************************************************************************************
  * @brief     Get  Accelerometer Raw  data from FIFO
@@ -525,7 +433,18 @@ void getAccRawValuesFromFifo(xyzFloat *a)
 
 void getCorrectedAccRawValuesFromFifo(xyzFloat *a)
 {
-    getAccRawValuesFromFifo (a);
+    uint8_t MSByte = 0, LSByte = 0;
+    //xyzFloat xyzResult = {0.0, 0.0, 0.0};
+    MSByte = readRegister8 (0, ICM20948_FIFO_R_W);
+    LSByte = readRegister8 (0, ICM20948_FIFO_R_W);
+    a->x = ((int16_t) ((MSByte << 8) + LSByte)) * 1.0;
+    MSByte = readRegister8 (0, ICM20948_FIFO_R_W);
+    LSByte = readRegister8 (0, ICM20948_FIFO_R_W);
+    a->y = ((int16_t) ((MSByte << 8) + LSByte)) * 1.0;
+    MSByte = readRegister8 (0, ICM20948_FIFO_R_W);
+    LSByte = readRegister8 (0, ICM20948_FIFO_R_W);
+    a->z = ((int16_t) ((MSByte << 8) + LSByte)) * 1.0;
+
     correctAccRawValues (a);
 }
 
@@ -550,9 +469,9 @@ double getResultantG(xyzFloat gVal1)
 
 void getGyrRawValues(xyzFloat *a)
 {
-    a->x = (int16_t) ((int16_t) ((buffer[6]) << 8) | buffer[7]) * 1.0;
-    a->y = (int16_t) ((int16_t) ((buffer[8]) << 8) | buffer[9]) * 1.0;
-    a->z = (int16_t) ((int16_t) ((buffer[10]) << 8) | buffer[11]) * 1.0;
+    a->x = (int16_t) ((int16_t) ((AccelResultsBuffer[6]) << 8) | AccelResultsBuffer[7]) * 1.0;
+    a->y = (int16_t) ((int16_t) ((AccelResultsBuffer[8]) << 8) | AccelResultsBuffer[9]) * 1.0;
+    a->z = (int16_t) ((int16_t) ((AccelResultsBuffer[10]) << 8) | AccelResultsBuffer[11]) * 1.0;
 }
 
 /**************************************************************************************
@@ -588,9 +507,9 @@ void getMagValues(xyzFloat *a)
 {
     int16_t x, y, z;
 
-    x = (int16_t) ((int16_t) ((buffer[15]) << 8) | buffer[14]);
-    y = (int16_t) ((int16_t) ((buffer[17]) << 8) | buffer[16]);
-    z = (int16_t) ((int16_t) ((buffer[19]) << 8) | buffer[18]);
+    x = (int16_t) ((int16_t) ((AccelResultsBuffer[15]) << 8) | AccelResultsBuffer[14]);
+    y = (int16_t) ((int16_t) ((AccelResultsBuffer[17]) << 8) | AccelResultsBuffer[16]);
+    z = (int16_t) ((int16_t) ((AccelResultsBuffer[19]) << 8) | AccelResultsBuffer[18]);
 
     a->x = x * AK09916_MAG_LSB;
     a->y = y * AK09916_MAG_LSB;
@@ -632,11 +551,11 @@ void enableLowPower(bool enLP)
 }
 
 /**************************************************************************************
- * @brief     Enable Sensor sleep
- * @param[in]  sleep enable sleep mode
+ * @brief     Enable Sensor setIcmSleepMode
+ * @param[in]  sleep enable setIcmSleepMode mode
  * @retval
  **************************************************************************************/
-void sleep(bool sleep)
+static void setIcmSleepMode(bool sleep)
 {
     regVal = readRegister8 (0, ICM20948_PWR_MGMT_1);
     if (sleep)
@@ -1159,33 +1078,34 @@ void findFifoBegin(void)
  * @param[in]
  * @retval  True
  **************************************************************************************/
-bool initMagnetometer(void)
+void initSlaveMagnetometer(void)
 {
-    enableI2CMaster ();
-    resetMag ();
-    reset_ICM20948 ();
-    sleep (false);
+    /* enable I2C master */
+    writeRegister8 (0, ICM20948_USER_CTRL, ICM20948_I2C_MST_EN);
+    /* set I2C clock to 345.60 kHz */
+    writeRegister8 (3, ICM20948_I2C_MST_CTRL, 0x07);
+    vTaskDelay (10);
+
+    /* Reset Magnetometer */
+    writeAK09916Register8 (AK09916_CNTL_3, 0x01);
+    vTaskDelay (100);
+
+    requestIcmReset();
+    setIcmSleepMode(false);
     writeRegister8 (2, ICM20948_ODR_ALIGN_EN, 1); // aligns ODR
-    enableI2CMaster ();
 
-    if (!(whoAmIMag () == AK09916_WHO_AM_I))
+    /* Reenable I2C master, since we just the sensor */
+    writeRegister8 (0, ICM20948_USER_CTRL, ICM20948_I2C_MST_EN);
+    /* set I2C clock to 345.60 kHz */
+    writeRegister8 (3, ICM20948_I2C_MST_CTRL, 0x07);
+    vTaskDelay (10);
+
+    if (readAK09916Register16 (AK09916_WIA_1) != AK09916_WHO_AM_I)
     {
-        return false;
+        //TODO log error, unexpected Magnetometer ID
     }
-    setMagOpMode (AK09916_CONT_MODE_100HZ);
-    return true;
 }
 
-/**************************************************************************************
- * @brief  whoAmIMag : Read Magnotometer Identification
- * @param[in]
- * @param[in]
- * @retval
- **************************************************************************************/
-int16_t whoAmIMag(void)
-{
-    return readAK09916Register16 (AK09916_WIA_1);
-}
 
 /**************************************************************************************
  * @brief Set Magnotometer Operation Mode
@@ -1203,17 +1123,6 @@ void setMagOpMode(AK09916_opMode opMode)
     }
 }
 
-/**************************************************************************************
- * @brief Reset Magnotometer
- * @param[in]
- * @param[in]
- * @retval
- **************************************************************************************/
-void resetMag(void)
-{
-    writeAK09916Register8 (AK09916_CNTL_3, 0x01);
-    vTaskDelay (100);
-}
 
 /************************************************
  Private Functions
@@ -1271,7 +1180,7 @@ void switchBank(uint8_t newBank)
     {
         currentBank = newBank;
         currentBank = (uint8_t) (currentBank << 4);
-        RmCom_I2C_w (ICM20948_REG_BANK_SEL, &currentBank, (uint8_t) 1);
+        writeDevice(ICM20948_REG_BANK_SEL, &currentBank, (uint8_t) 1);
     }
 }
 
@@ -1286,7 +1195,7 @@ fsp_err_t writeRegister8(uint8_t bank, uint8_t reg, uint8_t val)
 {
     switchBank (bank);
     fsp_err_t Ret = 0;
-    Ret = RmCom_I2C_w (reg, &val, (uint8_t) 1);
+    Ret = writeDevice(reg, &val, (uint8_t) 1);
     return Ret;
 }
 
@@ -1306,7 +1215,7 @@ fsp_err_t writeRegister16(uint8_t bank, uint8_t reg, uint16_t val)
     uint8_t WriteByte[2];
     WriteByte[0] = (uint8_t) MSByte;
     WriteByte[1] = LSByte;
-    Ret = RmCom_I2C_w (reg, WriteByte, (uint8_t) 2);
+    Ret = writeDevice(reg, WriteByte, (uint8_t) 2);
     return Ret;
 }
 
@@ -1321,7 +1230,7 @@ uint8_t readRegister8(uint8_t bank, uint8_t reg)
 {
     switchBank (bank);
     uint8_t regValue = 0;
-    RmCom_I2C_r (reg, &regValue, (uint8_t) 1);
+    readDevice(reg, &regValue, (uint8_t) 1);
     return regValue;
 }
 
@@ -1337,7 +1246,7 @@ int16_t readRegister16(uint8_t bank, uint8_t reg)
     switchBank (bank);
     uint8_t MSByte = 0, LSByte = 0, regValue[2];
     int16_t reg16Val = 0;
-    RmCom_I2C_r (reg, regValue, 2);
+    readDevice(reg, regValue, 2);
     MSByte = regValue[0];
     LSByte = regValue[1];
     reg16Val = (uint8_t) (((uint16_t) (MSByte << 8)) + LSByte);
@@ -1351,33 +1260,13 @@ int16_t readRegister16(uint8_t bank, uint8_t reg)
  * @param[in]
  * @retval
  **************************************************************************************/
-void readAllData(uint8_t *data)
+static void readAccelResults(uint8_t *data)
 {
     switchBank (0);
-    RmCom_I2C_r (ICM20948_ACCEL_OUT, data, 20);
+    readDevice(ICM20948_ACCEL_OUT, data, 20);
 }
 
-/**************************************************************************************
- * @brief Read ICM20948 xyz Values From Fifo
- * @param[in] a pointer to axis structure
- * @param[in]
- * @param[in]
- * @retval
- **************************************************************************************/
-void readICM20948xyzValFromFifo(xyzFloat *a)
-{
-    uint8_t MSByte = 0, LSByte = 0;
-    //xyzFloat xyzResult = {0.0, 0.0, 0.0};
-    MSByte = readRegister8 (0, ICM20948_FIFO_R_W);
-    LSByte = readRegister8 (0, ICM20948_FIFO_R_W);
-    a->x = ((int16_t) ((MSByte << 8) + LSByte)) * 1.0;
-    MSByte = readRegister8 (0, ICM20948_FIFO_R_W);
-    LSByte = readRegister8 (0, ICM20948_FIFO_R_W);
-    a->y = ((int16_t) ((MSByte << 8) + LSByte)) * 1.0;
-    MSByte = readRegister8 (0, ICM20948_FIFO_R_W);
-    LSByte = readRegister8 (0, ICM20948_FIFO_R_W);
-    a->z = ((int16_t) ((MSByte << 8) + LSByte)) * 1.0;
-}
+
 
 /**************************************************************************************
  * @brief Read ICM20948 xyz axis Values From Fifo
@@ -1386,7 +1275,7 @@ void readICM20948xyzValFromFifo(xyzFloat *a)
  * @param[in]
  * @retval
  **************************************************************************************/
-void writeAK09916Register8(uint8_t reg, uint8_t val)
+static void writeAK09916Register8(uint8_t reg, uint8_t val)
 {
     writeRegister8 (3, ICM20948_I2C_SLV0_ADDR, AK09916_ADDRESS); // write AK09916
     writeRegister8 (3, ICM20948_I2C_SLV0_REG, reg); // define AK09916 register to be written to
@@ -1400,7 +1289,7 @@ void writeAK09916Register8(uint8_t reg, uint8_t val)
  * @param[in]
  * @retval  regVal
  **************************************************************************************/
-uint8_t readAK09916Register8(uint8_t reg)
+static uint8_t readAK09916Register8(uint8_t reg)
 {
     enableMagDataRead (reg, 0x01);
     enableMagDataRead (AK09916_HXL, 0x08);
@@ -1415,7 +1304,7 @@ uint8_t readAK09916Register8(uint8_t reg)
  * @param[in]
  * @retval   regValue
  **************************************************************************************/
-int16_t readAK09916Register16(uint8_t reg)
+static int16_t readAK09916Register16(uint8_t reg)
 {
     int16_t regValue = 0;
     enableMagDataRead (reg, 0x02);
@@ -1431,28 +1320,12 @@ int16_t readAK09916Register16(uint8_t reg)
  * @param[in]
  * @retval True if Write Reg Successfully Or False
  **************************************************************************************/
-uint8_t reset_ICM20948(void)
+static uint8_t requestIcmReset(void)
 {
     uint8_t ack = writeRegister8 (0, ICM20948_PWR_MGMT_1, ICM20948_RESET);
     /* wait for registers to reset */
     vTaskDelay (50);
     return (ack == 0);
-}
-
-/**************************************************************************************
- * @brief Enable I2C Master
- * @param[in]
- * @param[in]
- * @param[in]
- * @retval
- **************************************************************************************/
-void enableI2CMaster(void)
-{
-    /* enable I2C master */
-    writeRegister8 (0, ICM20948_USER_CTRL, ICM20948_I2C_MST_EN);
-    /* set I2C clock to 345.60 kHz */
-    writeRegister8 (3, ICM20948_I2C_MST_CTRL, 0x07);
-    vTaskDelay (10);
 }
 
 /**************************************************************************************
@@ -1462,7 +1335,7 @@ void enableI2CMaster(void)
  * @param[in]
  * @retval
  **************************************************************************************/
-void enableMagDataRead(uint8_t reg, uint8_t bytes)
+static void enableMagDataRead(uint8_t reg, uint8_t bytes)
 {
     /* read AK09916 */
     writeRegister8 (3, ICM20948_I2C_SLV0_ADDR, AK09916_ADDRESS | AK09916_READ);
@@ -1473,3 +1346,79 @@ void enableMagDataRead(uint8_t reg, uint8_t bytes)
     vTaskDelay (10);
 }
 
+/*******************************************************************************************************************//**
+ * @brief       I2C callback for ICM sensor
+ * @param[in]   p_args
+ * @retval
+ * @retval
+ ***********************************************************************************************************************/
+void SensorIcm20948_CommCallback(rm_comms_callback_args_t *p_args)
+{
+    if (p_args->event == RM_COMMS_EVENT_OPERATION_COMPLETE)
+    {
+        transmit_complete_flag = I2C_TRANSMISSION_COMPLETE;
+    }
+    else
+    {
+        transmit_complete_flag = I2C_TRANSMISSION_ABORTED;
+    }
+}
+
+void SensorIcm20948_Init(void)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    uint8_t icm20948_id;
+
+    /* Init I2C device with appropriate FSP calls  */
+    err = g_comms_i2c_device5.p_api->open (g_comms_i2c_device5.p_ctrl, g_comms_i2c_device5.p_cfg);
+    if (FSP_SUCCESS != err)
+    {
+        APP_DBG_PRINT("\r\nICM20948 sensor open failed: %u\r\n", err);
+        APP_ERR_TRAP(err); //TODO revamp log messages
+    }
+    else
+    {
+        APP_PRINT("\r\nICM20948 sensor setup success\r\n");
+    }
+
+    /* Check if ID number of sensor is the expected 0xEA */
+    if((err == FSP_SUCCESS) &&
+        (readRegister8 (0, ICM20948_WHO_AM_I) != 0xEA))
+    {
+        err = FSP_ERR_NOT_FOUND;
+    }
+
+    requestIcmReset();
+    fifoType = ICM20948_FIFO_ACC;
+    setIcmSleepMode(false);
+    writeRegister8 (2, ICM20948_ODR_ALIGN_EN, 1);
+    writeRegister8 (2, ICM20948_ODR_ALIGN_EN, 1);
+
+    initSlaveMagnetometer();
+    setMagOpMode (AK09916_CONT_MODE_20HZ);
+    vTaskDelay(pdMS_TO_TICKS(1000u));
+
+    configIcmOffsets();
+    setAccRange (ICM20948_ACC_RANGE_4G);
+    setAccDLPF (ICM20948_DLPF_6);
+    setAccSampleRateDivider (10);
+    setGyrRange (ICM20948_GYRO_RANGE_250);
+    setGyrDLPF (ICM20948_DLPF_6);
+}
+
+void SensorIcm20948_MainFunction(void)
+{
+    readAccelResults(AccelResultsBuffer);
+    getCorrectedAccRawValues (&corrAccRaw);
+    getGValues (&gVal);
+    resultantG = (float) getResultantG (gVal);
+    getGyrValues (&gyr);
+    getMagValues (&magValue); // returns magnetic flux density [µT]
+}
+
+void SensorIcm20948_GetData(xyzFloat *acc, xyzFloat *gval, xyzFloat *magnitude)
+{
+    *acc = corrAccRaw;
+    *gval = gVal;
+    *magnitude = magValue;
+}

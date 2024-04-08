@@ -199,7 +199,7 @@ typedef enum e_rm_ob1203_variance_threshold
 /** Sleep after interrupt */
 typedef enum e_rm_ob1203_sleep_after_interrupt
 {
-    RM_OB1203_SLEEP_AFTER_INTERRUPT_DISABLE = 0x00, ///< Disable sleep after interrupt.
+    RM_OB1203_SLEEP_AFTER_INTERRUPT_DISABLE = 0x00, ///< Disable setIcmSleepMode after interrupt.
     RM_OB1203_SLEEP_AFTER_INTERRUPT_ENABLE  = 0x08, ///< Stop measurement after an interrupt occurs. After STATUS_0/STATUS_1 register is read, start measurement.
 } rm_ob1203_sleep_after_interrupt_t;
 

@@ -468,7 +468,7 @@
     </module>
     <module id="module.driver.hs300x_on_hs300x.107176528">
       <property id="module.driver.hs300x.name" value="g_hs300x_sensor0"/>
-      <property id="module.driver.hs300x.p_callback" value="Sensor_Hs3001Callback"/>
+      <property id="module.driver.hs300x.p_callback" value="SensorHs3001_Callback"/>
     </module>
     <module id="module.driver.comms_i2c_on_comms_i2c_device.594652956">
       <property id="module.driver.comms_i2c_device.name" value="g_comms_i2c_device0"/>
@@ -499,8 +499,8 @@
     </module>
     <module id="module.driver.zmod4xxx_on_zmod4xxx.499126874">
       <property id="module.driver.zmod4xxx.name" value="g_zmod4xxx_sensor1"/>
-      <property id="module.driver.zmod4xxx.p_callback" value="Sensor_IaqCommCallback"/>
-      <property id="module.driver.zmod4xxx.p_irq_callback" value="Sensor_IaqEndOfMeasurement"/>
+      <property id="module.driver.zmod4xxx.p_callback" value="SensorIaq_CommCallback"/>
+      <property id="module.driver.zmod4xxx.p_irq_callback" value="SensorIaq_EndOfMeasurement"/>
     </module>
     <module id="module.driver.zmod4510_oaq_1st_on_zmod4xxx.1795282976"/>
     <module id="module.driver.comms_i2c_on_comms_i2c_device.1629457333">
@@ -531,7 +531,7 @@
       <property id="module.driver.comms_i2c_device.semaphore_timeout" value="0xFFFFFFFF"/>
       <property id="module.driver.comms_i2c_device.slave_address" value="0x68"/>
       <property id="module.driver.comms_i2c_device.address_mode" value="module.driver.comms_i2c_device.address_mode.address_mode_7bit"/>
-      <property id="module.driver.comms_i2c_device.p_callback" value="ICM_comms_i2c_callback"/>
+      <property id="module.driver.comms_i2c_device.p_callback" value="SensorIcm20948_CommCallback"/>
     </module>
     <module id="module.driver.uart_on_sci_uart.1651084784">
       <property id="module.driver.uart.name" value="g_console_uart"/>
@@ -553,7 +553,7 @@
       <property id="module.driver.uart.rs485.de_polarity" value="module.driver.uart.rs485.de_polarity.high"/>
       <property id="module.driver.uart.rs485.de_port_number" value="module.driver.uart.rs485.de_port_number.PORT_DISABLE"/>
       <property id="module.driver.uart.rs485.de_pin_number" value="module.driver.uart.rs485.de_pin_number.PIN_DISABLE"/>
-      <property id="module.driver.uart.callback" value="user_uart_callback"/>
+      <property id="module.driver.uart.callback" value="Console_UartCallback"/>
       <property id="module.driver.uart.rxi_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.uart.txi_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.uart.tei_ipl" value="board.icu.common.irq.priority12"/>
@@ -562,14 +562,14 @@
     <module id="module.driver.flash_on_flash_hp.76795946">
       <property id="module.driver.flash.name" value="user_flash"/>
       <property id="module.driver.flash.data_flash_bgo" value="module.driver.flash.data_flash_bgo.disabled"/>
-      <property id="module.driver.flash.p_callback" value="flash_callback"/>
+      <property id="module.driver.flash.p_callback" value="Console_FlashCallback"/>
       <property id="module.driver.flash.ipl" value="board.icu.common.irq.priority2"/>
       <property id="module.driver.flash.err_ipl" value="board.icu.common.irq.priority2"/>
     </module>
     <module id="module.driver.zmod4xxx_on_zmod4xxx.1594916109">
       <property id="module.driver.zmod4xxx.name" value="g_zmod4xxx_sensor0"/>
-      <property id="module.driver.zmod4xxx.p_callback" value="Sensor_OaqCommCallback"/>
-      <property id="module.driver.zmod4xxx.p_irq_callback" value="Sensor_OaqEndOfMeasurement"/>
+      <property id="module.driver.zmod4xxx.p_callback" value="SensorOaq_CommCallback"/>
+      <property id="module.driver.zmod4xxx.p_irq_callback" value="SensorOaq_EndOfMeasurement"/>
     </module>
     <module id="module.driver.zmod4410_iaq_1st_on_zmod4xxx.277074236">
       <property id="module.driver.zmod4xxx_lib.operation_mode" value="module.driver.zmod4xxx_lib.operation_mode.continuous"/>

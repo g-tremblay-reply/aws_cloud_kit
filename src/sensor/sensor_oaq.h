@@ -6,9 +6,9 @@
 #ifndef SENSOR_OAQ_H_
 #define SENSOR_OAQ_H_
 
-void Sensor_OaqInit(void);
-void Sensor_OaqMainFunction(void);
-void Sensor_OaqGetData(float *data);
+void SensorOaq_Init(void);
+void SensorOaq_MainFunction(void);
+void SensorOaq_GetData(float *data);
 
 
 

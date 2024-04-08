@@ -747,7 +747,7 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
          * for a IPv6 packet, pucIPType will point to the first byte of the IP-header: 'ucVersionTrafficClass'. */
         ucIPType = pucIPType[ 0 ] & 0xf0U;
 
-        /* To help the translation from a UDP payload pointer to a networkBuffer,
+        /* To Console_HelpMenu the translation from a UDP payload pointer to a networkBuffer,
          * a byte was stored at a certain negative offset (-48 bytes).
          * It must have a value of either 0x4x or 0x6x. */
         configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) );

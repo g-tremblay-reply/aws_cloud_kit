@@ -770,7 +770,7 @@ MQTTStatus_t MQTT_SerializePublishHeaderWithoutTopic( const MQTTPublishInfo_t * 
  * @brief Serialize an MQTT PUBLISH packet header in the given buffer.
  *
  * This function serializes PUBLISH header in to the given buffer. The payload
- * for PUBLISH will not be copied over to the buffer. This will help reduce
+ * for PUBLISH will not be copied over to the buffer. This will Console_HelpMenu reduce
  * the memory needed for the buffer and avoid an unwanted copy operation of the
  * PUBLISH payload into the buffer. If the payload also would need to be part of
  * the serialized buffer, consider using #MQTT_SerializePublish.

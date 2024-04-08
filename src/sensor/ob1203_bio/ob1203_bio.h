@@ -25,7 +25,7 @@
 #define OB1203_BIO_OB1203_BIO_H_
 
 #include "rm_ob1203.h"
-#include "SPO2/SPO2.h"
+#include "SPO2.h"
 
 #define OB1203_BIO_IRQ_ENABLE (1)
 #define OB1203_BIO_LED_MAX_NUM (2)

@@ -23,8 +23,8 @@ extern const flash_instance_t user_flash;
 extern flash_hp_instance_ctrl_t user_flash_ctrl;
 extern const flash_cfg_t user_flash_cfg;
 
-#ifndef flash_callback
-void flash_callback(flash_callback_args_t *p_args);
+#ifndef Console_FlashCallback
+void Console_FlashCallback(flash_callback_args_t *p_args);
 #endif
 /** UART on SCI Instance. */
 extern const uart_instance_t g_console_uart;
@@ -34,8 +34,8 @@ extern sci_uart_instance_ctrl_t g_console_uart_ctrl;
 extern const uart_cfg_t g_console_uart_cfg;
 extern const sci_uart_extended_cfg_t g_console_uart_cfg_extend;
 
-#ifndef user_uart_callback
-void user_uart_callback(uart_callback_args_t *p_args);
+#ifndef Console_UartCallback
+void Console_UartCallback(uart_callback_args_t *p_args);
 #endif
 FSP_FOOTER
 #endif /* CONSOLE_THREAD_H_ */

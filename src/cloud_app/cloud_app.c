@@ -4,8 +4,7 @@
  **********************************************************************************************************************/
 
 #include <cloud_app.h>
-#include <common_data.h>
-#include <usr_hal.h>
+#include "led/led.h"
 #include <console.h>
 #include <FreeRTOS_IP.h>
 #include <FreeRTOS_DHCP.h>
@@ -15,11 +14,11 @@
 #include <sensor_oaq.h>
 #include <sensor_hs3001.h>
 #include <sensor_icp10101.h>
-#include <ICM_20948.h>
+#include <sensor_icm20948.h>
 
 #define CLOUD_APP_PUSH_DATA_PERIOD_SEC  (10u)
 
-#define CLOUD_APP_ETH_CONFIG    "\r\n\r\n--------------------------------------------------------------------------------"\
+#define CLOUD_PROV_ETH_CONFIG    "\r\n\r\n--------------------------------------------------------------------------------"\
                                 "\r\nEthernet adapter Configuration for Renesas "KIT_NAME": Post IP Init       "\
                                 "\r\n--------------------------------------------------------------------------------\r\n\r\n"
 
@@ -152,12 +151,6 @@ const char *CloudAppPubTopicsNames[CLOUD_APP_PUB_TOPIC_COUNT] =
  */
 extern TaskHandle_t cloud_app_thread;
 
-IPV4Parameters_t xNd = {RESET_VALUE,
-                        RESET_VALUE,
-                        RESET_VALUE,
-                        {RESET_VALUE,RESET_VALUE},
-                        RESET_VALUE,
-                        RESET_VALUE};
 static uint8_t ucIPAddress[ipIP_ADDRESS_LENGTH_BYTES] =        { RESET_VALUE };
 static uint8_t ucNetMask[ipIP_ADDRESS_LENGTH_BYTES] =          { 255, 255, 255, 255 };
 static uint8_t ucGatewayAddress[ipIP_ADDRESS_LENGTH_BYTES] =   { RESET_VALUE };
@@ -166,18 +159,11 @@ static uint8_t ucMACAddress[ipMAC_ADDRESS_LENGTH_BYTES] =       { 0x00, 0x11, 0x
 static CloudApp_SensorData_t CloudAppDataRequest = CLOUD_APP_NO_DATA;
 static CloudApp_SensorData_t CloudAppDataPush = CLOUD_APP_IAQ_DATA;
 static char CloudAppPayloadBuffer[CLOUD_APP_PAYLOAD_BUFFER_SIZE] = {0u};
-
+static uint8_t CLoudAppSubAckReceived = 0u;
 
 /**********************************************************************************************************************
                                     LOCAL FUNCTION PROTOTYPES
 **********************************************************************************************************************/
-/**
- * @brief      Creates and prints  the IP configuration to display on the  console
- * @param[in]  void
- * @retval     None
- */
-static void CloudApp_PrintIPConfig(void);
-
 /**
  * @brief
  * @param pContext
@@ -330,168 +316,15 @@ static void CloudApp_BulkDataCallback(MQTTContext_t * pContext, MQTTPublishInfo_
 }
 
 
-static void CloudApp_PrintIPConfig(void)
-{
-#if( ipconfigUSE_DHCP != 0 )
-
-    ucNetMask[3] = (uint8_t) ((xNd.ulNetMask & 0xFF000000) >> 24);
-    ucNetMask[2] = (uint8_t) ((xNd.ulNetMask & 0x00FF0000) >> 16);
-    ucNetMask[1] = (uint8_t) ((xNd.ulNetMask & 0x0000FF00) >> 8);
-    ucNetMask[0] = (uint8_t) (xNd.ulNetMask & 0x000000FF);
-
-    ucGatewayAddress[3] = (uint8_t) ((xNd.ulGatewayAddress & 0xFF000000) >> 24);
-    ucGatewayAddress[2] = (uint8_t) ((xNd.ulGatewayAddress & 0x00FF0000) >> 16);
-    ucGatewayAddress[1] = (uint8_t) ((xNd.ulGatewayAddress & 0x0000FF00) >> 8);
-    ucGatewayAddress[0] = (uint8_t) (xNd.ulGatewayAddress & 0x000000FF);
-
-    ucDNSServerAddress[3] = (uint8_t)((xNd.ulDNSServerAddresses[0] & 0xFF000000)>> 24);
-    ucDNSServerAddress[2] = (uint8_t)((xNd.ulDNSServerAddresses[0] & 0x00FF0000)>> 16);
-    ucDNSServerAddress[1] = (uint8_t)((xNd.ulDNSServerAddresses[0] & 0x0000FF00)>> 8);
-    ucDNSServerAddress[0] = (uint8_t)(xNd.ulDNSServerAddresses[0] & 0x000000FF);
-
-    ucIPAddress[3] = (uint8_t)((xNd.ulIPAddress & 0xFF000000) >> 24);
-    ucIPAddress[2] = (uint8_t)((xNd.ulIPAddress & 0x00FF0000) >> 16);
-    ucIPAddress[1] = (uint8_t)((xNd.ulIPAddress & 0x0000FF00) >> 8);
-    ucIPAddress[0] = (uint8_t)(xNd.ulIPAddress & 0x000000FF);
-#endif
-    APP_PRINT(CLOUD_APP_ETH_CONFIG);
-
-    APP_PRINT("\tDescription . . . . . . . . . . . : Renesas "KIT_NAME" Ethernet\r\n");
-    APP_PRINT("\tPhysical Address. . . . . . . . . : %02x-%02x-%02x-%02x-%02x-%02x\r\n", ucMACAddress[0],
-              ucMACAddress[1], ucMACAddress[2], ucMACAddress[3], ucMACAddress[4], ucMACAddress[5]);
-    APP_PRINT("\tDHCP Enabled. . . . . . . . . . . : %s\r\n", "Yes" );
-    APP_PRINT("\tIPv4 Address. . . . . . . . . . . : %d.%d.%d.%d\r\n", ucIPAddress[0], ucIPAddress[1], ucIPAddress[2],
-              ucIPAddress[3]);
-    APP_PRINT("\tSubnet Mask . . . . . . . . . . . : %d.%d.%d.%d\r\n", ucNetMask[0], ucNetMask[1], ucNetMask[2],
-              ucNetMask[3]);
-    APP_PRINT("\tDefault Gateway . . . . . . . . . : %d.%d.%d.%d\r\n", ucGatewayAddress[0], ucGatewayAddress[1],
-              ucGatewayAddress[2], ucGatewayAddress[3]);
-    APP_PRINT("\tDNS Servers . . . . . . . . . . . : %d.%d.%d.%d\r\n", ucDNSServerAddress[0], ucDNSServerAddress[1],
-              ucDNSServerAddress[2], ucDNSServerAddress[3]);
-}
 /**********************************************************************************************************************
                                     GLOBAL FUNCTION PROTOTYPES
 **********************************************************************************************************************/
-#if( ipconfigUSE_DHCP != 0 )
-/**
- * @brief      This is the User Hook for the DHCP Response. xApplicationDHCPHook() is called by DHCP Client Code when DHCP
- *             handshake messages are exchanged from the Server.
- * @param[in]  Different Phases of DHCP Phases and the Offered IP Address
- * @retval     Returns DHCP Answers.
- */
-eDHCPCallbackAnswer_t xApplicationDHCPHook(eDHCPCallbackPhase_t eDHCPPhase, uint32_t lulIPAddress)
-{
-    eDHCPCallbackAnswer_t eReturn = eDHCPContinue;
-    /*
-     * This hook is called in a couple of places during the DHCP process, as identified by the eDHCPPhase parameter.
-     */
-    switch (eDHCPPhase)
-    {
-        case eDHCPPhasePreDiscover:
-            /*
-             *  A DHCP discovery is about to be sent out.  eDHCPContinue is returned to allow the discovery to go out.
-             *  If eDHCPUseDefaults had been returned instead then the DHCP process would be stopped and the statically
-             *  configured IP address would be used.
-             *  If eDHCPStopNoChanges had been returned instead then the DHCP process would be stopped and whatever the
-             *  current network configuration was would continue to be used.
-             */
-            break;
-
-        case eDHCPPhasePreRequest:
-            /* An offer has been received from the DHCP server, and the offered IP address is passed in the lulIPAddress
-             * parameter.
-             */
-            /*
-             * The sub-domains don’t match, so continue with the DHCP process so the offered IP address is used.
-             */
-            /* Update the Structure, the DHCP state Machine is not updating this */
-            xNd.ulIPAddress = lulIPAddress;
-            xNd.ulNetMask = FreeRTOS_GetNetmask();
-            xNd.ulGatewayAddress = FreeRTOS_GetGatewayAddress();
-            xNd.ulDNSServerAddresses[0] = FreeRTOS_GetDNSServerAddress();
-            break;
-
-        default:
-            /*
-             * Cannot be reached, but set eReturn to prevent compiler warnings where compilers are disposed to generating one.
-             */
-            break;
-    }
-    return eReturn;
-}
-#endif
-
-#if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-/**
- * @brief      Network event callback. Indicates the Network event. Added here to avoid the build errors
- * @param[in]  None
- * @retval     Hostname
- */
-void vApplicationIPNetworkEventHook(eIPCallbackEvent_t eNetworkEvent)
-{
-    if (eNetworkUp == eNetworkEvent)
-    {
-        uint32_t lulIPAddress;
-        uint32_t lulNetMask;
-        uint32_t lulGatewayAddress;
-        uint32_t lulDNSServerAddress;
-        int8_t lcBuffer[16];
-
-        /* Signal application the network is UP */
-        xTaskNotifyFromISR(cloud_app_thread, eNetworkUp, eSetBits, NULL);
-
-/*  TODO something with this
- * The network is up and configured.  Print out the configuration
-         obtained from the DHCP server. *//*
-        FreeRTOS_GetAddressConfiguration (&lulIPAddress,
-                                          &lulNetMask,
-                                          &lulGatewayAddress,
-                                          &lulDNSServerAddress);
-
-        *//* Convert the IP address to a string then print it out. *//*
-        FreeRTOS_inet_ntoa (lulIPAddress, (char*) lcBuffer);
-
-        *//* Convert the net mask to a string then print it out. *//*
-        FreeRTOS_inet_ntoa (lulNetMask, (char*) lcBuffer);
-
-        *//* Convert the IP address of the gateway to a string then print it out. *//*
-        FreeRTOS_inet_ntoa (lulGatewayAddress, (char*) lcBuffer);
-
-        *//* Convert the IP address of the DNS server to a string then print it out. *//*
-        FreeRTOS_inet_ntoa (lulDNSServerAddress, (char*) lcBuffer);*/
-    }
-}
-#endif
 
 void CloudApp_EnableDataPushTimer(void)
 {
     g_timer1.p_api->open (g_timer1.p_ctrl, g_timer1.p_cfg);
     g_timer1.p_api->enable (g_timer1.p_ctrl);
     g_timer1.p_api->start (g_timer1.p_ctrl);
-}
-
-void CloudApp_InitIPStack(void)
-{
-    if(FreeRTOS_IPInit_Multi() != pdTRUE)
-    {
-        FAILURE_INDICATION;
-        APP_ERR_PRINT("User Network Initialization Failed");
-        APP_ERR_TRAP(pdFALSE);
-    }
-    else
-    {
-        APP_PRINT("Waiting for IP stack link up");
-        /* Wait on notification for cloud_app_thread Task. This notification will come from
-         * vApplicationIPNetworkEventHook() function, which is a FreeRTOS callback defined by the user. Using
-         * this patterns allows to have a synchronous IP stack initialization */
-        xTaskNotifyWait(pdFALSE, pdFALSE, NULL, portMAX_DELAY);
-
-        /* Indicate that network is up with a LED on the device */
-        NETWORK_CONNECT_INDICATION;
-
-        /* Print IP config on console screen */
-        CloudApp_PrintIPConfig();
-    }
 }
 
 void CloudApp_MqttCallback( MQTTContext_t * pMqttContext,
@@ -522,6 +355,7 @@ void CloudApp_MqttCallback( MQTTContext_t * pMqttContext,
         {
             case MQTT_PACKET_TYPE_SUBACK:
                 APP_INFO_PRINT("MQTT_PACKET_TYPE_SUBACK\r\n");
+                CLoudAppSubAckReceived ++;
                 /* A SUBACK from the broker, containing the server response to our subscription request, has been received.
                  * It contains the status code indicating server approval/rejection for the subscription to the single topic
                  * requested. The SUBACK will be parsed to obtain the status code, and this status code will be stored in global
@@ -529,7 +363,7 @@ void CloudApp_MqttCallback( MQTTContext_t * pMqttContext,
                 xResult = MQTT_GetSubAckStatusCodes( pPacketInfo, &pucPayload, &xSize );
 
                 /* Only a single topic filter is expected for each SUBSCRIBE packet. */
-                configASSERT( xSize == 1UL );
+                //configASSERT( xSize == 1UL ); TODO figure out why it specifies only one topic. Maybe topic count ?
                 uint8_t subackSts;
                 subackSts = *pucPayload;
 
@@ -566,11 +400,10 @@ void CloudApp_MqttCallback( MQTTContext_t * pMqttContext,
 
 MQTTStatus_t CloudApp_SubscribeTopics(MQTTContext_t *mqttContext)
 {
-    BaseType_t xReturnStatus = pdFAIL;
     SubscriptionManagerStatus_t managerStatus = 0u;
     MQTTStatus_t mqttStatus = MQTTBadParameter;
     MQTTSubscribeInfo_t subscriptionList[ CLOUD_APP_SUB_TOPIC_COUNT ] = {0u};
-    uint16_t topicNameLength = 0u;
+    uint16_t topicNameLength;
     const char *topicsName[CLOUD_APP_SUB_TOPIC_COUNT] =
             {
                     "aws/topic/get_iaq_sensor_data",
@@ -612,28 +445,46 @@ MQTTStatus_t CloudApp_SubscribeTopics(MQTTContext_t *mqttContext)
         subscriptionList[topic].qos = MQTTQoS1;
     }
 
-
     if( managerStatus == SUBSCRIPTION_MANAGER_SUCCESS )
     {
-        APP_INFO_PRINT("Subscribing to Cloud App MQTT topics %s.\r\n");
+        APP_INFO_PRINT("Correctly registered callbacks to CloudApp topics.\r\n");
+
+        /* Send subscribe packts in 2 separate messages because AWS server does not accept all
+         * topics in one message */
         mqttStatus = MQTT_Subscribe(mqttContext,
                                     subscriptionList,
-                                    CLOUD_APP_SUB_TOPIC_COUNT,
+                                    5u,
                                     MQTT_GetPacketId( mqttContext ) );
+        if(mqttStatus != MQTTSuccess )
+        {
+            APP_WARN_PRINT( ( "Failed to send SUBSCRIBE packet to broker with error = %s.\r\n"),
+                            MQTT_Status_strerror(mqttStatus) );
+        }
+        mqttStatus = MQTT_Subscribe(mqttContext,
+                                    &subscriptionList[5],
+                                    4u,
+                                    MQTT_GetPacketId( mqttContext ) );
+        if(mqttStatus != MQTTSuccess )
+        {
+            APP_WARN_PRINT( ( "Failed to send SUBSCRIBE packet to broker with error = %s.\r\n"),
+                            MQTT_Status_strerror(mqttStatus) );
+        }
     }
 
-    if(mqttStatus != MQTTSuccess )
+    if(mqttStatus == MQTTSuccess )
     {
-        LogError( ( "Failed to send SUBSCRIBE packet to broker with error = %s.",
-                MQTT_Status_strerror(mqttStatus ) ) );
-    }
-    else
-    {
-        mqttStatus = MQTT_ProcessLoop( mqttContext);
-        if(mqttStatus != MQTTSuccess)
+        uint16_t timeMs = 0u;
+        /* Check until 2 SUBACK packets are received  */
+        while((timeMs <= 5000u) && (CLoudAppSubAckReceived <= 2))
         {
-            LogError( ( "Failed to receive SUBACK packet to broker with error = %s.",
-                    MQTT_Status_strerror(mqttStatus ) ) );
+            mqttStatus = MQTT_ProcessLoop( mqttContext);
+            timeMs += 1000u;
+            vTaskDelay(pdMS_TO_TICKS(1000u));
+        }
+        if(CLoudAppSubAckReceived < 2u)
+        {
+            APP_WARN_PRINT( ( "Failed to receive SUBACK packets from broker with error = %s.\r\n"),
+                            MQTT_Status_strerror(mqttStatus) );
         }
     }
     return mqttStatus;
@@ -683,25 +534,21 @@ void CloudApp_PeriodicDataPush(timer_callback_args_t *p_args)
 
 }
 
-void CloudApp_MainFunction(MQTTContext_t *mqttContext)
+static void CloudApp_PublishSensorData(MQTTContext_t *mqttContext, CloudApp_SensorData_t sensorData)
 {
-
+    MQTTStatus_t mqttStatus;
     MQTTPublishInfo_t pubInfo = {
             .pPayload = CloudAppPayloadBuffer,
             .qos = MQTTQoS1
     };
-    MQTTStatus_t mqttStatus;
 
-    /* Receive any Publish message, which will update CloudAppDataRequest in CallBacks if
-     * data is received on request topics */
-    MQTT_ProcessLoop(mqttContext);
-
-    switch(CloudAppDataRequest)
+    /* Populate Sensor data publish message */
+    switch(sensorData)
     {
         case CLOUD_APP_IAQ_DATA:
         {
             rm_zmod4xxx_iaq_1st_data_t iaqData;
-            Sensor_IaqGetData(&iaqData);
+            SensorIaq_GetData(&iaqData);
             pubInfo.pTopicName = CloudAppPubTopicsNames[0u];
             pubInfo.topicNameLength = strlen(CloudAppPubTopicsNames[0u]);
             /* Populate payload buffer and paayload length according to data format */
@@ -715,8 +562,8 @@ void CloudApp_MainFunction(MQTTContext_t *mqttContext)
         }
         case CLOUD_APP_OAQ_DATA:
         {
-            float oaqData;
-            Sensor_OaqGetData(&oaqData);
+            float_t oaqData;
+            SensorOaq_GetData(&oaqData);
             pubInfo.pTopicName = CloudAppPubTopicsNames[1u];
             pubInfo.topicNameLength = strlen(CloudAppPubTopicsNames[1u]);
             /* Populate payload buffer and paayload length according to data format */
@@ -728,8 +575,8 @@ void CloudApp_MainFunction(MQTTContext_t *mqttContext)
         }
         case CLOUD_APP_HS3001_DATA:
         {
-            float temperature, humidity;
-            Sensor_Hs3001GetData(&temperature, &humidity);
+            float_t temperature, humidity;
+            SensorHs3001_GetData(&temperature, &humidity);
             pubInfo.pTopicName = CloudAppPubTopicsNames[2u];
             pubInfo.topicNameLength = strlen(CloudAppPubTopicsNames[2u]);
             /* Populate payload buffer and paayload length according to data format */
@@ -742,7 +589,7 @@ void CloudApp_MainFunction(MQTTContext_t *mqttContext)
         }
         case CLOUD_APP_ICM_DATA:
         {
-            float temperature, pressure;
+            float_t temperature, pressure;
             SensorIcp10101_GetData(&temperature, &pressure);
             pubInfo.pTopicName = CloudAppPubTopicsNames[3u];
             pubInfo.topicNameLength = strlen(CloudAppPubTopicsNames[3u]);
@@ -794,9 +641,47 @@ void CloudApp_MainFunction(MQTTContext_t *mqttContext)
         }
         case CLOUD_APP_BULK_SENS_DATA:
         {
+            rm_zmod4xxx_iaq_1st_data_t iaqData;
+            float_t oaqData;
+            float_t tempHs3001, humidity;
+            float_t tempIcp, pressure;
+            xyzFloat acc, gyr, magnitude;
+            ob1203_bio_data_t ob1203data;
+
+            SensorIaq_GetData(&iaqData);
+            SensorOaq_GetData(&oaqData);
+            SensorHs3001_GetData(&tempHs3001, &humidity);
+            SensorIcp10101_GetData(&tempIcp, &pressure);
+            SensorIcm20948_GetData(&acc, &gyr, &magnitude);
+            Sensor_Ob1203GetData(&ob1203data);
+
             pubInfo.pTopicName = CloudAppPubTopicsNames[6u];
             pubInfo.topicNameLength = strlen(CloudAppPubTopicsNames[6u]);
-
+            /* Populate payload buffer and paayload length according to data format */
+            pubInfo.payloadLength = snprintf (CloudAppPayloadBuffer,
+                                              sizeof(CloudAppPayloadBuffer),
+                                              CLOUD_APP_PAYLOAD_FORMAT_BULK_JSON,
+                                                (double)iaqData.tvoc,
+                                                (double)iaqData.etoh,
+                                                (double)iaqData.eco2,
+                                                (double)oaqData,
+                                                (double)humidity,
+                                                (double)tempHs3001,
+                                                acc.x,
+                                                acc.y,
+                                                acc.z,
+                                                magnitude.x,
+                                                magnitude.y,
+                                                magnitude.z,
+                                                gyr.x,
+                                                gyr.y,
+                                                gyr.z,
+                                                (double)tempIcp,
+                                                (double)pressure,
+                                                (double)ob1203data.spo2,
+                                                (double)ob1203data.heart_rate,
+                                                (double)ob1203data.respiration_rate,
+                                                (double)ob1203data.perfusion_index);
             break;
         }
 
@@ -804,51 +689,44 @@ void CloudApp_MainFunction(MQTTContext_t *mqttContext)
             break;
     }
 
+    /* Publish requested sensor data . */
+    mqttStatus = MQTT_Publish( mqttContext,
+                               &pubInfo,
+                               MQTT_GetPacketId(mqttContext) );
+    if( mqttStatus != MQTTSuccess )
+    {
+        APP_ERR_PRINT("Failed to publish CloudApp Sensor Data with error status = %s.\r\n",
+                      MQTT_Status_strerror( mqttStatus ));
+    }
+    else
+    {
+        APP_INFO_PRINT(("Published CloudApp sensor data %.*s\r\n"),
+                       pubInfo.payloadLength,
+                       pubInfo.pPayload);
+
+        /* Check if PUBACK is received */
+        MQTT_ProcessLoop(mqttContext);
+    }
+}
+
+void CloudApp_MainFunction(MQTTContext_t *mqttContext)
+{
+    /* Receive any Publish message, which will update CloudAppDataRequest in CallBacks if
+     * data is received on request topics */
+    MQTT_ProcessLoop(mqttContext);
+
+    /* Process data requested by MQTT broker */
     if(CloudAppDataRequest != CLOUD_APP_NO_DATA)
     {
-        /* Publish requested sensor data . */
-        mqttStatus = MQTT_Publish( mqttContext,
-                                    &pubInfo,
-                                   MQTT_GetPacketId(mqttContext) );
-        if( mqttStatus != MQTTSuccess )
-        {
-            APP_ERR_PRINT("Failed to send PUBLISH packet to broker with error = %s.\r\n",
-                        MQTT_Status_strerror( mqttStatus ));
-        }
-        else
-        {
-            APP_INFO_PRINT("PUBLISH sent for topic %s to broker.\r\n",
-                       pubInfo.pTopicName);
-
-            /* Check if PUBACK is received */
-            MQTT_ProcessLoop(mqttContext);
-            CloudAppDataRequest = CLOUD_APP_NO_DATA;
-
-        }
+        CloudApp_PublishSensorData(mqttContext, CloudAppDataRequest);
+        CloudAppDataRequest = CLOUD_APP_NO_DATA;
     }
 
-    switch(CloudAppDataPush)
-    {
-        case CLOUD_APP_IAQ_DATA:
-            break;
-        case CLOUD_APP_OAQ_DATA:
-            break;
-        case CLOUD_APP_HS3001_DATA:
-            break;
-        case CLOUD_APP_ICM_DATA:
-            break;
-        case CLOUD_APP_ICP_DATA:
-            break;
-        case CLOUD_APP_OB1203_DATA:
-            break;
-        case CLOUD_APP_BULK_SENS_DATA:
-            break;
-        default:
-            break;
-    }
+    /* Process data pushed cyclically by CloudApp */
     if(CloudAppDataPush != CLOUD_APP_NO_DATA)
     {
-        //TODO publish data
+        CloudApp_PublishSensorData(mqttContext, CloudAppDataPush);
+
         CloudAppDataPush = CLOUD_APP_NO_DATA;
     }
 }

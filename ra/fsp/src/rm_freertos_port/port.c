@@ -871,7 +871,7 @@ void SysTick_Handler (void)
 {
 #if configUSE_TICKLESS_IDLE
 
-    /* Reset the SysTick reload value if it was reconfigured for a long sleep in tickless idle. */
+    /* Reset the SysTick reload value if it was reconfigured for a long setIcmSleepMode in tickless idle. */
     if (g_reset_systick)
     {
         uint32_t completed_ticks         = (g_reset_systick / ulTimerCountsForOneTick);
@@ -1288,7 +1288,7 @@ void vPortExitCritical (void)
 #if configUSE_IDLE_HOOK || configUSE_TICKLESS_IDLE
 
 /***********************************************************************************************************************
- * Saves the LPM state, then enters sleep mode. After waking, reenables interrupts briefly to allow any pending
+ * Saves the LPM state, then enters setIcmSleepMode mode. After waking, reenables interrupts briefly to allow any pending
  * interrupts to run.
  *
  * @pre Disable interrupts an suspend all tasks before calling this function.
@@ -1331,7 +1331,7 @@ void rm_freertos_port_sleep_preserving_lpm (uint32_t xExpectedIdleTime)
             /* Unlock LPM peripheral registers */
             R_SYSTEM->PRCR = RM_FREERTOS_PORT_UNLOCK_LPM_REGISTER_ACCESS;
 
-            /* Clear to set to sleep low power mode (not standby or deep standby) */
+            /* Clear to set to setIcmSleepMode low power mode (not standby or deep standby) */
             R_SYSTEM->SBYCR = 0U;
 
             /* Restore register lock */
@@ -1374,14 +1374,14 @@ void rm_freertos_port_sleep_preserving_lpm (uint32_t xExpectedIdleTime)
   #elif BSP_FEATURE_LPM_HAS_LPCSR
         if (SYS_REG0_LPCSR_LPSTS_Msk & saved_lpm_state)
         {
-            /* Clear to set to sleep low power mode (not standby or deep standby) */
+            /* Clear to set to setIcmSleepMode low power mode (not standby or deep standby) */
             SYS_REG0->LPCSR = 0;
         }
   #endif
 
         /**
          * DSB should be last instruction executed before WFI
-         * infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dai0321a/BIHICBGB.html
+         * infocenter.arm.com/Console_HelpMenu/index.jsp?topic=/com.arm.doc.dai0321a/BIHICBGB.html
          */
         __DSB();
 
@@ -1395,7 +1395,7 @@ void rm_freertos_port_sleep_preserving_lpm (uint32_t xExpectedIdleTime)
         __ISB();
  #else
 
-        /* Wait for an interrupt to be pending without going to sleep if BSP is configured to not sleep when idle for RTOS. */
+        /* Wait for an interrupt to be pending without going to sleep if BSP is configured to not setIcmSleepMode when idle for RTOS. */
         while (0 == (SCB->ICSR & SCB_ICSR_VECTPENDING_Msk))
         {
             R_BSP_SoftwareDelay(1, BSP_DELAY_UNITS_MICROSECONDS);;
@@ -1403,7 +1403,7 @@ void rm_freertos_port_sleep_preserving_lpm (uint32_t xExpectedIdleTime)
  #endif                                /* !defined(BSP_CFG_RTOS_IDLE_SLEEP) || BSP_CFG_RTOS_IDLE_SLEEP */
 
         /* Re-enable interrupts to allow the interrupt that brought the MCU
-         * out of sleep mode to execute immediately. This will not cause a
+         * out of setIcmSleepMode mode to execute immediately. This will not cause a
          * context switch because all tasks are currently suspended. */
         __enable_irq();
         __ISB();
@@ -1470,7 +1470,7 @@ void rm_freertos_port_sleep_preserving_lpm (uint32_t xExpectedIdleTime)
   #elif BSP_FEATURE_LPM_HAS_LPCSR
     if (SYS_REG0_LPCSR_LPSTS_Msk & saved_lpm_state)
     {
-        /* Clear to set to sleep low power mode (not standby or deep standby) */
+        /* Clear to set to setIcmSleepMode low power mode (not standby or deep standby) */
         SYS_REG0->LPCSR = saved_lpm_state;
     }
   #endif
@@ -1489,17 +1489,17 @@ void rm_freertos_port_sleep_preserving_lpm (uint32_t xExpectedIdleTime)
 __attribute__((weak)) void vApplicationIdleHook (void)
 {
     /* Enter a critical section but don't use the taskENTER_CRITICAL() method as that will mask interrupts that should
-     * exit sleep mode. This must be done before suspending tasks because a pending interrupt will prevent sleep from
+     * exit sleep mode. This must be done before suspending tasks because a pending interrupt will prevent setIcmSleepMode from
      * WFI, but a task ready to run will not. If a task becomes ready to run before disabling interrupts, a context
      * switch will happen. */
     __disable_irq();
 
-    /* Don't allow a context switch during sleep processing to ensure the LPM state is restored
+    /* Don't allow a context switch during setIcmSleepMode processing to ensure the LPM state is restored
      * before switching from idle to the next ready task. This is done in the idle task
      * before vPortSuppressTicksAndSleep when configUSE_TICKLESS_IDLE is used. */
     vTaskSuspendAll();
 
-    /* Save current LPM state, then sleep. */
+    /* Save current LPM state, then setIcmSleepMode. */
     rm_freertos_port_sleep_preserving_lpm(1);
 
     /* Exit with interrupts enabled. */
@@ -1539,7 +1539,7 @@ __attribute__((weak)) void vPortSuppressTicksAndSleep (TickType_t xExpectedIdleT
     ulReloadValue = ulTimerCountsForOneTick * (xExpectedIdleTime - 1UL);
 
     /* Enter a critical section but don't use the taskENTER_CRITICAL()
-     * method as that will mask interrupts that should exit sleep mode. */
+     * method as that will mask interrupts that should exit setIcmSleepMode mode. */
     __disable_irq();
 
     /* Set the new reload value. */

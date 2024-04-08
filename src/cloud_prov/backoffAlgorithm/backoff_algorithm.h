@@ -119,7 +119,7 @@ void BackoffAlgorithm_InitializeParams( BackoffAlgorithmContext_t * pContext,
  * that is seeded with a device-specific entropy source so that possibility of collisions
  * between multiple devices retrying the network operations can be mitigated.
  *
- * @return #BackoffAlgorithmSuccess after a successful sleep;
+ * @return #BackoffAlgorithmSuccess after a successful setIcmSleepMode;
  * #BackoffAlgorithmRetriesExhausted when all attempts are exhausted.
  */
 /* @[define_backoffalgorithm_getnextbackoff] */

@@ -6,14 +6,9 @@
 #define CLOUD_APP_H
 
 #include <core_mqtt.h>
+#include <console.h>
 
-//TODO set this in cloud_app_config.h
-#define _OB1203_SENSOR_ENABLE_    1
-#define _HS3001_SENSOR_ENABLE_    1
-#define _ZMOD4410_SENSOR_ENABLE_  1
-#define _ZMOD4510_SENSOR_ENABLE_  1
-#define _ICP10101_SENSOR_ENABLE_  1
-#define _ICM20948_SENSOR_ENABLE_  1
+
 
 /**
  * @brief Sensor data types the cloud app can have requested by AWS server
@@ -29,8 +24,6 @@ typedef enum
     CLOUD_APP_OB1203_DATA,
     CLOUD_APP_BULK_SENS_DATA,
 }CloudApp_SensorData_t;
-
-void CloudApp_InitIPStack(void);
 
 MQTTStatus_t CloudApp_SubscribeTopics(MQTTContext_t *mqttContext);
 

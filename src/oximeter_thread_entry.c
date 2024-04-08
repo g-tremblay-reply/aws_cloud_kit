@@ -19,9 +19,9 @@
  * included in this file may be subject to different terms.
  **********************************************************************************************************************/
 #include "oximeter_thread.h"
-#include <console.h>
+#include <sensor_config.h>
 #include "sensor_ob1203.h"
-#include <cloud_app.h>
+
 
 #define UNUSED(x)  ((void)(x))
 

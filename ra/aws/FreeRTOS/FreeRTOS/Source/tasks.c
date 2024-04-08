@@ -1284,7 +1284,7 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
         xAlreadyYielded = xTaskResumeAll();
 
         /* Force a reschedule if xTaskResumeAll has not already done so, we may
-         * have put ourselves to sleep. */
+         * have put ourselves to setIcmSleepMode. */
         if( xAlreadyYielded == pdFALSE )
         {
             portYIELD_WITHIN_API();
@@ -1331,7 +1331,7 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
         }
 
         /* Force a reschedule if xTaskResumeAll has not already done so, we may
-         * have put ourselves to sleep. */
+         * have put ourselves to setIcmSleepMode. */
         if( xAlreadyYielded == pdFALSE )
         {
             portYIELD_WITHIN_API();
@@ -3261,7 +3261,7 @@ BaseType_t xTaskRemoveFromEventList( const List_t * const pxEventList )
              * unblocked for a reason other than a timeout xNextTaskUnblockTime is
              * normally left unchanged, because it is automatically reset to a new
              * value when the tick count equals xNextTaskUnblockTime.  However if
-             * tickless idling is used it might be more important to enter sleep mode
+             * tickless idling is used it might be more important to enter setIcmSleepMode mode
              * at the earliest possible time - so reset xNextTaskUnblockTime here to
              * ensure it is updated at the earliest possible time. */
             prvResetNextTaskUnblockTime();
@@ -3320,7 +3320,7 @@ void vTaskRemoveFromUnorderedEventList( ListItem_t * pxEventListItem,
          * unblocked for a reason other than a timeout xNextTaskUnblockTime is
          * normally left unchanged, because it is automatically reset to a new
          * value when the tick count equals xNextTaskUnblockTime.  However if
-         * tickless idling is used it might be more important to enter sleep mode
+         * tickless idling is used it might be more important to enter setIcmSleepMode mode
          * at the earliest possible time - so reset xNextTaskUnblockTime here to
          * ensure it is updated at the earliest possible time. */
         prvResetNextTaskUnblockTime();
@@ -5004,7 +5004,7 @@ TickType_t uxTaskResetEventItemValue( void )
                      * because it will automatically get reset to a new value when
                      * the tick count equals xNextTaskUnblockTime.  However if
                      * tickless idling is used it might be more important to enter
-                     * sleep mode at the earliest possible time - so reset
+                     * setIcmSleepMode mode at the earliest possible time - so reset
                      * xNextTaskUnblockTime here to ensure it is updated at the
                      * earliest possible time. */
                     prvResetNextTaskUnblockTime();

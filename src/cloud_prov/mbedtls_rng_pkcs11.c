@@ -24,45 +24,28 @@
  *
  */
 
-#ifndef FLEET_PROVISIONING_CONFIG_H_
-#define FLEET_PROVISIONING_CONFIG_H_
-
-/**************************************************/
-/******* DO NOT CHANGE the following order ********/
-/**************************************************/
-
-/* Include logging header files and define logging macros in the following order:
- * 1. Include the header file "logging_levels.h".
- * 2. Define the LIBRARY_LOG_NAME and LIBRARY_LOG_LEVEL macros.
- * 3. Include the header file "logging_stack.h".
- */
-
 #include "logging_levels.h"
 
-/* Logging configuration for the Fleet Provisioning library. */
 #ifndef LIBRARY_LOG_NAME
-    #define LIBRARY_LOG_NAME    "FleetProvisioning"
-#endif
+    #define LIBRARY_LOG_NAME    "MbedTLSRNGP11"
+#endif /* LIBRARY_LOG_NAME */
 
 #ifndef LIBRARY_LOG_LEVEL
-    #define LIBRARY_LOG_LEVEL    LOG_INFO
-#endif
-
-/* Prototype for the function used to print to console on Windows simulator
- * of FreeRTOS.
- * The function prints to the console before the network is connected;
- * then a UDP port after the network has connected. */
-extern void vLoggingPrintf( const char * pcFormatString,
-                            ... );
-
-/* Map the SdkLog macro to the logging function to enable logging
- * on Windows simulator. */
-#ifndef SdkLog
-    #define SdkLog( message )    vLoggingPrintf message
-#endif
+    #define LIBRARY_LOG_LEVEL    LOG_ERROR
+#endif /* LIBRARY_LOG_LEVEL */
 
 #include "logging_stack.h"
 
-/************ End of logging configuration ****************/
+/**
+ * @file mbedtls_rng_pkcs11.c
+ * @brief Implements an mbedtls RNG callback using the PKCS#11 API
+ */
 
-#endif /* ifndef FLEET_PROVISIONING_CONFIG_H_ */
+#include "core_pkcs11_config.h"
+#include "core_pkcs11.h"
+
+/*-----------------------------------------------------------*/
+
+
+
+/*-----------------------------------------------------------*/

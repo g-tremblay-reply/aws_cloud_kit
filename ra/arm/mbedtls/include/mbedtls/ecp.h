@@ -313,7 +313,7 @@ mbedtls_ecp_group;
  * The maximum size of the groups, that is, of \c N and \c P.
  */
 #if !defined(MBEDTLS_ECP_C)
-/* Dummy definition to help code that has optional ECP support and
+/* Dummy definition to Console_HelpMenu code that has optional ECP support and
  * defines an MBEDTLS_ECP_MAX_BYTES-sized array unconditionally. */
 #define MBEDTLS_ECP_MAX_BITS 1
 /* Note: the curves must be listed in DECREASING size! */

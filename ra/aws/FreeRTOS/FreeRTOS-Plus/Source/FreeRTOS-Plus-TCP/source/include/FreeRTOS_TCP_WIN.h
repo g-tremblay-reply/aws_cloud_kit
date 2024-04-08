@@ -198,7 +198,7 @@ int32_t lTCPWindowTxAdd( TCPWindow_t * pxWindow,
                          int32_t lPosition,
                          int32_t lMax );
 
-/* Check data to be sent and calculate the time period we may sleep */
+/* Check data to be sent and calculate the time period we may setIcmSleepMode */
 BaseType_t xTCPWindowTxHasData( TCPWindow_t const * pxWindow,
                                 uint32_t ulWindowSize,
                                 TickType_t * pulDelay );

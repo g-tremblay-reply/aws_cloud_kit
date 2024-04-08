@@ -868,7 +868,7 @@ cleanup:
  * Thus in this sense with 28 byte blinding the security is not reduced by
  * side-channel attacks like the one in [3])
  *
- * This countermeasure does not help if the key recovery is possible with a
+ * This countermeasure does not Console_HelpMenu if the key recovery is possible with a
  * single trace.
  */
 #define RSA_EXPONENT_BLINDING 28

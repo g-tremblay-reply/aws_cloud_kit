@@ -26,7 +26,7 @@ const rm_comms_cfg_t g_comms_i2c_device5_cfg = {
 		.semaphore_timeout = 0xFFFFFFFF, .p_lower_level_cfg =
 				(void*) &g_comms_i2c_device5_lower_level_cfg, .p_extend =
 				(void*) &g_comms_i2c_bus0_extended_cfg, .p_callback =
-				ICM_comms_i2c_callback,
+				SensorIcm20948_CommCallback,
 #if defined(NULL)
     .p_context          = NULL,
 #else
@@ -106,10 +106,10 @@ const rm_zmod4xxx_cfg_t g_zmod4xxx_sensor1_cfg = { .p_comms_instance =
     .p_irq_callback = NULL,
 #else
 		.p_irq_instance = &g_external_irq1, .p_irq_callback =
-				Sensor_IaqEndOfMeasurement,
+				SensorIaq_EndOfMeasurement,
 #endif
 #undef RA_NOT_DEFINED
-		.p_comms_callback = Sensor_IaqCommCallback,
+		.p_comms_callback = SensorIaq_CommCallback,
 #if defined(NULL)
     .p_context           = NULL,
 #else
@@ -145,7 +145,7 @@ const rm_comms_instance_t g_comms_i2c_device0 = { .p_ctrl =
 		&g_comms_on_comms_i2c, };
 rm_hs300x_instance_ctrl_t g_hs300x_sensor0_ctrl;
 const rm_hs300x_cfg_t g_hs300x_sensor0_cfg = { .p_instance =
-		&g_comms_i2c_device0, .p_callback = Sensor_Hs3001Callback,
+		&g_comms_i2c_device0, .p_callback = SensorHs3001_Callback,
 #if defined(NULL)
     .p_context           = NULL,
 #else

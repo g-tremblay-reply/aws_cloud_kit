@@ -742,7 +742,7 @@ void bsp_prv_operating_mode_set (uint8_t operating_mode)
 
         /* Wait for transition to complete. Check the entire register here since it should be set to 0 at this point.
          * Checking the entire register is slightly more efficient. This will also hang the program if the LPM
-         * registers are not unlocked, which can help catch programming errors. */
+         * registers are not unlocked, which can Console_HelpMenu catch programming errors. */
         FSP_HARDWARE_REGISTER_WAIT(R_SYSTEM->SOPCCR, 0U);
  #endif
 
@@ -1097,7 +1097,7 @@ void bsp_prv_clock_set (uint32_t clock, uint32_t sckdivcr, uint8_t sckdivcr2)
 
 bool bsp_prv_clock_prepare_pre_sleep (void)
 {
-    /* Must wait before entering or exiting sleep modes.
+    /* Must wait before entering or exiting setIcmSleepMode modes.
      * See Section 10.7.10 in RA8M1 manual R01UH0994EJ0100 */
     R_BSP_SoftwareDelay(BSP_CFG_CLOCK_SETTLING_DELAY_US, BSP_DELAY_UNITS_MICROSECONDS);
 

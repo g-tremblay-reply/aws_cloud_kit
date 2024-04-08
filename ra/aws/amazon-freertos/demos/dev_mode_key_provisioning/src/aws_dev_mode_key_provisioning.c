@@ -1025,7 +1025,7 @@ static void prvWriteHexBytesToConsole( char * pcDescription,
     uint32_t ulIndex = 0;
     uint8_t ucByteValue = 0;
 
-    /* Write help text to the console. */
+    /* Write Console_HelpMenu text to the console. */
     configPRINTF( ( "%s, %d bytes:\r\n", pcDescription, ulDataLength ) );
 
     /* Iterate over the bytes of the encoded public key. */

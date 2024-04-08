@@ -20,9 +20,8 @@
  *
  * Copyright (C) 2023 Renesas Electronics Corporation. All rights reserved.
  ***********************************************************************************************************************/
-
-#include <sensor_iaq.h>
 #include <console.h>
+#include <sensor_iaq.h>
 
 
 typedef enum
@@ -40,7 +39,7 @@ static rm_zmod4xxx_raw_data_t SensorIaqRawData;
 static rm_zmod4xxx_iaq_1st_data_t SensorIaqData;
 static Sensor_IaqState_t SensorIaqMeasurementState = SENSOR_IAQ_START_MEASUREMENT;
 
-void Sensor_IaqInit(void)
+void SensorIaq_Init(void)
 {
     fsp_err_t err;
 
@@ -57,7 +56,7 @@ void Sensor_IaqInit(void)
     }
 }
 
-void Sensor_IaqCommCallback(rm_zmod4xxx_callback_args_t *p_args)
+void SensorIaq_CommCallback(rm_zmod4xxx_callback_args_t *p_args)
 {
     switch(SensorIaqMeasurementState)
     {
@@ -92,7 +91,7 @@ void Sensor_IaqCommCallback(rm_zmod4xxx_callback_args_t *p_args)
     }
 }
 
-void Sensor_IaqEndOfMeasurement(rm_zmod4xxx_callback_args_t *p_args)
+void SensorIaq_EndOfMeasurement(rm_zmod4xxx_callback_args_t *p_args)
 {
     FSP_PARAMETER_NOT_USED(p_args);
 
@@ -103,7 +102,7 @@ void Sensor_IaqEndOfMeasurement(rm_zmod4xxx_callback_args_t *p_args)
     }
 }
 
-void Sensor_IaqMainFunction(void)
+void SensorIaq_MainFunction(void)
 {
     fsp_err_t err;
 
@@ -153,7 +152,7 @@ void Sensor_IaqMainFunction(void)
     }
 }
 
-void Sensor_IaqGetData(rm_zmod4xxx_iaq_1st_data_t *data)
+void SensorIaq_GetData(rm_zmod4xxx_iaq_1st_data_t *data)
 {
     *data = SensorIaqData;
 }

@@ -59,7 +59,7 @@
  * Note: the macros are essential to express test dependencies. Inside code,
  * we could instead just use the equivalent pre-processor condition, but
  * that's not possible in test dependencies where we need a single macro.
- * Hopefully, using these macros in code will also help with consistency.
+ * Hopefully, using these macros in code will also Console_HelpMenu with consistency.
  *
  * The naming scheme for these macros is:
  *      MBEDTLS_HAS_feature_VIA_legacy_OR_PSA(_condition)

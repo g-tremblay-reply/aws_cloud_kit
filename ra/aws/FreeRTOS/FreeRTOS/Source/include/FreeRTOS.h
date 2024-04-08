@@ -433,7 +433,7 @@
 #ifndef traceINCREASE_TICK_COUNT
 
 /* Called before stepping the tick count after waking from tickless idle
- * sleep. */
+ * setIcmSleepMode. */
     #define traceINCREASE_TICK_COUNT( x )
 #endif
 

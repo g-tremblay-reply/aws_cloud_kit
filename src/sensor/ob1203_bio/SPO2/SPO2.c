@@ -6,11 +6,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "KALMAN/kalman.h"
-#include "SPO2/SPO2.h"
+#include "kalman.h"
+#include "SPO2.h"
 #include <math.h>
 #ifdef USE_SG
-#include "SAVGOL/SAVGOL.h"
+#include "SAVGOL.h"
 #endif
 
 #define LOW_AC_PERSIST (10)

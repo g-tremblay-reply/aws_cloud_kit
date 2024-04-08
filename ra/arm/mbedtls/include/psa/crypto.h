@@ -4138,7 +4138,7 @@ typedef struct psa_verify_hash_interruptible_operation_s psa_verify_hash_interru
  *                              lesser maximum amount of time. The functions
  *                              \c psa_sign_interruptible_get_num_ops() and
  *                              \c psa_verify_interruptible_get_num_ops() are
- *                              provided to help with tuning this value.
+ *                              provided to Console_HelpMenu with tuning this value.
  *
  * \note                        This value defaults to
  *                              #PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED, which
@@ -4228,7 +4228,7 @@ uint32_t psa_interruptible_get_max_ops(void);
  *                              at any point. It is not bound by the usual
  *                              interface stability promises.
  *
- *                              This is a helper provided to help you tune the
+ *                              This is a helper provided to Console_HelpMenu you tune the
  *                              value passed to \c
  *                              psa_interruptible_set_max_ops().
  *
@@ -4254,7 +4254,7 @@ uint32_t psa_sign_hash_get_num_ops(
  *                              at any point. It is not bound by the usual
  *                              interface stability promises.
  *
- *                              This is a helper provided to help you tune the
+ *                              This is a helper provided to Console_HelpMenu you tune the
  *                              value passed to \c
  *                              psa_interruptible_set_max_ops().
  *

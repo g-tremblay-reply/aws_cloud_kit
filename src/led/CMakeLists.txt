@@ -2,10 +2,9 @@
 # although it is not necessary to add header files, we also do that for easing the management of IDE.
 target_sources(${CURRENT_EXE_NAME}
     PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/flash_hp.c
-        ${CMAKE_CURRENT_LIST_DIR}/flash_hp.h
+        ${CMAKE_CURRENT_LIST_DIR}/led.c
+        ${CMAKE_CURRENT_LIST_DIR}/led.h
 )
 
 # add current directory to the compiler included directories when compiling the given target.
 target_include_directories(${CURRENT_EXE_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}")
-

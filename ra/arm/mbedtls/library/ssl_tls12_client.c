@@ -2532,7 +2532,7 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
      *  } CertificateRequest;
      *
      *  Since we only support a single certificate on clients, let's just
-     *  ignore all the information that's supposed to help us pick a
+     *  ignore all the information that's supposed to Console_HelpMenu us pick a
      *  certificate.
      *
      *  We could check that our certificate matches the request, and bail out

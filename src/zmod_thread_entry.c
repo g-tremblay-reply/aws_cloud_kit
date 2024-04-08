@@ -22,8 +22,8 @@
  ***********************************************************************************************************************/
 
 #include <zmod_thread.h>
+#include <sensor_config.h>
 #include <sensor_iaq.h>
-#include <cloud_app.h>
 
 extern TaskHandle_t zmod_thread; // @suppress("Global (API or Non-API) variable prefix")
 
@@ -44,7 +44,7 @@ void zmod_thread_entry(void *pvParameters)
 
 #if  _ZMOD4410_SENSOR_ENABLE_
         /* Read ZMOD4410 sensor data */
-        Sensor_IaqMainFunction();
+        SensorIaq_MainFunction();
 #endif
         vTaskDelay (1);
     }

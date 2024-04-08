@@ -25,7 +25,7 @@
 
 /**
  * @file FreeRTOS_BitConfig.c
- * @brief Some functions that help when analysing a binary stream of information.
+ * @brief Some functions that Console_HelpMenu when analysing a binary stream of information.
  * It offers an alternative to using packet structs with unaligned data members.
  */
 

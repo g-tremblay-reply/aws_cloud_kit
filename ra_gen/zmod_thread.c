@@ -67,10 +67,10 @@ const rm_zmod4xxx_cfg_t g_zmod4xxx_sensor0_cfg = { .p_comms_instance =
     .p_irq_callback = NULL,
 #else
 		.p_irq_instance = &g_external_irq0, .p_irq_callback =
-				Sensor_OaqEndOfMeasurement,
+				SensorOaq_EndOfMeasurement,
 #endif
 #undef RA_NOT_DEFINED
-		.p_comms_callback = Sensor_OaqCommCallback,
+		.p_comms_callback = SensorOaq_CommCallback,
 #if defined(NULL)
     .p_context           = NULL,
 #else

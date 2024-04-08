@@ -13,6 +13,7 @@ target_sources(${CURRENT_EXE_NAME}
         ${CMAKE_CURRENT_LIST_DIR}/cloud_prov_serializer.c
         ${CMAKE_CURRENT_LIST_DIR}/cloud_prov_pkcs11.h
         ${CMAKE_CURRENT_LIST_DIR}/cloud_prov_pkcs11.c
+        ${CMAKE_CURRENT_LIST_DIR}/cloud_prov_network.c
 )
 
 include(${CMAKE_CURRENT_LIST_DIR}/tinycbor/CMakeLists.txt)

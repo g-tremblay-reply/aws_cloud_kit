@@ -1,5 +1,5 @@
 /*
- * AWS IoT Device SDK for Embedded C 202103.00
+ * AWS IoT Device SDK for Embedded C 202211.00
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -30,7 +30,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "mqtt_demo_helpers.h"
 
 /* Include header for the subscription manager. */
 #include "mqtt_subscription_manager.h"
@@ -52,7 +51,7 @@ typedef struct SubscriptionManagerRecord
  * subscription manager.
  */
 #ifndef MAX_SUBSCRIPTION_CALLBACK_RECORDS
-    #define MAX_SUBSCRIPTION_CALLBACK_RECORDS    5
+#define MAX_SUBSCRIPTION_CALLBACK_RECORDS    9u
 #endif
 
 /**
@@ -67,13 +66,9 @@ void SubscriptionManager_DispatchHandler( MQTTContext_t * pContext,
 {
     bool matchStatus = false;
     size_t listIndex = 0u;
-    char logstr[64] = {'\0'};
 
     assert( pPublishInfo != NULL );
     assert( pContext != NULL );
-
-    /* Process incoming Publish. */
-    IotLogInfo( "Incoming QoS : %d\n", pPublishInfo->qos );
 
     /* Iterate through record list to find matching topics, and invoke their callbacks. */
     for( listIndex = 0; listIndex < MAX_SUBSCRIPTION_CALLBACK_RECORDS; listIndex++ )
@@ -86,11 +81,12 @@ void SubscriptionManager_DispatchHandler( MQTTContext_t * pContext,
                                &matchStatus ) == MQTTSuccess ) &&
             ( matchStatus == true ) )
         {
-            IotLogInfo("Invoking subscription callback of matching topic filter: \r\n");
-            strncpy(logstr, callbackRecordList[ listIndex ].pTopicFilter, callbackRecordList[ listIndex ].topicFilterLength);
-            IotLogInfo("TopicFilter=%s\r\n", logstr);
-            strncpy(logstr, pPublishInfo->pTopicName, pPublishInfo->topicNameLength);
-            IotLogInfo("TopicName=%s\r\n", logstr);
+            LogInfo( ( "Invoking subscription callback of matching topic filter: "
+                       "TopicFilter=%.*s, TopicName=%.*s",
+                    callbackRecordList[ listIndex ].topicFilterLength,
+                    callbackRecordList[ listIndex ].pTopicFilter,
+                    pPublishInfo->topicNameLength,
+                    pPublishInfo->pTopicName ) );
 
             /* Invoke the callback associated with the record as the topics match. */
             callbackRecordList[ listIndex ].callback( pContext, pPublishInfo );
@@ -125,8 +121,8 @@ SubscriptionManagerStatus_t SubscriptionManager_RegisterCallback( const char * p
             availableIndex = index;
         }
 
-        /* Check if the current record's topic filter in the registry matches the topic filter
-         * we are trying to register. */
+            /* Check if the current record's topic filter in the registry matches the topic filter
+             * we are trying to register. */
         else if( ( callbackRecordList[ index ].topicFilterLength == topicFilterLength ) &&
                  ( strncmp( pTopicFilter, callbackRecordList[ index ].pTopicFilter, topicFilterLength )
                    == 0 ) )
@@ -140,19 +136,19 @@ SubscriptionManagerStatus_t SubscriptionManager_RegisterCallback( const char * p
     if( recordExists == true )
     {
         /* The record for the topic filter already exists. */
-        IotLogError("Failed to register callback: Record for topic filter already exists: TopicFilter=%.*s",
-                  topicFilterLength,
-                  pTopicFilter);
+        LogError( ( "Failed to register callback: Record for topic filter already exists: TopicFilter=%.*s",
+                topicFilterLength,
+                pTopicFilter ) );
 
         returnStatus = SUBSCRIPTION_MANAGER_RECORD_EXISTS;
     }
     else if( availableIndex == MAX_SUBSCRIPTION_CALLBACK_RECORDS )
     {
         /* The registry is full. */
-        IotLogError("Unable to register callback: Registry list is full: TopicFilter=%.*s, MaxRegistrySize=%u",
-                  topicFilterLength,
-                  pTopicFilter,
-                  MAX_SUBSCRIPTION_CALLBACK_RECORDS);
+        LogError( ( "Unable to register callback: Registry list is full: TopicFilter=%.*s, MaxRegistrySize=%u",
+                topicFilterLength,
+                pTopicFilter,
+                MAX_SUBSCRIPTION_CALLBACK_RECORDS ) );
 
         returnStatus = SUBSCRIPTION_MANAGER_REGISTRY_FULL;
     }
@@ -164,15 +160,16 @@ SubscriptionManagerStatus_t SubscriptionManager_RegisterCallback( const char * p
 
         returnStatus = SUBSCRIPTION_MANAGER_SUCCESS;
 
-        IotLogDebug("Added callback to registry: TopicFilter=%.*s",
-                  topicFilterLength,
-                  pTopicFilter);
+        LogDebug( ( "Added callback to registry: TopicFilter=%.*s",
+                topicFilterLength,
+                pTopicFilter ) );
     }
 
     return returnStatus;
 }
 
 /*-----------------------------------------------------------*/
+
 void SubscriptionManager_RemoveCallback( const char * pTopicFilter,
                                          uint16_t topicFilterLength )
 {
@@ -205,15 +202,15 @@ void SubscriptionManager_RemoveCallback( const char * pTopicFilter,
         pRecord->topicFilterLength = 0u;
         pRecord->callback = NULL;
 
-        IotLogDebug("Deleted callback record for topic filter: TopicFilter=%.*s",
-                  topicFilterLength,
-                  pTopicFilter);
+        LogDebug( ( "Deleted callback record for topic filter: TopicFilter=%.*s",
+                topicFilterLength,
+                pTopicFilter ) );
     }
     else
     {
-        IotLogWarn("Attempted to remove callback for un-registered topic filter: TopicFilter=%.*s",
-                 topicFilterLength,
-                 pTopicFilter);
+        LogWarn( ( "Attempted to remove callback for un-registered topic filter: TopicFilter=%.*s",
+                topicFilterLength,
+                pTopicFilter ) );
     }
 }
 /*-----------------------------------------------------------*/

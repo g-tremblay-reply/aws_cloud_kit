@@ -23,8 +23,9 @@
 
 #include "ob1203_bio.h"
 #include "hal_data.h"
-#include <console.h>
 #include "oximeter_thread.h"
+#include <console.h>
+
 
 #define OB1203_BIO_TIMEOUT (10000) // 10s
 #define OB1203_BIO_MAX_COUNTS (10)

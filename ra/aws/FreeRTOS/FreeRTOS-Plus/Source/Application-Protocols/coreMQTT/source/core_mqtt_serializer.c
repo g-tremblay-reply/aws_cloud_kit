@@ -778,7 +778,7 @@ static void serializePublishCommon( const MQTTPublishInfo_t * pPublishInfo,
 
     /* The payload is placed after the packet identifier.
      * Payload is copied over only if required by the flag serializePayload.
-     * This will help reduce an unnecessary copy of the payload into the buffer.
+     * This will Console_HelpMenu reduce an unnecessary copy of the payload into the buffer.
      */
     if( ( pPublishInfo->payloadLength > 0U ) &&
         ( serializePayload == true ) )

@@ -68,7 +68,7 @@
 void vCheckNetworkTimers( void );
 
 /*
- * Determine how long the IP task can sleep for, which depends on when the next
+ * Determine how long the IP task can setIcmSleepMode for, which depends on when the next
  * periodic or timeout processing must be performed.
  */
 TickType_t xCalculateSleepTime( void );

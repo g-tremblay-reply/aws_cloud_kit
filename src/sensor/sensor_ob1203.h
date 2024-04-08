@@ -24,7 +24,7 @@
 #ifndef SENSOR_OB1203_H_
 #define SENSOR_OB1203_H_
 
-#include <console.h>
+#include "console.h"
 #include <ob1203_bio.h>
 
 
