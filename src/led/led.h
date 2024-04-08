@@ -24,7 +24,32 @@
 
 #include "hal_data.h"
 
-extern bsp_leds_t g_bsp_leds;
+/* Macro for Push Button Switches */
+#define PBS1                     (1)
+#define PBS2                     (2)
+#define PB_PRESSED               (1)
+
+#define MSG_SIZE                 (32)
+#define LED_MSG_SIZE             (64)
+#define QUEUE_WAIT               (200)
+#define PROCESS_LOOP_TIMEOUT     (100)
+
+/* Actual LED  message obtained as part of the subscribed message. */
+typedef struct led_data
+{
+    char led_act_topic_msg[LED_MSG_SIZE];
+} led_data_t;
+
+
+/* Data structure for the message queue data id identifies the message ID.
+ * led_data_t is struct of led's action message.
+ */
+typedef struct mq_rx_payload
+{
+    uint8_t id;
+    led_data_t led_data;
+} mqtt_rx_payload_t;
+
 
 /* LED Number to identify the LED as per BSP support for EK-RA6M3/G Board */
 typedef enum e_led_type
@@ -42,6 +67,9 @@ typedef enum e_led_state
 {
     LED_OFF = 0, LED_ON = 1,
 } e_led_state_t;
+
+extern bsp_leds_t g_bsp_leds;
+
 
 /* Function prototype */
 fsp_err_t usr_hal_init(void);
