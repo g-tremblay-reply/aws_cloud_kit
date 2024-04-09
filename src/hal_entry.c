@@ -33,7 +33,6 @@ FSP_CPP_FOOTER
  **********************************************************************************************************************/
 void hal_entry(void)
 {
-    /* TODO: add your own code here */
 
 #if BSP_TZ_SECURE_BUILD
     /* Enter non-secure code */

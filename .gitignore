@@ -1,7 +1,9 @@
 # Build files
 Debug/
 cmake-*/
-
+ra/
+ra_cfg/
+ra_gen/
 
 # CMake
 CMakeLists.txt.user

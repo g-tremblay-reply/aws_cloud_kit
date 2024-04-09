@@ -499,7 +499,7 @@ static MQTTStatus_t CloudProv_ConnectMQTT(MQTTContext_t * mqttContext, MQTTEvent
         connectInfo.passwordLength = ( uint16_t ) strlen( CLOUD_PROV_CLIENT_PASSWORD );
 #else
         /* If no username is needed, only send the metrics string */
-        connectInfo.pUserName = NULL; // TODO reset to AWS_IOT_METRICS_STRING once MQTT_Conenct debugged
+        connectInfo.pUserName = NULL;
         connectInfo.userNameLength =  0u; // ( uint16_t ) strlen( AWS_IOT_METRICS_STRING );
         /* Password for authentication is not used. */
         connectInfo.pPassword = NULL;
@@ -533,7 +533,6 @@ static MQTTStatus_t CloudProv_ManageFleetProvTopics(MQTTContext_t *mqttContext, 
     uint16_t packetId;
 
     /* Populate subscription list with hardcoded topic info */
-    //TODO check if AWS responds as expected to multiple subscribes in one MQTT_Subscribe call
     subscriptionList[0u].pTopicFilter = FP_CBOR_CREATE_CERT_ACCEPTED_TOPIC;
     subscriptionList[0u].topicFilterLength = FP_CBOR_CREATE_CERT_ACCEPTED_LENGTH;
     subscriptionList[1u].pTopicFilter = FP_CBOR_CREATE_CERT_REJECTED_TOPIC;
@@ -928,9 +927,9 @@ MQTTStatus_t CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t app
         APP_PRINT("\r\nDNS Lookup for \"%s\" is      : %s  \r\n", CloudProvMqttEndpoint, cBuffer);
 
         /* Try to connect to MQTT with MQTT Broker endpoint + Device credentials if they exist */
-/*
-        mqttStatus = CloudProv_ConnectMQTT(mqttContext, appMqttCallback); TODO reenable after testing deviceName in provisioning
-*/
+
+        mqttStatus = CloudProv_ConnectMQTT(mqttContext, appMqttCallback);
+
     }
 
     return mqttStatus;

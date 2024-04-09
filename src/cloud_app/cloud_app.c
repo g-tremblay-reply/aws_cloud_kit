@@ -363,7 +363,7 @@ void CloudApp_MqttCallback( MQTTContext_t * pMqttContext,
                 xResult = MQTT_GetSubAckStatusCodes( pPacketInfo, &pucPayload, &xSize );
 
                 /* Only a single topic filter is expected for each SUBSCRIBE packet. */
-                //configASSERT( xSize == 1UL ); TODO figure out why it specifies only one topic. Maybe topic count ?
+                //configASSERT( xSize == 1UL ); TODO figure out what this byte is. Maybe topic count in sub request?
                 uint8_t subackSts;
                 subackSts = *pucPayload;
 
