@@ -69,7 +69,7 @@ void cloud_app_thread_entry(void *pvParameters)
         while(1)
         {
             APP_WARN_PRINT("MQTT Broker endpoint is not reachable"
-                           "\r\nPlease reset Cloud Kit [ORANGE]while spamming SPACE BAR[YELLOW] "
+                           "\r\nPlease reset Cloud Kit [ORANGE]while spamming BACKSPACE KEY[YELLOW] "
                            "to open MENU and try new MQTT Broker endpoint\r\n\r\n");
             vTaskDelay(10000);
         }
@@ -84,7 +84,7 @@ void cloud_app_thread_entry(void *pvParameters)
             /* MQTT endpoint is unreachable, thus don't try further to provision device */
 
             APP_WARN_PRINT("CloudApp could not authenticate with given credentials."
-                           "\r\nPlease reset Cloud Kit [ORANGE]while spamming SPACE BAR[YELLOW] "
+                           "\r\nPlease reset Cloud Kit [ORANGE]while spamming BACKSPACE KEY[YELLOW] "
                            "to open MENU and try new credentials\r\n\r\n");
         }
     }

@@ -200,7 +200,7 @@ extern void vLoggingPrintf( const char * pcFormatString,
         "rqXRfboQnoZsG4q5WTP468SQvvG5\n" \
 	    "-----END CERTIFICATE-----"
 
-#define CLOUD_PROV_DEV_CLAIM_CERT_PEM 	    "-----BEGIN CERTIFICATE-----\n" \
+#define CLOUD_PROV_DEFAULT_CLAIM_CERT_PEM 	    "-----BEGIN CERTIFICATE-----\n" \
         "MIIDWTCCAkGgAwIBAgIURhZFiuVl2hZznpv3kjrngTKBOv4wDQYJKoZIhvcNAQEL\n" \
         "BQAwTTFLMEkGA1UECwxCQW1hem9uIFdlYiBTZXJ2aWNlcyBPPUFtYXpvbi5jb20g\n" \
         "SW5jLiBMPVNlYXR0bGUgU1Q9V2FzaGluZ3RvbiBDPVVTMB4XDTI0MDMyMDAxMTI1\n" \
@@ -221,7 +221,7 @@ extern void vLoggingPrintf( const char * pcFormatString,
         "tYZLSLqJShSahFcvtYZvTjikCGfED9/D7uVFGdNEJ9gBl8qDK/J5oQC288Eo\n" \
         "-----END CERTIFICATE-----"
 
-#define CLOUD_PROV_DEV_CLAIM_KEY_PEM 	 "-----BEGIN RSA PRIVATE KEY-----\n" \
+#define CLOUD_PROV_DEFAULT_CLAIM_PRIVATE_KEY_PEM 	 "-----BEGIN RSA PRIVATE KEY-----\n" \
         "MIIEogIBAAKCAQEA1qnEKIM18KlT7Knu3EuB8fSlTTflwJWvogizOQ1Y79/8nc3I\n" \
         "nTQ13aatkyUgxgKR5rWJwK9aIFbe1ZsFOF2y/1fVYv7lc7avtVIkO6thaU36P1ON\n" \
         "xW0MvUxo1WbE7Eb52ARtau9iLkfaiOf3NXUv1/5k6JyQ4//cqBwFq1HpuVKTplTh\n" \

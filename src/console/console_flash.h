@@ -50,7 +50,6 @@ typedef enum
 }ConsoleCredential_t;
 
 #define CONSOLE_FLASH_CREDENTIALS_COUNT (5)
-
 #define FLASH_HP_DF_BLOCK_SIZE            (64)
 
 /* Data Flash */
@@ -82,12 +81,17 @@ typedef enum
 //
 #define BUFFER_SIZE                       (2048)
 
+extern bool ConsoleMqttEndpointStored;
+extern bool ConsoleClaimCertificateStored;
+extern bool ConsoleClaimPrivateKeyStored;
+
 
 /*flash_hp operating functions */
 fsp_err_t Console_StoreAwsCredential(ConsoleCredential_t credentialType, const char *credentialBuffer, uint32_t credentialLength);
 void Console_FlashDeinit(void);
 void Console_FlashSizesInfo(uint32_t *physicalSize, uint32_t *allocatedSize, uint32_t *freeSize);
-bool Console_LoadCredentialsFromFlash (void);
-void Consol_CheckStoredCredentials (void);
+void Console_ResetClaimCredentials(void);
+void Console_LoadCredentialsFromFlash (void);
+void Console_CheckStoredCredentials (void);
 
 #endif /* CONSOLE_FLASH_H */

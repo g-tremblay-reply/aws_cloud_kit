@@ -27,11 +27,16 @@ static fsp_err_t Console_WaitBlankCheck(void);
 static fsp_err_t Console_WriteToFlash(ConsoleCredentialMem_t *memMapItem, uint8_t *credentialBuffer);
 
 
+bool ConsoleMqttEndpointStored = false;
+bool ConsoleClaimCertificateStored = false;
+bool ConsoleClaimPrivateKeyStored = false;
+
 static ConsoleCredentialMem_t ConsoleDataFlashInfo[5];
-static bool is_b_flash_event_not_blank = false;
-static bool is_b_flash_event_blank = false;
-static bool is_b_flash_event_erase_complete = false;
-static bool is_b_flash_event_write_complete = false;
+static bool ConsoleFashEventNotBlank = false;
+static bool ConsoleFlashEventBlank = false;
+static bool ConsoleFlashEventEraseComplete = false;
+static bool ConsoleFlashEventWriteComplete = false;
+
 
 /*******************************************************************************************************************//**
  * @brief This function is called to set the blank check event flags
@@ -43,19 +48,19 @@ static fsp_err_t Console_WaitBlankCheck(void)
 {
     fsp_err_t err = FSP_SUCCESS;
     /* Wait for callback function to set flag */
-    while (!(is_b_flash_event_not_blank || is_b_flash_event_blank));
-    if (is_b_flash_event_not_blank)
+    while (!(ConsoleFashEventNotBlank || ConsoleFlashEventBlank));
+    if (ConsoleFashEventNotBlank)
     {
         APP_ERR_PRINT("\n\rFlash is not blank, not to write the data. Restart the application\n");
         /* Reset Flag */
-        is_b_flash_event_not_blank = false;
+        ConsoleFashEventNotBlank = false;
         return (fsp_err_t) FLASH_EVENT_NOT_BLANK;
     }
     else
     {
         APP_PRINT("\r\nFlash is blank\n");
         /* Reset Flag */
-        is_b_flash_event_blank = false;
+        ConsoleFlashEventBlank = false;
     }
     return err;
 }
@@ -84,8 +89,8 @@ static fsp_err_t Console_WriteToFlash(ConsoleCredentialMem_t *memMapItem, uint8_
     if (true == user_flash_cfg.data_flash_bgo)
     {
         APP_DBG_PRINT("\r\nBGO has enabled, Data Flash erase is in progress\r\n");
-        while (!is_b_flash_event_erase_complete);
-        is_b_flash_event_erase_complete = false;
+        while (!ConsoleFlashEventEraseComplete);
+        ConsoleFlashEventEraseComplete = false;
     }
 
     /* Data flash blank check */
@@ -130,21 +135,20 @@ static fsp_err_t Console_WriteToFlash(ConsoleCredentialMem_t *memMapItem, uint8_
     /* Wait for the write complete event flag, if BGO is SET  */
     if (true == user_flash_cfg.data_flash_bgo)
     {
-        while (!is_b_flash_event_write_complete);
-        is_b_flash_event_write_complete = false;
+        while (!ConsoleFlashEventWriteComplete);
+        ConsoleFlashEventWriteComplete = false;
     }
 
     return err;
 }
 
 
-bool Console_LoadCredentialsFromFlash(void)
+void Console_LoadCredentialsFromFlash(void)
 {
-    bool mqttEndpointStored = false;
     /* Load Data flash info from flash to RAM */
     memcpy (ConsoleDataFlashInfo, (ConsoleCredentialMem_t*) FLASH_HP_DF_DATA_INFO, sizeof(ConsoleDataFlashInfo));
 
-    /* Init SAVED status to 0 if not credential not saved */
+    /* Init SAVED status to 0 if credential not saved */
     for(uint8_t credential=0u; credential < CONSOLE_FLASH_CREDENTIALS_COUNT; credential++)
     {
         if (0 != strncmp ((char *)ConsoleDataFlashInfo[credential].stored_in_flash, (char *)CONSOLE_FLASH_SAVE, CONSOLE_FLASH_LENGTH_SAVE))
@@ -153,19 +157,51 @@ bool Console_LoadCredentialsFromFlash(void)
         }
     }
 
-    /* Check if mqtt endpoint already saved */
+    /* Check if mqtt endpoint already saved, in which case import it to CloudProv module */
     if(0 == strncmp ((char *)ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].stored_in_flash, (char *)CONSOLE_FLASH_SAVE, CONSOLE_FLASH_LENGTH_SAVE))
     {
-        mqttEndpointStored = true;
+        ConsoleMqttEndpointStored = true;
         /* Import endpoint to CloudProv module, allowing it to use this stored endpoint
          * stored in flash instead of default endpoint when connecting to MQTT broker */
         CloudProv_ImportMqttEndpoint((uint8_t *)ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].addr,
                                      ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].length);
-        APP_WARN_PRINT("\r\n\r\nMQTT Broker Endpoint is present in flash memory. Using it instead of default one.[WHITE]\r\n\r\n");
-
+    }
+    else
+    {
+        memset (ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].stored_in_flash, 0u, CONSOLE_FLASH_LENGTH_SAVE);
     }
 
-    /* Init hardcoded addresses, sizes and block num values */
+    /* Check if claim certificate already saved, in which case import it to CloudProv module */
+    if(0 == strncmp ((char *)ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].stored_in_flash, (char *)CONSOLE_FLASH_SAVE, CONSOLE_FLASH_LENGTH_SAVE))
+    {
+        ConsoleClaimCertificateStored = true;
+        /* Import claim certificate to CloudProv module, allowing it to use this claim certificate when
+         * trying to provision the device in fleet provisioning workflow */
+        CloudProv_ImportClaimCertificate((uint8_t *) ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].addr,
+                                         ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].length,
+                                         false);
+    }
+    else
+    {
+        memset (ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].stored_in_flash, 0u, CONSOLE_FLASH_LENGTH_SAVE);
+    }
+
+    /* Check if claim private key already saved, in which case import it to CloudProv module */
+    if(0 == strncmp ((char *)ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].stored_in_flash, (char *)CONSOLE_FLASH_SAVE, CONSOLE_FLASH_LENGTH_SAVE))
+    {
+        ConsoleClaimPrivateKeyStored = true;
+        /* Import claim private key to CloudProv module, allowing it to use this claim certificate when
+         * trying to provision the device in fleet provisioning workflow */
+        CloudProv_ImportClaimPrivateKey((uint8_t *) ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].addr,
+                                        ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].length,
+                                        false);
+    }
+    else
+    {
+        memset (ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].stored_in_flash, 0u, CONSOLE_FLASH_LENGTH_SAVE);
+    }
+
+    /* Init hardcoded flash addresses, sizes and block num values into RAM struct */
     ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].num_bytes = BLOCK_SIZE_CERT;
     ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].num_block = BLOCK_NUM_CERT;
     ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].addr = FLASH_HP_DF_BLOCK_CERTIFICATE;
@@ -186,7 +222,6 @@ bool Console_LoadCredentialsFromFlash(void)
     ConsoleDataFlashInfo[CONSOLE_FLASH_DATA_INFO].num_block = BLOCK_NUM_DATA_INFO;
     ConsoleDataFlashInfo[CONSOLE_FLASH_DATA_INFO].addr = FLASH_HP_DF_DATA_INFO;
 
-    return mqttEndpointStored;
 }
 
 
@@ -217,7 +252,26 @@ void Console_FlashSizesInfo(uint32_t *physicalSize, uint32_t *allocatedSize, uin
     *freeSize = freeMem;
 }
 
-void Consol_CheckStoredCredentials(void)
+void Console_ResetClaimCredentials(void)
+{
+    fsp_err_t err = FSP_SUCCESS;
+
+    memset (ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].stored_in_flash, 0, CONSOLE_FLASH_LENGTH_SAVE);
+    memset (ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].stored_in_flash, 0, CONSOLE_FLASH_LENGTH_SAVE);
+    err = Console_WriteToFlash(&ConsoleDataFlashInfo[CONSOLE_FLASH_DATA_INFO],
+                               (uint8_t *)ConsoleDataFlashInfo);
+
+    if (err == FSP_SUCCESS)
+    {
+        Console_ColorPrintf("\r\n[GREEN]Data flash info successfully writen to flash.[WHITE]\r\n");
+    }
+    else
+    {
+        Console_ColorPrintf("\r\n[RED]Data flash info write to flash failed.[WHITE]\r\n");
+    }
+}
+
+void Console_CheckStoredCredentials(void)
 {
     char read_buffer[2048]= {0};
 
@@ -347,19 +401,19 @@ void Console_FlashCallback(flash_callback_args_t *p_args)
 {
     if (FLASH_EVENT_NOT_BLANK == p_args->event)
     {
-        is_b_flash_event_not_blank = true;
+        ConsoleFashEventNotBlank = true;
     }
     else if (FLASH_EVENT_BLANK == p_args->event)
     {
-        is_b_flash_event_blank = true;
+        ConsoleFlashEventBlank = true;
     }
     else if (FLASH_EVENT_ERASE_COMPLETE == p_args->event)
     {
-        is_b_flash_event_erase_complete = true;
+        ConsoleFlashEventEraseComplete = true;
     }
     else if (FLASH_EVENT_WRITE_COMPLETE == p_args->event)
     {
-        is_b_flash_event_write_complete = true;
+        ConsoleFlashEventWriteComplete = true;
     }
     else
     {
@@ -379,7 +433,7 @@ fsp_err_t Console_StoreAwsCredential(ConsoleCredential_t credentialType, const c
     if (err == FSP_SUCCESS)
     {
         Console_ColorPrintf("\r\n[GREEN]Credential successfully writen to flash.\r\n"
-                                   "    >[ORANGE]%s[WHITE]\r\n", credentialBuffer);
+                                   "    >[WHITE]%s\r\n", credentialBuffer);
         /* Store flash data info in flash memory. This basically serves the purpose of knowing at application
          * startup if data was saved previously in flash or not, with standard string labels */
         strcpy((char *)ConsoleDataFlashInfo[credentialType].stored_in_flash, (char *)CONSOLE_FLASH_SAVE);
@@ -400,6 +454,24 @@ fsp_err_t Console_StoreAwsCredential(ConsoleCredential_t credentialType, const c
         {
             CloudProv_ImportMqttEndpoint((uint8_t *)ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].addr,
                                          ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].length);
+        }
+        else if(credentialType == CONSOLE_CERTIFICATE)
+        {
+            CloudProv_ImportClaimCertificate((uint8_t *) ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].addr,
+                                             ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].length,
+                                             true);
+            Console_ColorPrintf("\r\n[YELLOW][IMPORTANT]To force Device Provisioning with this new "
+                                "Claim Certificate, DO NOT reset the Cloud Kit. Instead, leave this menu, "
+                                "enter other credentials if needed and start application [WHITE]\r\n");
+        }
+        else if(credentialType == CONSOLE_PRIVATE_KEY)
+        {
+            CloudProv_ImportClaimPrivateKey((uint8_t *) ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].addr,
+                                            ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].length,
+                                            true);
+            Console_ColorPrintf("\r\n[YELLOW][IMPORTANT] To force Device Provisioning with this new "
+                                "RSA Claim Private Key, DO NOT reset the Cloud Kit. Instead, leave this menu, "
+                                "enter other credentials if needed and start application [WHITE]\r\n");
         }
     }
     else

@@ -35,13 +35,14 @@
                         "\r\nRefer to Application Note for more details on Application Project and              " \
                         "\r\nFSP User's Manual for more information about "MODULE_NAME"                    "\
                         "\r\n********************************************************************************[WHITE]\r\n"
-#define CONSOLE_MENU_RETURN         "\r\n\r\n> Press space bar to return to MENU\r\n"
+#define CONSOLE_MENU_RETURN         "\r\n\r\n> Press BACKSPACE key to return to MENU\r\n"
 #define CONSOLE_SUB_OPTIONS         "\r\n> Select from the options in the menu below:\r\n"
 #define CONSOLE_FLASH_CHECK_CREDENTIALS        "\r\nCHECK CREDENTIALS STORED IN DATA FLASH\r\n"
-#define CONSOLE_END_OF_AWS_PRIVATE_KEY         "-----END RSA PRIVATE KEY-----"
-#define CONSOLE_END_OF_AWS_CERTIFICATE         "-----END CERTIFICATE-----"
+#define CONSOLE_END_OF_RSA_PRIVATE_KEY_SUBSTR         "-----END RSA PRIVATE KEY-----"
+#define CONSOLE_END_OF_CERTIFICATE_SUBSTR         "-----END CERTIFICATE-----"
 #define CONSOLE_CONNECTION_ABORT    (0x00)
-#define CONSOLE_MENU_EXIT_KEY       (0x20)
+#define CONSOLE_MENU_BACKSPACE_KEY  (0x08)
+#define CONSOLE_MENU_EXIT_KEY       CONSOLE_MENU_BACKSPACE_KEY
 #define CONSOLE_ENTER_KEY           '\r'
 #define CONSOLE_CLEAR_SCREEN        "\x1b[2J"
 #define CONSOLE_CURSOR_HOME         "\x1b[H"
@@ -60,6 +61,7 @@ typedef struct
 
 static char Console_WaitForKeypress(void);
 static void Console_HelpMenu (int8_t selectedMenu);
+static void Console_DefaultClaimCredMenu (int8_t selectedMenu);
 static void Console_StartAppMenu(int8_t selectedMenu);
 static void Console_FlashInfoMenu(int8_t selectedMenu);
 static void Console_FlashWriteCertMenu(int8_t selectedMenu);
@@ -67,10 +69,11 @@ static void Console_FlashWriteKeyMeu (int8_t selectedMenu);
 static void Console_FlashWriteIotNameMenu(int8_t selectedMenu);
 static void Console_FlashWriteEndPointMenu(int8_t selectedMenu);
 static void Console_FlashCheckCredentialsMenu(int8_t selectedMenu);
-static char Console_ParseInputForPattern(const char *pattern);
+static char Console_ParseUserCredentials(ConsoleCredential_t credential);
 
 
 extern TaskHandle_t cloud_app_thread; // @suppress("Global (API or Non-API) variable prefix")
+
 static uint8_t  ConsoleInputBuffer[TRANSFER_LENGTH] = {0};
 static bool ConsoleTransmitDone = false;
 static bool ConsoleUserInputReceived  = false;
@@ -80,19 +83,18 @@ static uint8_t ConsoleReadCredential = false;
 static uint16_t ConsoleCredentialIndex = 0;
 static fsp_pack_version_t ConsoleFSPversion = {0u};
 static bsp_unique_id_t const *ConsoleDeviceUUID;
-static bool ConsoleMqttEndpointStored = false;
-
 
 /* Table of main menu functions */
 static ConsoleMenu_t ConsoleMainMenus[] =
         {
                 {"Start Application"             , Console_StartAppMenu},
                 {"Write MQTT Broker end point"   , Console_FlashWriteEndPointMenu},
-                {"Write RSA Certificate"             , Console_FlashWriteCertMenu},
-                {"Write Private Key"             , Console_FlashWriteKeyMeu},
+                {"Write Claim Certificate"             , Console_FlashWriteCertMenu},
+                {"Write RSA Claim Private Key"             , Console_FlashWriteKeyMeu},
                 {"Write IOT Thing name"          , Console_FlashWriteIotNameMenu},
                 {"Check stored credentials"      ,Console_FlashCheckCredentialsMenu },
                 {"Data Flash Info"               , Console_FlashInfoMenu},
+                {"Use default Claim Credentials" , Console_DefaultClaimCredMenu},
                 {"Help"                          , Console_HelpMenu},
                 {"", NULL }
         };
@@ -245,6 +247,22 @@ static void Console_StartAppMenu(int8_t selectedMenu)
     }
 }
 
+static void Console_DefaultClaimCredMenu(int8_t selectedMenu)
+{
+    int8_t key_pressed = -1;
+
+    Console_ResetClaimCredentials();
+    Console_ColorPrintf("[GREEN]\r\nClaim Credentials erased from flash. Default ones will be used.\r\n"
+                        "\r\n[YELLOW]Please Restart CloudKit...\r\n");
+    while ((CONSOLE_MENU_EXIT_KEY != key_pressed) && (CONSOLE_CONNECTION_ABORT != key_pressed))
+    {
+        /* Cant recover from that without rereading flash data, thus for simpler setup,
+         * ask user to restart app */
+        vTaskDelay (5000);
+    }
+}
+
+
 static void Console_HelpMenu (int8_t selectedMenu)
 {
     int8_t key_pressed = -1;
@@ -253,15 +271,15 @@ static void Console_HelpMenu (int8_t selectedMenu)
     Console_ColorPrintf("\r\nHELP\r\n\r\n"
                         "  Type 1 to start Cloud Application\r\n"
                         "  Type 2 to save MQTT broker end point in flash memory\r\n"
-                        "  Type 3 to save AWS's RSA claim certificate in flash memory\r\n"
-                        "  Type 4 to save AWS private key in flash memory\r\n"
+                        "  Type 3 to save AWS's claim certificate in flash memory\r\n"
+                        "  Type 4 to save AWS's RSA claim private key in flash memory\r\n"
                         "  Type 5 to save IOT thing name in flash memory\r\n"
                         "  Type 6 to check if credentials saved and their validity (format, length, etc.)\r\n"
                         "  Type 7 to get information about flash memory usage of this Renesas Cloud Kit\r\n"
                             CONSOLE_MENU_RETURN);
     while ((CONSOLE_MENU_EXIT_KEY != key_pressed) && (CONSOLE_CONNECTION_ABORT != key_pressed))
     {
-        /* Wait for space key to be pressed to return to main menu */
+        /* Wait for exit key to be pressed to return to main menu */
         key_pressed = Console_WaitForKeypress();
     }
 }
@@ -279,7 +297,7 @@ static void Console_FlashInfoMenu(int8_t selectedMenu)
                         totalMem, allocatedMem, freeMem);
     while ((CONSOLE_MENU_EXIT_KEY != key_pressed) && (CONSOLE_CONNECTION_ABORT != key_pressed))
     {
-        /* Wait for space key to be pressed to return to main menu */
+        /* Wait for exit key to be pressed to return to main menu */
         key_pressed = Console_WaitForKeypress();
     }
 }
@@ -288,10 +306,10 @@ static void Console_FlashWriteCertMenu(int8_t selectedMenu)
 {
     int8_t key_pressed = -1;
     char lastParsedChar;
-    Console_ColorPrintf((void *) "\r\n %d) DATA FLASH WRITE RSA CLAIM CERTIFICATE\r\n"
+    Console_ColorPrintf((void *) "\r\n %d) DATA FLASH WRITE CLAIM CERTIFICATE\r\n"
                                  "\r\n[ORANGE]Paste claim certificate "
-                                 "[WHITE](or press space bar to return to menu)\r\n", selectedMenu);
-    lastParsedChar = Console_ParseInputForPattern(CONSOLE_END_OF_AWS_CERTIFICATE);
+                                 "[WHITE](or press BACKSPACE key to return to menu)\r\n", selectedMenu);
+    lastParsedChar = Console_ParseUserCredentials(CONSOLE_PRIVATE_KEY);
     if(lastParsedChar != CONSOLE_MENU_EXIT_KEY)
     {
         Console_StoreAwsCredential(CONSOLE_CERTIFICATE,ConsoleCredentialBuffer,
@@ -299,7 +317,7 @@ static void Console_FlashWriteCertMenu(int8_t selectedMenu)
         Console_ColorPrintf(CONSOLE_MENU_RETURN);
         while ((CONSOLE_MENU_EXIT_KEY != key_pressed) && (CONSOLE_CONNECTION_ABORT != key_pressed))
         {
-            /* Wait for space key to be pressed to return to main menu */
+            /* Wait for exit key to be pressed to return to main menu */
             key_pressed = Console_WaitForKeypress();
         }
     }
@@ -310,10 +328,10 @@ static void Console_FlashWriteKeyMeu (int8_t selectedMenu)
     int8_t key_pressed = -1;
     char lastParsedChar;
 
-    Console_ColorPrintf((void *) "\r\n %d) DATA FLASH WRITE CLAIM PRIVATE KEY\r\n"
+    Console_ColorPrintf((void *) "\r\n %d) DATA FLASH WRITE RSA CLAIM PRIVATE KEY\r\n"
                                  "\r\n[ORANGE]Paste claim private key "
-                                 "[WHITE](or press space bar to return to menu)\r\n", selectedMenu);
-    lastParsedChar = Console_ParseInputForPattern(CONSOLE_END_OF_AWS_PRIVATE_KEY);
+                                 "[WHITE](or press BACKSPACE key to return to menu)\r\n", selectedMenu);
+    lastParsedChar = Console_ParseUserCredentials(CONSOLE_PRIVATE_KEY);
     if(lastParsedChar != CONSOLE_MENU_EXIT_KEY)
     {
         Console_StoreAwsCredential(CONSOLE_PRIVATE_KEY,ConsoleCredentialBuffer,
@@ -321,7 +339,7 @@ static void Console_FlashWriteKeyMeu (int8_t selectedMenu)
         Console_ColorPrintf(CONSOLE_MENU_RETURN);
         while ((CONSOLE_MENU_EXIT_KEY != key_pressed) && (CONSOLE_CONNECTION_ABORT != key_pressed))
         {
-            /* Wait for space key to be pressed to return to main menu */
+            /* Wait for exit key to be pressed to return to main menu */
             key_pressed = Console_WaitForKeypress();
         }
     }
@@ -334,8 +352,8 @@ static void Console_FlashWriteIotNameMenu(int8_t selectedMenu)
 
     Console_ColorPrintf((void *) "\r\n %d) DATA FLASH WRITE IOT THING NAME\r\n"
                                  "\r\nPaste Iot Thing name then press [ORANGE]ENTER "
-                                 "[WHITE](or press space bar to return to menu)\r\n", selectedMenu);
-    lastParsedChar = Console_ParseInputForPattern("Never Gonna Give You Up");
+                                 "[WHITE](or press BACKSPACE key to return to menu)\r\n", selectedMenu);
+    lastParsedChar = Console_ParseUserCredentials(CONSOLE_PRIVATE_KEY);
     if(lastParsedChar != CONSOLE_MENU_EXIT_KEY)
     {
         /* Subtract 1 from length because input for IoT name requires user to press ENTER, which is not
@@ -345,7 +363,7 @@ static void Console_FlashWriteIotNameMenu(int8_t selectedMenu)
         Console_ColorPrintf(CONSOLE_MENU_RETURN);
         while ((CONSOLE_MENU_EXIT_KEY != key_pressed) && (CONSOLE_CONNECTION_ABORT != key_pressed))
         {
-            /* Wait for space key to be pressed to return to main menu */
+            /* Wait for exit key to be pressed to return to main menu */
             key_pressed = Console_WaitForKeypress();
         }
     }
@@ -358,8 +376,8 @@ static void Console_FlashWriteEndPointMenu(int8_t selectedMenu)
 
     Console_ColorPrintf((void *) "\r\n %d) DATA FLASH WRITE MQTT BROKER ENDPOINT\r\n"
                                  "\r\nPaste MQTT broker endpoint then press [ORANGE]ENTER "
-                                 "[WHITE](or press space bar to return to menu)\r\n", selectedMenu);
-    lastParsedChar = Console_ParseInputForPattern("Never Gonna Give You Up");
+                                 "[WHITE](or press BACKSPACE key bar to return to menu)\r\n", selectedMenu);
+    lastParsedChar = Console_ParseUserCredentials(CONSOLE_PRIVATE_KEY);
     if(lastParsedChar != CONSOLE_MENU_EXIT_KEY)
     {
         /* Subtract 1 from length because input for MQTT Broker Endpoint  requires user to press ENTER, which is not
@@ -369,7 +387,7 @@ static void Console_FlashWriteEndPointMenu(int8_t selectedMenu)
         Console_ColorPrintf(CONSOLE_MENU_RETURN);
         while ((CONSOLE_MENU_EXIT_KEY != key_pressed) && (CONSOLE_CONNECTION_ABORT != key_pressed))
         {
-            /* Wait for space key to be pressed to return to main menu */
+            /* Wait for exit key to be pressed to return to main menu */
             key_pressed = Console_WaitForKeypress();
         }
     }
@@ -381,59 +399,74 @@ static void Console_FlashCheckCredentialsMenu(int8_t selectedMenu)
 
     /* Validate stored credentials */
     Console_ColorPrintf(CONSOLE_FLASH_CHECK_CREDENTIALS);
-    Consol_CheckStoredCredentials();
+    Console_CheckStoredCredentials();
     Console_ColorPrintf(CONSOLE_MENU_RETURN);
     while ((CONSOLE_MENU_EXIT_KEY != key_pressed) && (CONSOLE_CONNECTION_ABORT != key_pressed))
     {
-        /* Wait for space key to be pressed to return to main menu */
+        /* Wait for exit key to be pressed to return to main menu */
         key_pressed = Console_WaitForKeypress();
     }
 }
 
 
-static char Console_ParseInputForPattern(const char *pattern)
+static char Console_ParseUserCredentials(ConsoleCredential_t credential)
 {
-    char *patternPtr;
-    char *spacePtr;
-    char *enterPtr;
-    char lastCharParsed;
+    bool inputCompleted = false;
+    char lastCharParsed = 0u;
 
     /* Clear global user input buffers */
     memset (ConsoleInputBuffer, 0, TRANSFER_LENGTH);
     ConsoleInputIndex = 0;
-    memset (ConsoleCredentialBuffer, 0, BUFFER_SIZE);
+    memset (ConsoleCredentialBuffer, 0, TRANSFER_LENGTH);
     ConsoleCredentialIndex = 0;
 
-    /* Enable storing of encoming data on UART to ConsoleCredentialBuffer */
+    /* Enable storing of incoming data on UART to ConsoleCredentialBuffer */
     ConsoleReadCredential = true;
     while (1)
     {
-        patternPtr = strstr (ConsoleCredentialBuffer, pattern);
-        spacePtr = strchr (ConsoleCredentialBuffer, CONSOLE_MENU_EXIT_KEY);
-        enterPtr = strchr (ConsoleCredentialBuffer, CONSOLE_ENTER_KEY);
-        if (patternPtr)
+        /* This while loop does not catch every new character. There might be many char in the
+         * buffer when this is executed. Therefore, look for substrings in the buffer until
+         * a meaningful pattern is recognized */
+        switch (credential)
         {
-            lastCharParsed = patternPtr[0u];
+            case CONSOLE_CERTIFICATE:
+                if(strstr (ConsoleCredentialBuffer, CONSOLE_END_OF_CERTIFICATE_SUBSTR))
+                {
+                    inputCompleted = true;
+                }
+                break;
+            case CONSOLE_PRIVATE_KEY:
+                if(strstr (ConsoleCredentialBuffer, CONSOLE_END_OF_RSA_PRIVATE_KEY_SUBSTR))
+                {
+                    inputCompleted = true;
+                }
+                break;
+            case CONSOLE_MQTT_ENDPOINT:
+            case CONSOLE_IOT_THING_NAME:
+                if(strchr(ConsoleCredentialBuffer, CONSOLE_ENTER_KEY))
+                {
+                    inputCompleted = true;
+                }
+                break;
+            default:
+                /* Should not get here, that is a development error */
+                break;
+        }
+
+        if(strchr(ConsoleCredentialBuffer, CONSOLE_MENU_EXIT_KEY))
+        {
+            /* User entered command to exit menu, thus complete input and return exit menu key
+             * to tell caller that menu exited without completing requested input */
+            inputCompleted = true;
+            lastCharParsed = CONSOLE_MENU_EXIT_KEY;
+        }
+
+        if(inputCompleted)
+        {
             ConsoleReadCredential = false;
             break;
         }
-        else if(spacePtr)
-        {
-            lastCharParsed = spacePtr[0u];
-            ConsoleReadCredential = false;
-            break;
-        }
-        else if(enterPtr)
-        {
-            lastCharParsed = enterPtr[0u];
-            ConsoleReadCredential = false;
-            break;
-        }
-        else
-        {
-            /* Keep parsing */
-        }
-        vTaskDelay (5);
+        vTaskDelay (1);
     }
     return lastCharParsed;
 }
@@ -556,7 +589,7 @@ void Console_Init(void)
     if (FSP_SUCCESS == err)
     {
         /* Load credential storage status from flash memory */
-        ConsoleMqttEndpointStored = Console_LoadCredentialsFromFlash();
+         Console_LoadCredentialsFromFlash();
 
         /* version get API for FLEX pack information */
         R_FSP_VersionGet(&ConsoleFSPversion);
@@ -585,17 +618,27 @@ void Console_DisplayMenu(void)
             (uint32_t) ConsoleDeviceUUID->unique_id_words[2], (uint32_t) ConsoleDeviceUUID->unique_id_words[3]);
     Console_ColorPrintf(consoleBanner);
 
+    if(ConsoleClaimCertificateStored == true)
+    {
+        Console_ColorPrintf("\r\n[YELLOW]Loading Claim Certificate from flash memory instead of default.[WHITE]\r\n");
+    }
+
+    if(ConsoleClaimPrivateKeyStored == true)
+    {
+        Console_ColorPrintf("\r\n[YELLOW]Loading Claim PrivateKey from flash memory instead of default.[WHITE]\r\n");
+    }
     /* In case the MQTT endpoint already exists in flash, try to auto connect without user interaction */
     if(ConsoleMqttEndpointStored == true)
     {
+        Console_ColorPrintf("\r\n[YELLOW]Loading MQTT Broker Endpoint from flash memory instead of default.[WHITE]\r\n");
         /* Give possibility to user to avoid automatic connection with credentials stored in flash.
-         * Allow a 1 sec window where user can press SPACE BAR to avoid starting cloud app and display menu*/
+         * Allow a 1 sec window where user can press BACKSPACE key to avoid starting cloud app and display menu*/
         R_SCI_UART_Read (&g_console_uart_ctrl, &rx_buf, 1);
         vTaskDelay(1000);
 
         if(rx_buf != CONSOLE_MENU_EXIT_KEY)
         {
-            /* User did NOT press SPACE BAR, thus try to connect with the MQTT endpoint stored in flash
+            /* User did NOT press BACKSPACE key, thus try to connect with the MQTT endpoint stored in flash
                 Notify cloud app thread so that it can try to use stored mqtt endpoint to connect the device */
             xTaskNotifyGive( cloud_app_thread );
             /* Stop this thread's execution. If the mqtt broker endpoint exists in flash */

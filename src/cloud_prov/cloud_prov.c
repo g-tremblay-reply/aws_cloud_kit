@@ -54,9 +54,11 @@
  *
  * See https://docs.aws.amazon.com/iot/latest/apireference/API_CreateThing.html#iot-CreateThing-request-thingName
  */
-#define CLOUD_PROV_THING_NAME_BUFFER_SIZE                128
+#define CLOUD_PROV_THING_NAME_BUFFER_SIZE           (128)
+#define CLOUD_PROV_MQTT_ENDPOINT_BUFFER_SIZE        (128)
+#define CLOUD_PROV_CLAIM_CERT_BUFFER_SIZE           (2048)
+#define CLOUD_PROV_CLAIM_PRIVATE_KEY_BUFFER_SIZE    (2048)
 
-#define CLOUD_PROV_MQTT_ENDPOINT_BUFFER_SIZE                     128
 
 /*************************************************************************************
  * Type Definitions
@@ -130,9 +132,10 @@ static MQTTPubAckInfo_t CloudProvIncomingPublishRecords[ CLOUD_PROV_INCOMING_PUB
 static char CloudProvThingName[ CLOUD_PROV_THING_NAME_BUFFER_SIZE ];
 
 static FleetProvisioningTopic_t CloudProvFleetTopic = FleetProvisioningInvalidTopic;
-
-
+static bool CLoudProvForceProvisioning = false;
 static char CloudProvMqttEndpoint[CLOUD_PROV_MQTT_ENDPOINT_BUFFER_SIZE] = CLOUD_PROV_DEFAULT_MQTT_BROKER_ENDPOINT;
+static char CloudProvClaimCert[CLOUD_PROV_CLAIM_CERT_BUFFER_SIZE] = CLOUD_PROV_DEFAULT_CLAIM_CERT_PEM;
+static char CloudProvClaimPrivateKey[CLOUD_PROV_CLAIM_PRIVATE_KEY_BUFFER_SIZE] = CLOUD_PROV_DEFAULT_CLAIM_PRIVATE_KEY_PEM;
 
 /*************************************************************************************
  * Local Function Prototypes
@@ -790,8 +793,8 @@ MQTTStatus_t CloudProv_ProvisionDevice(MQTTContext_t *mqttContext, MQTTEventCall
     {
         /* Provision Claim Private Key */
         xPkcs11Ret = xProvisionPrivateKey(CloudProvP11Session,
-                                          (unsigned char *) CLOUD_PROV_DEV_CLAIM_KEY_PEM,
-                                          strlen(CLOUD_PROV_DEV_CLAIM_KEY_PEM) + 1,
+                                          (unsigned char *) CloudProvClaimPrivateKey,
+                                          strlen(CloudProvClaimPrivateKey) + 1,
                                           ( uint8_t * ) pkcs11configLABEL_DEVICE_PRIVATE_KEY_FOR_TLS,
                                           &pkHandle );
         if(xPkcs11Ret != CKR_OK)
@@ -804,8 +807,8 @@ MQTTStatus_t CloudProv_ProvisionDevice(MQTTContext_t *mqttContext, MQTTEventCall
     {
         /* Provision Claim Certificate */
         xPkcs11Ret = xProvisionCertificate(CloudProvP11Session,
-                                           (unsigned char *) CLOUD_PROV_DEV_CLAIM_CERT_PEM,
-                                            1 + strlen(CLOUD_PROV_DEV_CLAIM_CERT_PEM),
+                                           (unsigned char *) CloudProvClaimCert,
+                                            1 + strlen(CloudProvClaimCert),
                                            ( uint8_t * ) pkcs11configLABEL_DEVICE_CERTIFICATE_FOR_TLS,
                                            &certHandle );
         if(xPkcs11Ret != CKR_OK)
@@ -926,10 +929,21 @@ MQTTStatus_t CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t app
         FreeRTOS_inet_ntoa(ipAddress, ( char * ) cBuffer);
         APP_PRINT("\r\nDNS Lookup for \"%s\" is      : %s  \r\n", CloudProvMqttEndpoint, cBuffer);
 
-        /* Try to connect to MQTT with MQTT Broker endpoint + Device credentials if they exist */
-
-        mqttStatus = CloudProv_ConnectMQTT(mqttContext, appMqttCallback);
-
+        if(CLoudProvForceProvisioning == true)
+        {
+            /* Force Provisioning of device, thus do not attempt to connect MQTT with credentials
+             * stored in corePKCS11 and return error status so that caller knows there's no
+             * successful connection with MQTT */
+            mqttStatus = MQTTBadParameter;
+        }
+        else
+        {
+            /* Assume the device is provisioned already and try to connect to MQTT with MQTT Broker
+             * endpoint + Device credentials stored in corePKCS11. If connection fails, because credentials
+             * are bad for example, the fault status is returned and caller is responsible to call
+             * CloudProv_ProvisionDevice to try again nwith new credentials */
+            mqttStatus = CloudProv_ConnectMQTT(mqttContext, appMqttCallback);
+        }
     }
 
     return mqttStatus;
@@ -947,6 +961,42 @@ uint8_t CloudProv_ImportMqttEndpoint(uint8_t *endpointBuffer, size_t endpointLen
     else
     {
         APP_ERR_PRINT("\r\nCannot import MQTT Broker Endpoint into CloudProv module, buffer insufficient");
+        status = 1u;
+    }
+    return status;
+}
+
+uint8_t CloudProv_ImportClaimCertificate(uint8_t *endpointBuffer, size_t endpointLength, bool forceProvisioning)
+{
+    uint8_t status = 0u;
+
+    if(endpointLength < CLOUD_PROV_CLAIM_CERT_BUFFER_SIZE)
+    {
+        memset(CloudProvClaimCert, 0, strlen (CloudProvClaimCert));
+        memcpy((void*)CloudProvClaimCert, (void *)endpointBuffer, endpointLength);
+        CLoudProvForceProvisioning = forceProvisioning;
+    }
+    else
+    {
+        APP_ERR_PRINT("\r\nCannot import Claim Certificate into CloudProv module, buffer insufficient");
+        status = 1u;
+    }
+    return status;
+}
+
+uint8_t CloudProv_ImportClaimPrivateKey(uint8_t *endpointBuffer, size_t endpointLength, bool forceProvisioning)
+{
+    uint8_t status = 0u;
+
+    if(endpointLength <  CLOUD_PROV_CLAIM_PRIVATE_KEY_BUFFER_SIZE)
+    {
+        memset(CloudProvClaimPrivateKey, 0, strlen (CloudProvClaimPrivateKey));
+        memcpy((void*)CloudProvClaimPrivateKey, (void *)endpointBuffer, endpointLength);
+        CLoudProvForceProvisioning = forceProvisioning;
+    }
+    else
+    {
+        APP_ERR_PRINT("\r\nCannot import Claim Private Key into CloudProv module, buffer insufficient");
         status = 1u;
     }
     return status;
