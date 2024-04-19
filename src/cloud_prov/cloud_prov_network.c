@@ -15,78 +15,34 @@
                                 "\r\n--------------------------------------------------------------------------------\r\n\r\n"
 
 /**
+ * @brief Minimum buffer size for IP stack config values
+ * @details buffers passed to FreeRTOS_inet_ntoa need at least 16bytes as per FreeRTOS_inet_ntoa()
+ *          function description
+ */
+#define CLOUD_PROV_MINIMUM_IP_CONFIG_BUFF_SIZE  16u
+
+/**
  * @brief External reference to task handle of cloud app.
  * @details This is needed to be used as input parameter in xTaskNotifyFromISR(), called in
  *          vApplicationIPNetworkEventHook(), a FreeRTOS_IP user callback implemented by cloud_app module.
  */
 extern TaskHandle_t cloud_app_thread;
 
-IPV4Parameters_t xNd = {RESET_VALUE,
-                        RESET_VALUE,
-                        RESET_VALUE,
-                        {RESET_VALUE,RESET_VALUE},
-                        RESET_VALUE,
-                        RESET_VALUE};
-static uint8_t ucIPAddress[ipIP_ADDRESS_LENGTH_BYTES] =        { RESET_VALUE };
-static uint8_t ucNetMask[ipIP_ADDRESS_LENGTH_BYTES] =          { 255, 255, 255, 255 };
-static uint8_t ucGatewayAddress[ipIP_ADDRESS_LENGTH_BYTES] =   { RESET_VALUE };
-static uint8_t ucDNSServerAddress[ipIP_ADDRESS_LENGTH_BYTES] = {75, 75, 75, 75};
+static uint8_t ucIPAddress[CLOUD_PROV_MINIMUM_IP_CONFIG_BUFF_SIZE] =        { RESET_VALUE };
+static uint8_t ucNetMask[CLOUD_PROV_MINIMUM_IP_CONFIG_BUFF_SIZE] =          { 255, 255, 255, 255 };
+static uint8_t ucGatewayAddress[CLOUD_PROV_MINIMUM_IP_CONFIG_BUFF_SIZE] =   { RESET_VALUE };
+static uint8_t ucDNSServerAddress[CLOUD_PROV_MINIMUM_IP_CONFIG_BUFF_SIZE] = {75, 75, 75, 75};
 static uint8_t ucMACAddress[ipMAC_ADDRESS_LENGTH_BYTES] =       { 0x00, 0x11, 0x22, 0x33, 0x44, 0x57 };
 
 
 /**********************************************************************************************************************
                                     LOCAL FUNCTION PROTOTYPES
 **********************************************************************************************************************/
-/**
- * @brief      Creates and prints  the IP configuration to display on the  console
- * @param[in]  void
- * @retval     None
- */
-static void CloudProv_PrintIPConfig(void);
-
 
 /**********************************************************************************************************************
                                     LOCAL FUNCTIONS
 **********************************************************************************************************************/
-static void CloudProv_PrintIPConfig(void)
-{
-#if( ipconfigUSE_DHCP != 0 )
 
-    ucNetMask[3] = (uint8_t) ((xNd.ulNetMask & 0xFF000000) >> 24);
-    ucNetMask[2] = (uint8_t) ((xNd.ulNetMask & 0x00FF0000) >> 16);
-    ucNetMask[1] = (uint8_t) ((xNd.ulNetMask & 0x0000FF00) >> 8);
-    ucNetMask[0] = (uint8_t) (xNd.ulNetMask & 0x000000FF);
-
-    ucGatewayAddress[3] = (uint8_t) ((xNd.ulGatewayAddress & 0xFF000000) >> 24);
-    ucGatewayAddress[2] = (uint8_t) ((xNd.ulGatewayAddress & 0x00FF0000) >> 16);
-    ucGatewayAddress[1] = (uint8_t) ((xNd.ulGatewayAddress & 0x0000FF00) >> 8);
-    ucGatewayAddress[0] = (uint8_t) (xNd.ulGatewayAddress & 0x000000FF);
-
-    ucDNSServerAddress[3] = (uint8_t)((xNd.ulDNSServerAddresses[0] & 0xFF000000)>> 24);
-    ucDNSServerAddress[2] = (uint8_t)((xNd.ulDNSServerAddresses[0] & 0x00FF0000)>> 16);
-    ucDNSServerAddress[1] = (uint8_t)((xNd.ulDNSServerAddresses[0] & 0x0000FF00)>> 8);
-    ucDNSServerAddress[0] = (uint8_t)(xNd.ulDNSServerAddresses[0] & 0x000000FF);
-
-    ucIPAddress[3] = (uint8_t)((xNd.ulIPAddress & 0xFF000000) >> 24);
-    ucIPAddress[2] = (uint8_t)((xNd.ulIPAddress & 0x00FF0000) >> 16);
-    ucIPAddress[1] = (uint8_t)((xNd.ulIPAddress & 0x0000FF00) >> 8);
-    ucIPAddress[0] = (uint8_t)(xNd.ulIPAddress & 0x000000FF);
-#endif
-    APP_PRINT(CLOUD_PROV_ETH_CONFIG);
-
-    APP_PRINT("\tDescription . . . . . . . . . . . : Renesas "KIT_NAME" Ethernet\r\n");
-    APP_PRINT("\tPhysical Address. . . . . . . . . : %02x-%02x-%02x-%02x-%02x-%02x\r\n", ucMACAddress[0],
-              ucMACAddress[1], ucMACAddress[2], ucMACAddress[3], ucMACAddress[4], ucMACAddress[5]);
-    APP_PRINT("\tDHCP Enabled. . . . . . . . . . . : %s\r\n", "Yes" );
-    APP_PRINT("\tIPv4 Address. . . . . . . . . . . : %d.%d.%d.%d\r\n", ucIPAddress[0], ucIPAddress[1], ucIPAddress[2],
-              ucIPAddress[3]);
-    APP_PRINT("\tSubnet Mask . . . . . . . . . . . : %d.%d.%d.%d\r\n", ucNetMask[0], ucNetMask[1], ucNetMask[2],
-              ucNetMask[3]);
-    APP_PRINT("\tDefault Gateway . . . . . . . . . : %d.%d.%d.%d\r\n", ucGatewayAddress[0], ucGatewayAddress[1],
-              ucGatewayAddress[2], ucGatewayAddress[3]);
-    APP_PRINT("\tDNS Servers . . . . . . . . . . . : %d.%d.%d.%d\r\n\r\n", ucDNSServerAddress[0], ucDNSServerAddress[1],
-              ucDNSServerAddress[2], ucDNSServerAddress[3]);
-}
 /**********************************************************************************************************************
                                     GLOBAL FUNCTION PROTOTYPES
 **********************************************************************************************************************/
@@ -134,11 +90,7 @@ eDHCPCallbackAnswer_t xApplicationDHCPHook(eDHCPCallbackPhase_t eDHCPPhase, uint
             /*
              * The sub-domains don’t match, so continue with the DHCP process so the offered IP address is used.
              */
-            /* Update the Structure, the DHCP state Machine is not updating this */
-            xNd.ulIPAddress = lulIPAddress;
-            xNd.ulNetMask = FreeRTOS_GetNetmask();
-            xNd.ulGatewayAddress = FreeRTOS_GetGatewayAddress();
-            xNd.ulDNSServerAddresses[0] = FreeRTOS_GetDNSServerAddress();
+
             break;
 
         default:
@@ -165,7 +117,10 @@ void vApplicationIPNetworkEventHook(eIPCallbackEvent_t eNetworkEvent)
         uint32_t lulNetMask;
         uint32_t lulGatewayAddress;
         uint32_t lulDNSServerAddress;
-        int8_t lcBuffer[16];
+        uint8_t lIPAddress[ipIP_ADDRESS_LENGTH_BYTES] =        { RESET_VALUE };
+        uint8_t lNetMask[ipIP_ADDRESS_LENGTH_BYTES] =          { 255, 255, 255, 255 };
+        uint8_t lGatewayAddress[ipIP_ADDRESS_LENGTH_BYTES] =   { RESET_VALUE };
+        uint8_t lDNSServerAddress[ipIP_ADDRESS_LENGTH_BYTES] = {75, 75, 75, 75};
 
         /* Signal application the network is UP */
         xTaskNotifyFromISR(cloud_app_thread, eNetworkUp, eSetBits, NULL);
@@ -178,16 +133,16 @@ void vApplicationIPNetworkEventHook(eIPCallbackEvent_t eNetworkEvent)
                                           &lulDNSServerAddress);
 
         /* Convert the IP address to a string then print it out. */
-        FreeRTOS_inet_ntoa (lulIPAddress, (char*) lcBuffer);
+        FreeRTOS_inet_ntoa (lulIPAddress, (char*) ucIPAddress);
 
         /* Convert the net mask to a string then print it out. */
-        FreeRTOS_inet_ntoa (lulNetMask, (char*) lcBuffer);
+        FreeRTOS_inet_ntoa (lulNetMask, (char*) ucNetMask);
 
         /* Convert the IP address of the gateway to a string then print it out. */
-        FreeRTOS_inet_ntoa (lulGatewayAddress, (char*) lcBuffer);
+        FreeRTOS_inet_ntoa (lulGatewayAddress, (char*) ucGatewayAddress);
 
         /* Convert the IP address of the DNS server to a string then print it out. */
-        FreeRTOS_inet_ntoa (lulDNSServerAddress, (char*) lcBuffer);
+        FreeRTOS_inet_ntoa (lulDNSServerAddress, (char*) ucDNSServerAddress);
     }
 }
 #endif
@@ -215,6 +170,19 @@ void CloudProv_InitIPStack(void)
         NETWORK_CONNECT_INDICATION;
 
         /* Print IP config on console screen */
-        CloudProv_PrintIPConfig();
+        APP_PRINT(CLOUD_PROV_ETH_CONFIG);
+
+        APP_PRINT("\tDescription . . . . . . . . . . . : Renesas "KIT_NAME" Ethernet\r\n");
+        APP_PRINT("\tPhysical Address. . . . . . . . . : %02x-%02x-%02x-%02x-%02x-%02x\r\n", ucMACAddress[0],
+                  ucMACAddress[1], ucMACAddress[2], ucMACAddress[3], ucMACAddress[4], ucMACAddress[5]);
+        APP_PRINT("\tDHCP Enabled. . . . . . . . . . . : %s\r\n", "Yes" );
+        APP_PRINT("\tIPv4 Address. . . . . . . . . . . : %d.%d.%d.%d\r\n", ucIPAddress[0], ucIPAddress[1], ucIPAddress[2],
+                  ucIPAddress[3]);
+        APP_PRINT("\tSubnet Mask . . . . . . . . . . . : %d.%d.%d.%d\r\n", ucNetMask[0], ucNetMask[1], ucNetMask[2],
+                  ucNetMask[3]);
+        APP_PRINT("\tDefault Gateway . . . . . . . . . : %d.%d.%d.%d\r\n", ucGatewayAddress[0], ucGatewayAddress[1],
+                  ucGatewayAddress[2], ucGatewayAddress[3]);
+        APP_PRINT("\tDNS Servers . . . . . . . . . . . : %d.%d.%d.%d\r\n\r\n", ucDNSServerAddress[0], ucDNSServerAddress[1],
+                  ucDNSServerAddress[2], ucDNSServerAddress[3]);
     }
 }

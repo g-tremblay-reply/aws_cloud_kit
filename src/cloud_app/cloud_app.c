@@ -133,7 +133,7 @@
  * @brief Topics to be published to
  * @details this is used when preparing MQTT publish of sensor data
  */
-const char *CloudAppPubTopicsNames[CLOUD_APP_PUB_TOPIC_COUNT] =
+char *CloudAppPubTopicsNames[CLOUD_APP_PUB_TOPIC_COUNT] =
         {
             "aws/topic/iaq_sensor_data",
             "aws/topic/oaq_sensor_data",
@@ -150,12 +150,6 @@ const char *CloudAppPubTopicsNames[CLOUD_APP_PUB_TOPIC_COUNT] =
  *          vApplicationIPNetworkEventHook(), a FreeRTOS_IP user callback implemented by cloud_app module.
  */
 extern TaskHandle_t cloud_app_thread;
-
-static uint8_t ucIPAddress[ipIP_ADDRESS_LENGTH_BYTES] =        { RESET_VALUE };
-static uint8_t ucNetMask[ipIP_ADDRESS_LENGTH_BYTES] =          { 255, 255, 255, 255 };
-static uint8_t ucGatewayAddress[ipIP_ADDRESS_LENGTH_BYTES] =   { RESET_VALUE };
-static uint8_t ucDNSServerAddress[ipIP_ADDRESS_LENGTH_BYTES] = {75, 75, 75, 75};
-static uint8_t ucMACAddress[ipMAC_ADDRESS_LENGTH_BYTES] =       { 0x00, 0x11, 0x22, 0x33, 0x44, 0x57 };
 static CloudApp_SensorData_t CloudAppDataRequest = CLOUD_APP_NO_DATA;
 static CloudApp_SensorData_t CloudAppDataPush = CLOUD_APP_IAQ_DATA;
 static char CloudAppPayloadBuffer[CLOUD_APP_PAYLOAD_BUFFER_SIZE] = {0u};
@@ -194,12 +188,8 @@ static void CloudApp_TempLedCallback(MQTTContext_t * pContext, MQTTPublishInfo_t
     ( void ) pContext;
 
     /* Print information about the incoming PUBLISH message. */
-    APP_INFO_PRINT( ( "Invoked led callback.\r\n" ) );
-    APP_INFO_PRINT("Incoming QOS : %d.\r\n", pPublishInfo->qos);
-    APP_INFO_PRINT("Retain flag : %d.\r\n", pPublishInfo->retain);
     strncpy(strlog, pPublishInfo->pPayload, pPublishInfo->payloadLength);
-    APP_INFO_PRINT("Incoming Publish Topic matches subscribed topic.\r\n"
-               "Incoming Publish Message : %s.\r\n", strlog);
+    APP_INFO_PRINT("Incoming Publish Message : %s.\r\n", strlog);
 
     /* BLUE LED */
     if (0u == strcmp ((char *) pPublishInfo->pPayload, msg_cold_led_on))
@@ -207,14 +197,14 @@ static void CloudApp_TempLedCallback(MQTTContext_t * pContext, MQTTPublishInfo_t
         led_on_off (RGB_LED_RED, LED_ON);
         led_on_off (RGB_LED_GREEN, LED_ON);
         led_on_off (RGB_LED_BLUE, LED_OFF);
-        APP_INFO_PRINT("\r\nCOLD LED ON\r\n");
+        APP_INFO_PRINT("COLD LED ON\r\n");
     }
     else if (0u == strcmp ((char *) pPublishInfo->pPayload, msg_temperature_led_off))
     {
         led_on_off (RGB_LED_RED, LED_ON);
         led_on_off (RGB_LED_GREEN, LED_ON);
         led_on_off (RGB_LED_BLUE, LED_ON);
-        APP_INFO_PRINT("\r\nCOLD LED OFF \r\n");
+        APP_INFO_PRINT("COLD LED OFF \r\n");
     }
 
     /* GREEN LED */
@@ -223,7 +213,7 @@ static void CloudApp_TempLedCallback(MQTTContext_t * pContext, MQTTPublishInfo_t
         led_on_off (RGB_LED_RED, LED_ON);
         led_on_off (RGB_LED_GREEN, LED_OFF);
         led_on_off (RGB_LED_BLUE, LED_ON);
-        APP_INFO_PRINT("\r\nWARM LED ON\r\n");
+        APP_INFO_PRINT("WARM LED ON\r\n");
     }
     else if (0u == strcmp ((char *) pPublishInfo->pPayload, msg_temperature_led_off))
     {
@@ -231,7 +221,7 @@ static void CloudApp_TempLedCallback(MQTTContext_t * pContext, MQTTPublishInfo_t
         led_on_off (RGB_LED_GREEN, LED_ON);
         led_on_off (RGB_LED_BLUE, LED_ON);
 
-        APP_INFO_PRINT("\r\nWARM LED OFF \r\n");
+        APP_INFO_PRINT("WARM LED OFF \r\n");
     }
 
     /* RED LED */
@@ -240,14 +230,14 @@ static void CloudApp_TempLedCallback(MQTTContext_t * pContext, MQTTPublishInfo_t
         led_on_off (RGB_LED_RED, LED_OFF);
         led_on_off (RGB_LED_GREEN, LED_ON);
         led_on_off (RGB_LED_BLUE, LED_ON);
-        APP_INFO_PRINT("\r\nHOT LED ON\r\n");
+        APP_INFO_PRINT("HOT LED ON\r\n");
     }
     else if (0u == strcmp ((char *) pPublishInfo->pPayload, msg_temperature_led_off))
     {
         led_on_off (RGB_LED_RED, LED_ON);
         led_on_off (RGB_LED_GREEN, LED_ON);
         led_on_off (RGB_LED_BLUE, LED_ON);
-        APP_INFO_PRINT("\r\nHOT LED OFF \r\n");
+        APP_INFO_PRINT("HOT LED OFF \r\n");
     }
 }
 
@@ -260,23 +250,19 @@ static void CloudApp_Spo2LedCallback(MQTTContext_t * pContext, MQTTPublishInfo_t
     char strlog[64] = {'\0'};
 
     /* Print information about the incoming PUBLISH message. */
-    APP_INFO_PRINT("Incoming QOS : %d.\r\n", pPublishInfo->qos);
-    APP_INFO_PRINT("Retain flag : %d.\r\n", pPublishInfo->retain);
-
     strncpy(strlog, pPublishInfo->pPayload, pPublishInfo->payloadLength);
-    APP_INFO_PRINT("Incoming Publish Topic matches subscribed topic.\r\n"
-    "Incoming Publish Message : %s.\r\n", strlog);
+    APP_INFO_PRINT("Incoming Publish Message : %s.\r\n", strlog);
 
     /* BLUE LED */
     if (RESET_VALUE == strcmp ((char *) pPublishInfo->pPayload, msg_spo2_led_on))
     {
         led_on_off (LED_BLUE, LED_ON);
-        APP_INFO_PRINT("\r\nSPO2 LED ON\r\n");
+        APP_INFO_PRINT("SPO2 LED ON\r\n");
     }
     else if (RESET_VALUE == strcmp ((char *) pPublishInfo->pPayload, msg_spo2_led_off))
     {
         led_on_off (LED_BLUE, LED_OFF);
-        APP_INFO_PRINT("\r\nSPO2 LED OFF \r\n");
+        APP_INFO_PRINT("SPO2 LED OFF \r\n");
     }
 }
 
@@ -339,6 +325,9 @@ void CloudApp_MqttCallback( MQTTContext_t * pMqttContext,
     configASSERT( pPacketInfo != NULL );
     configASSERT( pDeserializedInfo != NULL );
 
+    /* Indicate on Cloud Kit some MQTT activity by toggling blue led*/
+    AWS_ACTIVITY_INDICATION;
+
     /* Handle incoming publish. The lower 4 bits of the publish packet
      * type is used for the dup, QoS, and retain flags. Hence masking
      * out the lower bits to check if the packet is publish. */
@@ -396,6 +385,7 @@ void CloudApp_MqttCallback( MQTTContext_t * pMqttContext,
                 APP_ERR_PRINT("Unknown packet type received:(%02x).\r\n", pPacketInfo->type);
         }
     }
+    AWS_ACTIVITY_INDICATION;
 }
 
 MQTTStatus_t CloudApp_SubscribeTopics(MQTTContext_t *mqttContext)
@@ -444,6 +434,10 @@ MQTTStatus_t CloudApp_SubscribeTopics(MQTTContext_t *mqttContext)
         subscriptionList[topic].topicFilterLength = topicNameLength;
         subscriptionList[topic].qos = MQTTQoS1;
     }
+
+    /* Indicate start of interaction with MQTT. This sets the led to OFF, and sybsequent MQTT
+     * receive callbacks/publishes will toggle it further */
+    AWS_ACTIVITY_INDICATION;
 
     if( managerStatus == SUBSCRIPTION_MANAGER_SUCCESS )
     {
@@ -523,6 +517,7 @@ void CloudApp_PeriodicDataPush(timer_callback_args_t *p_args)
                 break;
             default:
                 /* If this state is reached, this cloudkit is cursed */
+            	lastDataPushed = CLOUD_APP_IAQ_DATA;
                 break;
         }
 
@@ -689,31 +684,43 @@ static void CloudApp_PublishSensorData(MQTTContext_t *mqttContext, CloudApp_Sens
             break;
     }
 
-    /* Publish requested sensor data . */
-    mqttStatus = MQTT_Publish( mqttContext,
-                               &pubInfo,
-                               MQTT_GetPacketId(mqttContext) );
-    if( mqttStatus != MQTTSuccess )
+    /* Check if MQTT is correctly init, then publish requested sensor data . */
+    if(mqttContext->transportInterface.send != NULL)
     {
-        APP_ERR_PRINT("Failed to publish CloudApp Sensor Data with error status = %s.\r\n",
-                      MQTT_Status_strerror( mqttStatus ));
+        /* Toggle CLoudKit lit to indicate MQTT activity */
+        AWS_ACTIVITY_INDICATION;
+        mqttStatus = MQTT_Publish( mqttContext,
+                                   &pubInfo,
+                                   MQTT_GetPacketId(mqttContext) );
+        AWS_ACTIVITY_INDICATION;
+        if( mqttStatus == MQTTSuccess )
+        {
+            /* Check if PUBACK is received */
+            MQTT_ProcessLoop(mqttContext);
+
+        }
+        else
+        {
+            APP_ERR_PRINT("Failed to publish CloudApp Sensor Data with error status = %s.\r\n",
+                          MQTT_Status_strerror( mqttStatus ));
+        }
     }
-    else
-    {
-        APP_INFO_PRINT(("Published CloudApp sensor data %.*s\r\n"),
+
+
+    APP_INFO_PRINT(("Published CloudApp sensor data %.*s\r\n"),
                        pubInfo.payloadLength,
                        pubInfo.pPayload);
 
-        /* Check if PUBACK is received */
-        MQTT_ProcessLoop(mqttContext);
-    }
 }
 
 void CloudApp_MainFunction(MQTTContext_t *mqttContext)
 {
-    /* Receive any Publish message, which will update CloudAppDataRequest in CallBacks if
-     * data is received on request topics */
-    MQTT_ProcessLoop(mqttContext);
+    /* Check if mqtt context is correctly init, then receive any Publish message,  which will
+     * update CloudAppDataRequest in CallBacks if data is received on request topics */
+    if(mqttContext->transportInterface.recv != NULL)
+    {
+        MQTT_ProcessLoop(mqttContext);
+    }
 
     /* Process data requested by MQTT broker */
     if(CloudAppDataRequest != CLOUD_APP_NO_DATA)

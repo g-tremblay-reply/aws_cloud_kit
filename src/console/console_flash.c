@@ -163,8 +163,9 @@ void Console_LoadCredentialsFromFlash(void)
         ConsoleMqttEndpointStored = true;
         /* Import endpoint to CloudProv module, allowing it to use this stored endpoint
          * stored in flash instead of default endpoint when connecting to MQTT broker */
-        CloudProv_ImportMqttEndpoint((uint8_t *)ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].addr,
-                                     ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].length);
+        CloudProv_ImportMqttEndpoint((uint8_t *) ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].addr,
+                                     ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].length,
+                                     false);
     }
     else
     {
@@ -187,18 +188,18 @@ void Console_LoadCredentialsFromFlash(void)
     }
 
     /* Check if claim private key already saved, in which case import it to CloudProv module */
-    if(0 == strncmp ((char *)ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].stored_in_flash, (char *)CONSOLE_FLASH_SAVE, CONSOLE_FLASH_LENGTH_SAVE))
+    if(0 == strncmp ((char *)ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].stored_in_flash, (char *)CONSOLE_FLASH_SAVE, CONSOLE_FLASH_LENGTH_SAVE))
     {
         ConsoleClaimPrivateKeyStored = true;
         /* Import claim private key to CloudProv module, allowing it to use this claim certificate when
          * trying to provision the device in fleet provisioning workflow */
-        CloudProv_ImportClaimPrivateKey((uint8_t *) ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].addr,
-                                        ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].length,
+        CloudProv_ImportClaimPrivateKey((uint8_t *) ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].addr,
+                                        ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].length,
                                         false);
     }
     else
     {
-        memset (ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].stored_in_flash, 0u, CONSOLE_FLASH_LENGTH_SAVE);
+        memset (ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].stored_in_flash, 0u, CONSOLE_FLASH_LENGTH_SAVE);
     }
 
     /* Init hardcoded flash addresses, sizes and block num values into RAM struct */
@@ -206,9 +207,9 @@ void Console_LoadCredentialsFromFlash(void)
     ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].num_block = BLOCK_NUM_CERT;
     ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].addr = FLASH_HP_DF_BLOCK_CERTIFICATE;
 
-    ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].num_bytes = BLOCK_SIZE_KEY;
-    ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].num_block = BLOCK_NUM_KEY;
-    ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].addr = FLASH_HP_DF_BLOCK_KEY;
+    ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].num_bytes = BLOCK_SIZE_KEY;
+    ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].num_block = BLOCK_NUM_KEY;
+    ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].addr = FLASH_HP_DF_BLOCK_KEY;
 
     ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].num_bytes = BLOCK_SIZE_MQTT_ENDPOINT;
     ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].num_block = BLOCK_NUM_MQTT_ENDPOINT;
@@ -257,7 +258,7 @@ void Console_ResetClaimCredentials(void)
     fsp_err_t err = FSP_SUCCESS;
 
     memset (ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].stored_in_flash, 0, CONSOLE_FLASH_LENGTH_SAVE);
-    memset (ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].stored_in_flash, 0, CONSOLE_FLASH_LENGTH_SAVE);
+    memset (ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].stored_in_flash, 0, CONSOLE_FLASH_LENGTH_SAVE);
     err = Console_WriteToFlash(&ConsoleDataFlashInfo[CONSOLE_FLASH_DATA_INFO],
                                (uint8_t *)ConsoleDataFlashInfo);
 
@@ -300,13 +301,13 @@ void Console_CheckStoredCredentials(void)
     }
 
     /* Check if credential is stored in flash */
-    if (0 == strncmp ((char *)ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].stored_in_flash, (char *)CONSOLE_FLASH_SAVE, CONSOLE_FLASH_LENGTH_SAVE))
+    if (0 == strncmp ((char *)ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].stored_in_flash, (char *)CONSOLE_FLASH_SAVE, CONSOLE_FLASH_LENGTH_SAVE))
     {
         /* Copy credential from flash memory to buffer */
-        memcpy (read_buffer, (uint8_t*) ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].addr, ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].num_bytes);
+        memcpy (read_buffer, (uint8_t*) ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].addr, ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].num_bytes);
         /* Validate credential */
         if ((NULL != strstr (read_buffer, "-----END RSA PRIVATE KEY-----"))
-                && (strlen (read_buffer) == ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].length))
+                && (strlen (read_buffer) == ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].length))
         {
             Console_ColorPrintf("\r\n [GREEN]Claim Private key saved in data flash is correctly formatted[WHITE]\r\n");
             memset (read_buffer, 0, strlen (read_buffer));
@@ -314,7 +315,7 @@ void Console_CheckStoredCredentials(void)
         else
         {
             Console_ColorPrintf("\r\n [RED]Claim Private key saved in data flash is invalid[WHITE]\r\n");
-            memset (ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].stored_in_flash, 0, CONSOLE_FLASH_LENGTH_SAVE);
+            memset (ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].stored_in_flash, 0, CONSOLE_FLASH_LENGTH_SAVE);
         }
     }
     else
@@ -452,8 +453,13 @@ fsp_err_t Console_StoreAwsCredential(ConsoleCredential_t credentialType, const c
 
         if(credentialType == CONSOLE_MQTT_ENDPOINT)
         {
-            CloudProv_ImportMqttEndpoint((uint8_t *)ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].addr,
-                                         ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].length);
+            /* Force provisioning when importing MQTT endpoint. This allows to make sure the device credentials
+             * requested from IoT Core are requested from this endpoint. This also allows a workaround to force
+             * provisioning in case the device is provisioned but the user needs to provision it with different
+             * claim credentials */
+            CloudProv_ImportMqttEndpoint((uint8_t *) ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].addr,
+                                         ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].length,
+                                         true);
         }
         else if(credentialType == CONSOLE_CERTIFICATE)
         {
@@ -464,10 +470,10 @@ fsp_err_t Console_StoreAwsCredential(ConsoleCredential_t credentialType, const c
                                 "Claim Certificate, DO NOT reset the Cloud Kit. Instead, leave this menu, "
                                 "enter other credentials if needed and start application [WHITE]\r\n");
         }
-        else if(credentialType == CONSOLE_PRIVATE_KEY)
+        else if(credentialType == CONSOLE_RSA_PRIVATE_KEY)
         {
-            CloudProv_ImportClaimPrivateKey((uint8_t *) ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].addr,
-                                            ConsoleDataFlashInfo[CONSOLE_PRIVATE_KEY].length,
+            CloudProv_ImportClaimPrivateKey((uint8_t *) ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].addr,
+                                            ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].length,
                                             true);
             Console_ColorPrintf("\r\n[YELLOW][IMPORTANT] To force Device Provisioning with this new "
                                 "RSA Claim Private Key, DO NOT reset the Cloud Kit. Instead, leave this menu, "

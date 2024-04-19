@@ -21,6 +21,8 @@
 #include "console.h"
 #include "led.h"
 
+extern bsp_leds_t g_bsp_leds;
+
 /***********************************************************************************************************************
  * @brief       This function turns ON/OFF the LED based on the type(Colored LED) and its requested action.
  *              

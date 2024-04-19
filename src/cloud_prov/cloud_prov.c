@@ -7,7 +7,7 @@
 #include <cloud_prov_serializer.h>
 #include <cloud_prov_pkcs11.h>
 #include <console.h>
-#include "led/led.h"
+#include <led.h>
 #include <FreeRTOS_DNS.h>
 #include <fleet_provisioning.h>
 #include <backoff_algorithm.h>
@@ -799,7 +799,7 @@ MQTTStatus_t CloudProv_ProvisionDevice(MQTTContext_t *mqttContext, MQTTEventCall
                                           &pkHandle );
         if(xPkcs11Ret != CKR_OK)
         {
-            APP_WARN_PRINT( ( "Failed to provision claim private key.\r\n" ) );
+            APP_WARN_PRINT( ( "Failed to import claim private key to corePKCS11.\r\n" ) );
         }
     }
 
@@ -813,7 +813,7 @@ MQTTStatus_t CloudProv_ProvisionDevice(MQTTContext_t *mqttContext, MQTTEventCall
                                            &certHandle );
         if(xPkcs11Ret != CKR_OK)
         {
-            APP_WARN_PRINT( ( "Failed to provision claim certificate.\r\n" ) );
+            APP_WARN_PRINT( ( "Failed to import claim certificate to corePKCS11.\r\n" ) );
         }
     }
 
@@ -821,7 +821,7 @@ MQTTStatus_t CloudProv_ProvisionDevice(MQTTContext_t *mqttContext, MQTTEventCall
     if( xPkcs11Ret == CKR_OK )
     {
         /* Try to connect to MQTT broker with claim credentials */
-        APP_INFO_PRINT( ( "Establishing MQTT session with claim certificate...\r\n" ) );
+        APP_INFO_PRINT( ( "Trying to connect to MQTT broker with claim credentials to provision Cloud Kit...\r\n" ) );
         mqttStatus = CloudProv_ConnectMQTT(mqttContext, CloudProv_MqttCallback);
     }
 
@@ -897,6 +897,9 @@ MQTTStatus_t CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t app
     CK_RV   pkcs11status = CKR_GENERAL_ERROR;
     uint32_t ipAddress = 0u;
 
+    /* Set MQTT context in known state */
+    memset(mqttContext, 0x00, sizeof(MQTTContext_t ));
+
     /* Initialize littleFS to store crypto secrets with corePKCS11 */
     lfsStatus = CloudProv_InitLittleFs();
 
@@ -920,8 +923,13 @@ MQTTStatus_t CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t app
         FAILURE_INDICATION;
         APP_WARN_PRINT("FreeRTOS_gethostbyname() Failed to get IP address from End point address for %s\r\n\r\n",
                       CloudProvMqttEndpoint);
-        /* Endpoint is not reachable, thus use niche error code so that caller knows it is a mqtt endpoint error */
-        mqttStatus = MQTTIllegalState;
+        while(1)
+        {
+            APP_WARN_PRINT("MQTT Broker endpoint is not reachable"
+                           "\r\nPlease reset Cloud Kit [ORANGE]while spamming BACKSPACE KEY[YELLOW] "
+                           "to open MENU and try new MQTT Broker endpoint\r\n\r\n");
+            vTaskDelay(10000);
+        }
     }
     else
     {
@@ -942,6 +950,8 @@ MQTTStatus_t CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t app
              * endpoint + Device credentials stored in corePKCS11. If connection fails, because credentials
              * are bad for example, the fault status is returned and caller is responsible to call
              * CloudProv_ProvisionDevice to try again nwith new credentials */
+            APP_INFO_PRINT( ( "Assuming Cloud Kit is already provisioned, trying to connect to "
+                              "MQTT broker with device credentials... \r\n") );
             mqttStatus = CloudProv_ConnectMQTT(mqttContext, appMqttCallback);
         }
     }
@@ -949,7 +959,7 @@ MQTTStatus_t CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t app
     return mqttStatus;
 }
 
-uint8_t CloudProv_ImportMqttEndpoint(uint8_t *endpointBuffer, size_t endpointLength)
+uint8_t CloudProv_ImportMqttEndpoint(uint8_t *endpointBuffer, size_t endpointLength, bool forceProvisioning)
 {
     uint8_t status = 0u;
 
@@ -957,6 +967,7 @@ uint8_t CloudProv_ImportMqttEndpoint(uint8_t *endpointBuffer, size_t endpointLen
     {
         memset(CloudProvMqttEndpoint, 0, strlen (CloudProvMqttEndpoint));
         memcpy((void*)CloudProvMqttEndpoint, (void *)endpointBuffer, endpointLength);
+        CLoudProvForceProvisioning = forceProvisioning;
     }
     else
     {

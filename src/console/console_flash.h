@@ -43,7 +43,7 @@ typedef struct s_credentials_mem_map
 typedef enum
 {
     CONSOLE_CERTIFICATE =           0u,
-    CONSOLE_PRIVATE_KEY =           1u,
+    CONSOLE_RSA_PRIVATE_KEY =           1u,
     CONSOLE_MQTT_ENDPOINT =         2u,
     CONSOLE_IOT_THING_NAME =        3u,
     CONSOLE_FLASH_DATA_INFO =       4u,

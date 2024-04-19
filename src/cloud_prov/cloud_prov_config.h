@@ -249,6 +249,77 @@ extern void vLoggingPrintf( const char * pcFormatString,
         "3klo1T5mZiuNNxK6gVmC6pE37xgN0VDpryaMsly68AemeQ60btA=\n" \
         "-----END RSA PRIVATE KEY-----"
 
+//TODO remove when testing access to different IoT Core account
+/*#define CLOUD_PROV_DEV_ROOT_CA_PEM 	    "-----BEGIN CERTIFICATE-----\n" \
+	    "MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF\n" \
+        "ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6\n" \
+        "b24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL\n" \
+        "MAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv\n" \
+        "b3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj\n" \
+        "ca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM\n" \
+        "9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw\n" \
+        "IFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6\n" \
+        "VOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L\n" \
+        "93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm\n" \
+        "jgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC\n" \
+        "AYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA\n" \
+        "A4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI\n" \
+        "U5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs\n" \
+        "N+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv\n" \
+        "o/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU\n" \
+        "5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy\n" \
+        "rqXRfboQnoZsG4q5WTP468SQvvG5\n" \
+	    "-----END CERTIFICATE-----"
+
+#define CLOUD_PROV_DEFAULT_CLAIM_CERT_PEM 	    "-----BEGIN CERTIFICATE-----\n" \
+        "MIIDWTCCAkGgAwIBAgIURhZFiuVl2hZznpv3kjrngTKBOv4wDQYJKoZIhvcNAQEL\n" \
+        "BQAwTTFLMEkGA1UECwxCQW1hem9uIFdlYiBTZXJ2aWNlcyBPPUFtYXpvbi5jb20g\n" \
+        "SW5jLiBMPVNlYXR0bGUgU1Q9V2FzaGluZ3RvbiBDPVVTMB4XDTI0MDMyMDAxMTI1\n" \
+        "MFoXDTQ5MTIzMTIzNTk1OVowHjEcMBoGA1UEAwwTQVdTIElvVCBDZXJ0aWZpY2F0\n" \
+        "ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANapxCiDNfCpU+yp7txL\n" \
+        "gfH0pU035cCVr6IIszkNWO/f/J3NyJ00Nd2mrZMlIMYCkea1icCvWiBW3tWbBThd\n" \
+        "sv9X1WL+5XO2r7VSJDurYWlN+j9TjcVtDL1MaNVmxOxG+dgEbWrvYi5H2ojn9zV1\n" \
+        "L9f+ZOickOP/3KgcBatR6blSk6ZU4YNgtNWC1CoXyY00ToYHnJ3VrwPbV6pDUh4Y\n" \
+        "SFOiCxvbcYkgObFGQqAtcaPkYlu5ARHRGhZdtlgskVYI5ztVrtdoWbGWfnN6MM02\n" \
+        "kyRRvuwOWovTY1TqrAWv+yEsHg3tFl7TmWIQqlwyv0tGVbz995q/JykS8uo/IFEZ\n" \
+        "CskCAwEAAaNgMF4wHwYDVR0jBBgwFoAUA8lvqaoUcIVKjIi3M7WOWSX3DcQwHQYD\n" \
+        "VR0OBBYEFEXjVr1V/FjkLYt1K7RRGQaD+KL0MAwGA1UdEwEB/wQCMAAwDgYDVR0P\n" \
+        "AQH/BAQDAgeAMA0GCSqGSIb3DQEBCwUAA4IBAQBJ70F1wpecdu+hWeIEtndom8iW\n" \
+        "GHNQLNka19w2G4N9apX5D6chTObzMox9TE7DMUF+b+5rvhTLnkmY4lcf3NE/ASg7\n" \
+        "G4/XgQgz9DSA79Ry5/5uE9fAxs8GugLQXeeJO3PQNzOf51FU0gBmTTjFJv93sfT9\n" \
+        "cOrTczXHwEfyJTqkX/YKsLmy9JxTmJ6reeeiOBKvrhhJAEvTo0+nRk37Kmurw/Zs\n" \
+        "oXKFtTMQipVU+SlkGaSOGhSBM9ArxlzY+VNK2EsVgZEUvkry0cymSDvKsrxhobtM\n" \
+        "tYZLSLqJShSahFcvtYZvTjikCGfED9/D7uVFGdNEJ9gBl8qDK/J5oQC288Eo\n" \
+        "-----END CERTIFICATE-----"
+
+#define CLOUD_PROV_DEFAULT_CLAIM_PRIVATE_KEY_PEM 	 "-----BEGIN RSA PRIVATE KEY-----\n" \
+        "MIIEogIBAAKCAQEA1qnEKIM18KlT7Knu3EuB8fSlTTflwJWvogizOQ1Y79/8nc3I\n" \
+        "nTQ13aatkyUgxgKR5rWJwK9aIFbe1ZsFOF2y/1fVYv7lc7avtVIkO6thaU36P1ON\n" \
+        "xW0MvUxo1WbE7Eb52ARtau9iLkfaiOf3NXUv1/5k6JyQ4//cqBwFq1HpuVKTplTh\n" \
+        "g2C01YLUKhfJjTROhgecndWvA9tXqkNSHhhIU6ILG9txiSA5sUZCoC1xo+RiW7kB\n" \
+        "EdEaFl22WCyRVgjnO1Wu12hZsZZ+c3owzTaTJFG+7A5ai9NjVOqsBa/7ISweDe0W\n" \
+        "XtOZYhCqXDK/S0ZVvP33mr8nKRLy6j8gURkKyQIDAQABAoIBABQSa7UeD70hGCfY\n" \
+        "++y9YrktFwfRYjpPxMxx49BB3z8OwqA+zbNlXmQLYc+QeTAKrXnVH7xUqSi89rki\n" \
+        "dap/mG0n2VwYWXwoaOWbeKfbrpAaKnwhY/BB8h8BNgw+P8uYF2SLhW+qUpPhRB3p\n" \
+        "EsR84KxhrS3S9flbw1Y0yJLsZd5eHmRsqyNfIUSQmtT3HNzMt3YZ1BHSDR9jkS1d\n" \
+        "4IAX5Bk+fAw6M+mehuPPUU1h4jh0DknrGqlNe3Apd/Q7z+BTX7dJXWFwLLwgo9Ki\n" \
+        "32kzBP2nF1NU/krtql0AaTep8xN2OVrh+MsqqxbMatStvAvtQJrmb209E23SuAJw\n" \
+        "p/mZ4AECgYEA+Sg+pJEliABBAW8YgRFiz8bAxrL6Mqp2KCjJo4ORW77HKPkLjTBJ\n" \
+        "8WcMeLLdpMkd1SgQcVaKW2rYBBtLPA3vgBEWbwBDhN7vxcpnhacggvPoFHgHp69B\n" \
+        "8hmNjKsy1P4loLoxD8Mhwhxc6gQxnt3LFCERyall+Ewp5qTe2ABQgokCgYEA3I8A\n" \
+        "3gfcEUYjxSEuqeheWd34NQNVLhXbeFK58DE8jkniruO4fevI5JmBw2F7Q2Y15NkH\n" \
+        "8879BZ6eFphLcC3lQ/ZmfY0Ng25/9K4j9iyrMZTWaIONpipFsPQP/u6+NEgRUSp9\n" \
+        "Crz4bkVjeXJiA/NxYAPmZpqZ/Z0nonJ3PdxnNkECgYBEscDbtJ0JazCBCbVS2I1K\n" \
+        "xfyei/gJghADsIMvjvXDuszEUi3KJpcsdIHuwTn01fJgs6Qc64RIAiQ+tZu/mgP/\n" \
+        "ZjauMf9rod+vw8dZBSQklsTU5+cMZ3iiHEN3ljf0m4GaV9txAhbLovBHIRLhPztf\n" \
+        "eGKkHA1eMPmYerpqCWQpKQKBgD0Xm0zk7m8Wd4f99ff4NlI8Kqk8gBag1UbR21EN\n" \
+        "wlFDY/e/efXfHqk7X/cnhEYaBKmb+BjvZ6Rr2Cw4CQVMoSmfEaqLLIgQTn8O0UU6\n" \
+        "AD1elbkjX1P8d4tZPykFJkhDAhDybOpRh5q7u58DMOUZRHks+1/GSQs3wae8fwzy\n" \
+        "hOBBAoGAMzpTqxzpY8BUPSlhm9Iszov4+MyVrPF6jr09KMBqssSRZ5X7aGjGEjH6\n" \
+        "jEBfmzL5A8h1jJNaq//1yYXyGynLTBg9M4hHLIqpIYi2fZA+nZSt/edr0NrdgwY+\n" \
+        "3klo1T5mZiuNNxK6gVmC6pE37xgN0VDpryaMsly68AemeQ60btA=\n" \
+        "-----END RSA PRIVATE KEY-----"*/
+
 /**
  * @brief Name of the provisioning template to use for the RegisterThing
  * portion of the Fleet Provisioning workflow.

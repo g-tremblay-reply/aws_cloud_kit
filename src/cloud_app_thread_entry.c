@@ -51,7 +51,7 @@ extern TaskHandle_t console_thread;
  ***********************************************************************************************************************/
 void cloud_app_thread_entry(void *pvParameters)
 {
-    MQTTContext_t CloudAppMqtt;
+    MQTTContext_t CloudAppMqtt = {0u};
     MQTTStatus_t mqttStatus = MQTTServerRefused;
 
     FSP_PARAMETER_NOT_USED (pvParameters);
@@ -63,27 +63,14 @@ void cloud_app_thread_entry(void *pvParameters)
     /* Try to initialize CloudApp with stored credentials from CLoudProv */
     mqttStatus = CloudProv_Init(&CloudAppMqtt, CloudApp_MqttCallback);
 
-    if(mqttStatus == MQTTIllegalState)
-    {
-        /* MQTT endpoint is unreachable, thus don't try further to provision device */
-        while(1)
-        {
-            APP_WARN_PRINT("MQTT Broker endpoint is not reachable"
-                           "\r\nPlease reset Cloud Kit [ORANGE]while spamming BACKSPACE KEY[YELLOW] "
-                           "to open MENU and try new MQTT Broker endpoint\r\n\r\n");
-            vTaskDelay(10000);
-        }
-    }
-    else if(mqttStatus != MQTTSuccess)
+    if(mqttStatus != MQTTSuccess)
     {
         /* Connection to MQTT was unsuccessful. This might be caused by the certificate chain being invalid,
          * Thus, try to provision device via fleet provisioning */
         mqttStatus = CloudProv_ProvisionDevice(&CloudAppMqtt, CloudApp_MqttCallback);
         if(mqttStatus != MQTTSuccess)
         {
-            /* MQTT endpoint is unreachable, thus don't try further to provision device */
-
-            APP_WARN_PRINT("CloudApp could not authenticate with given credentials."
+            APP_WARN_PRINT("CloudApp could not authenticate with given claim credentials."
                            "\r\nPlease reset Cloud Kit [ORANGE]while spamming BACKSPACE KEY[YELLOW] "
                            "to open MENU and try new credentials\r\n\r\n");
         }

@@ -1,5 +1,5 @@
 /***********************************************************************************************************************
- * File Name    : usr_hal.h
+ * File Name    : led.h
  * Description  : Contains declarations of data structures and functions used in usr_hal.c.
  **********************************************************************************************************************/
 /***********************************************************************************************************************
@@ -68,7 +68,7 @@ typedef enum e_led_state
     LED_OFF = 0, LED_ON = 1,
 } e_led_state_t;
 
-extern bsp_leds_t g_bsp_leds;
+
 
 
 /* Function prototype */
@@ -83,7 +83,7 @@ void led_toggle(e_led_type_t ltype);
 #define NETWORK_CONNECT_INDICATION      (led_on_off(LED_GREEN,LED_ON))
 #define NETWORK_DISCONNECT_INDICATION   (led_on_off(LED_GREEN,LED_OFF))
 #define AWS_CONNECT_INDICATION          (led_on_off(LED_BLUE,LED_ON))
-#define AWS_ACTIVITY_INDICATION         (led_toggle(LED_GREEN))
+#define AWS_ACTIVITY_INDICATION         (led_toggle(LED_BLUE))
 #define NETWORK_ACTIVITY_INDICATION     (led_toggle(LED_GREEN))
 #define MQTT_ACTIVITY_FAILURE           (led_toggle(LED_RED))
 #endif /* USR_HAL_H_ */
