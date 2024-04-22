@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2024-04-22T13:26:52.555Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0" etag="duq-QpAcLUGUtZhMgX2H" version="24.2.7" type="github">
+<mxfile host="app.diagrams.net" modified="2024-04-22T14:07:07.297Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0" etag="ntOe73tqRITIVo2iGqhc" version="24.2.7" type="github">
   <diagram name="Page-1" id="jjlCfXiH39gXJ_QYcnrA">
     <mxGraphModel dx="2035" dy="632" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -19,15 +19,12 @@
         <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-33" value="" style="group" vertex="1" connectable="0" parent="uYZyZ-Wg4NLdsWfBfrxF-32">
           <mxGeometry width="170" height="210" as="geometry" />
         </mxCell>
-        <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-35" value="" style="group" vertex="1" connectable="0" parent="uYZyZ-Wg4NLdsWfBfrxF-33">
-          <mxGeometry width="170" height="210" as="geometry" />
-        </mxCell>
-        <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-23" value="FreeRTOS task" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;gradientColor=#97d077;swimlaneFillColor=#E6FFCC;" vertex="1" parent="uYZyZ-Wg4NLdsWfBfrxF-35">
+        <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-23" value="FreeRTOS task" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;gradientColor=#97d077;swimlaneFillColor=#E6FFCC;" vertex="1" parent="uYZyZ-Wg4NLdsWfBfrxF-33">
           <mxGeometry width="170" height="210" as="geometry">
             <mxRectangle width="120" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-34" value="" style="group" vertex="1" connectable="0" parent="uYZyZ-Wg4NLdsWfBfrxF-35">
+        <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-34" value="" style="group" vertex="1" connectable="0" parent="uYZyZ-Wg4NLdsWfBfrxF-33">
           <mxGeometry x="10" y="30" width="150" height="160" as="geometry" />
         </mxCell>
         <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="uYZyZ-Wg4NLdsWfBfrxF-34" source="uYZyZ-Wg4NLdsWfBfrxF-4" target="uYZyZ-Wg4NLdsWfBfrxF-10">
@@ -119,6 +116,21 @@
         </mxCell>
         <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.833;entryY=0.21;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;targetPerimeterSpacing=6;sourcePerimeterSpacing=5;startSize=9;endSize=10;jumpSize=10;strokeWidth=5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="uYZyZ-Wg4NLdsWfBfrxF-15" target="uYZyZ-Wg4NLdsWfBfrxF-39">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-46" value="&lt;div&gt;CloudProv_Import&amp;lt;credential&amp;gt;()&lt;/div&gt;&lt;div&gt;CloudProv_ForceProvisioning()&lt;br&gt;&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="uYZyZ-Wg4NLdsWfBfrxF-42" target="uYZyZ-Wg4NLdsWfBfrxF-44">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-42" value="Console" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="-180" y="710" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-43" value="CloudApp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="520" y="710" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-44" value="CloudProv" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="160" y="710" width="220" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="uYZyZ-Wg4NLdsWfBfrxF-45" value="&lt;div&gt;Sensor&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="690" y="710" width="120" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
