@@ -60,42 +60,15 @@ void cloud_app_thread_entry(void *pvParameters)
      * come from Console thread that takes user input before starting cloud app */
     xTaskNotifyWait(pdFALSE, pdFALSE, NULL, portMAX_DELAY);
 
-    /* Try to initialize CloudApp with stored credentials from CLoudProv */
+    /* Try to connect to MQTT and provision device if needed */
     mqttStatus = CloudProv_Init(&CloudAppMqtt, CloudApp_MqttCallback);
 
-    if(mqttStatus != MQTTSuccess)
-    {
-        /* Connection to MQTT was unsuccessful. This might be caused by the certificate chain being invalid,
-         * Thus, try to provision device via fleet provisioning */
-        mqttStatus = CloudProv_ProvisionDevice(&CloudAppMqtt, CloudApp_MqttCallback);
-        if(mqttStatus != MQTTSuccess)
-        {
-            APP_WARN_PRINT("CloudApp could not authenticate with given claim credentials."
-                           "\r\nPlease reset Cloud Kit [ORANGE]while spamming BACKSPACE KEY[YELLOW] "
-                           "to open MENU and try new credentials\r\n\r\n");
-        }
-    }
-
     if(mqttStatus == MQTTSuccess)
     {
-        mqttStatus = CloudApp_SubscribeTopics(&CloudAppMqtt);
-    }
-
-    if(mqttStatus == MQTTSuccess)
-    {
-        APP_PRINT(("Device is ready for Receiving/Publishing messages from AWS Iot \r\n\r\n"));
-    }
-    else
-    {
-        APP_WARN_PRINT(("Device is not connected to AWS IoT server, but will still print sensor reading" \
-        " on Console. \r\n\r\n"));
+         CloudApp_Init(&CloudAppMqtt);
     }
 
     xTaskNotifyFromISR(sensor_thread, 1, 1, NULL);
-
-    /* Start updating cyclic request to publish sensor data
-     * Those requests are processed in CloudApp_MainFunction() */
-    CloudApp_EnableDataPushTimer();
 
     while (1)
     {

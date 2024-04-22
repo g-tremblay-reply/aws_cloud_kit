@@ -172,6 +172,8 @@ static void CloudApp_OB1203Callback( MQTTContext_t * pContext, MQTTPublishInfo_t
 static void CloudApp_BulkDataCallback( MQTTContext_t * pContext, MQTTPublishInfo_t * pPublishInfo );
 static void CloudApp_TempLedCallback( MQTTContext_t * pContext, MQTTPublishInfo_t * pPublishInfo );
 static void CloudApp_Spo2LedCallback( MQTTContext_t * pContext, MQTTPublishInfo_t * pPublishInfo );
+static void CloudApp_EnableDataPushTimer(void);
+static MQTTStatus_t CloudApp_SubscribeTopics(MQTTContext_t *mqttContext);
 
 /**********************************************************************************************************************
                                     LOCAL FUNCTIONS
@@ -301,233 +303,6 @@ static void CloudApp_BulkDataCallback(MQTTContext_t * pContext, MQTTPublishInfo_
     CloudAppDataRequest = CLOUD_APP_BULK_SENS_DATA;
 }
 
-
-/**********************************************************************************************************************
-                                    GLOBAL FUNCTION PROTOTYPES
-**********************************************************************************************************************/
-
-void CloudApp_EnableDataPushTimer(void)
-{
-    g_timer1.p_api->open (g_timer1.p_ctrl, g_timer1.p_cfg);
-    g_timer1.p_api->enable (g_timer1.p_ctrl);
-    g_timer1.p_api->start (g_timer1.p_ctrl);
-}
-
-void CloudApp_MqttCallback( MQTTContext_t * pMqttContext,
-                                MQTTPacketInfo_t * pPacketInfo,
-                                MQTTDeserializedInfo_t * pDeserializedInfo )
-{
-    MQTTStatus_t xResult = MQTTSuccess;
-    uint8_t * pucPayload = NULL;
-    size_t xSize = 0;
-
-    configASSERT( pMqttContext != NULL );
-    configASSERT( pPacketInfo != NULL );
-    configASSERT( pDeserializedInfo != NULL );
-
-    /* Indicate on Cloud Kit some MQTT activity by toggling blue led*/
-    AWS_ACTIVITY_INDICATION;
-
-    /* Handle incoming publish. The lower 4 bits of the publish packet
-     * type is used for the dup, QoS, and retain flags. Hence masking
-     * out the lower bits to check if the packet is publish. */
-    if( ( pPacketInfo->type & 0xF0U ) == MQTT_PACKET_TYPE_PUBLISH )
-    {
-        configASSERT( pDeserializedInfo->pPublishInfo != NULL );
-        /* Handle incoming publish. */
-        SubscriptionManager_DispatchHandler( pMqttContext, pDeserializedInfo->pPublishInfo );
-    }
-    else
-    {
-        /* Handle other packets. */
-        switch( pPacketInfo->type )
-        {
-            case MQTT_PACKET_TYPE_SUBACK:
-                APP_INFO_PRINT("MQTT_PACKET_TYPE_SUBACK\r\n");
-                CLoudAppSubAckReceived ++;
-                /* A SUBACK from the broker, containing the server response to our subscription request, has been received.
-                 * It contains the status code indicating server approval/rejection for the subscription to the single topic
-                 * requested. The SUBACK will be parsed to obtain the status code, and this status code will be stored in global
-                 * variable #xTopicFilterContext. */
-                xResult = MQTT_GetSubAckStatusCodes( pPacketInfo, &pucPayload, &xSize );
-
-                /* Only a single topic filter is expected for each SUBSCRIBE packet. */
-                //configASSERT( xSize == 1UL ); TODO figure out what this byte is. Maybe topic count in sub request?
-                uint8_t subackSts;
-                subackSts = *pucPayload;
-
-                if( subackSts != MQTTSubAckFailure )
-                {
-                    APP_INFO_PRINT("Subscribed to the topic %s with maximum QoS %u.\r\n",
-                               pDeserializedInfo->pPublishInfo->pTopicName,
-                               subackSts);
-                    APP_INFO_PRINT("ACK packet identifier %d.\r\n", pDeserializedInfo->packetIdentifier);
-                }
-                break;
-
-            case MQTT_PACKET_TYPE_UNSUBACK:
-                APP_INFO_PRINT("MQTT_PACKET_TYPE_UNSUBACK\r\n" );
-                break;
-
-            case MQTT_PACKET_TYPE_PINGRESP:
-                /* Nothing to be done from application as library handles
-                 * PINGRESP. */
-                APP_WARN_PRINT("PINGRESP should not be handled by the application "
-                           "callback when using MQTT_ProcessLoop.\r\n" );
-                break;
-
-            case MQTT_PACKET_TYPE_PUBACK:
-                APP_INFO_PRINT("PUBACK received for packet id %u.\r\n", pDeserializedInfo->packetIdentifier);
-                break;
-
-            default:
-                /* Any other packet type is invalid. */
-                APP_ERR_PRINT("Unknown packet type received:(%02x).\r\n", pPacketInfo->type);
-        }
-    }
-    AWS_ACTIVITY_INDICATION;
-}
-
-MQTTStatus_t CloudApp_SubscribeTopics(MQTTContext_t *mqttContext)
-{
-    SubscriptionManagerStatus_t managerStatus = 0u;
-    MQTTStatus_t mqttStatus = MQTTBadParameter;
-    MQTTSubscribeInfo_t subscriptionList[ CLOUD_APP_SUB_TOPIC_COUNT ] = {0u};
-    uint16_t topicNameLength;
-    const char *topicsName[CLOUD_APP_SUB_TOPIC_COUNT] =
-            {
-                    "aws/topic/get_iaq_sensor_data",
-                    "aws/topic/get_oaq_sensor_data",
-                    "aws/topic/get_hs3001_sensor_data",
-                    "aws/topic/get_icm_sensor_data",
-                    "aws/topic/get_icp_sensor_data",
-                    "aws/topic/get_ob1203_sensor_data",
-                    "aws/topic/get_bulk_sensor_data",
-                    "aws/topic/set_temperature_led_data",
-                    "aws/topic/set_spo2_led_data",
-            };
-    SubscriptionManagerCallback_t callbacks[CLOUD_APP_SUB_TOPIC_COUNT] =
-            {
-                    CloudApp_IAQCallback,
-                    CloudApp_OAQCallback,
-                    CloudApp_HS3001Callback,
-                    CloudApp_ICMCallback,
-                    CloudApp_ICPCallback,
-                    CloudApp_OB1203Callback,
-                    CloudApp_BulkDataCallback,
-                    CloudApp_TempLedCallback,
-                    CloudApp_Spo2LedCallback
-            };
-
-
-    /* Register topicsName and their callback with subscription manager.
-     * On an incoming PUBLISH message whose topic name that matches the topic filter
-     * being registered, its callback will be invoked. */
-    for(uint8_t topic=0u; topic<CLOUD_APP_SUB_TOPIC_COUNT; topic++)
-    {
-        topicNameLength = strlen(topicsName[topic]);
-        managerStatus |= SubscriptionManager_RegisterCallback(topicsName[topic],
-                                                              topicNameLength,
-                                                              callbacks[topic] );
-        /* Populate subscription list with topic info */
-        subscriptionList[topic].pTopicFilter = topicsName[topic];
-        subscriptionList[topic].topicFilterLength = topicNameLength;
-        subscriptionList[topic].qos = MQTTQoS1;
-    }
-
-    /* Indicate start of interaction with MQTT. This sets the led to OFF, and sybsequent MQTT
-     * receive callbacks/publishes will toggle it further */
-    AWS_ACTIVITY_INDICATION;
-
-    if( managerStatus == SUBSCRIPTION_MANAGER_SUCCESS )
-    {
-        APP_INFO_PRINT("Correctly registered callbacks to CloudApp topics.\r\n");
-
-        /* Send subscribe packts in 2 separate messages because AWS server does not accept all
-         * topics in one message */
-        mqttStatus = MQTT_Subscribe(mqttContext,
-                                    subscriptionList,
-                                    5u,
-                                    MQTT_GetPacketId( mqttContext ) );
-        if(mqttStatus != MQTTSuccess )
-        {
-            APP_WARN_PRINT( ( "Failed to send SUBSCRIBE packet to broker with error = %s.\r\n"),
-                            MQTT_Status_strerror(mqttStatus) );
-        }
-        mqttStatus = MQTT_Subscribe(mqttContext,
-                                    &subscriptionList[5],
-                                    4u,
-                                    MQTT_GetPacketId( mqttContext ) );
-        if(mqttStatus != MQTTSuccess )
-        {
-            APP_WARN_PRINT( ( "Failed to send SUBSCRIBE packet to broker with error = %s.\r\n"),
-                            MQTT_Status_strerror(mqttStatus) );
-        }
-    }
-
-    if(mqttStatus == MQTTSuccess )
-    {
-        uint16_t timeMs = 0u;
-        /* Check until 2 SUBACK packets are received  */
-        while((timeMs <= 5000u) && (CLoudAppSubAckReceived <= 2))
-        {
-            mqttStatus = MQTT_ProcessLoop( mqttContext);
-            timeMs += 1000u;
-            vTaskDelay(pdMS_TO_TICKS(1000u));
-        }
-        if(CLoudAppSubAckReceived < 2u)
-        {
-            APP_WARN_PRINT( ( "Failed to receive SUBACK packets from broker with error = %s.\r\n"),
-                            MQTT_Status_strerror(mqttStatus) );
-        }
-    }
-    return mqttStatus;
-}
-
-void CloudApp_PeriodicDataPush(timer_callback_args_t *p_args)
-{
-    (void) (p_args);
-    static uint16_t secondsElapsed = 0;
-    static CloudApp_SensorData_t lastDataPushed = CLOUD_APP_IAQ_DATA;
-
-    secondsElapsed++;
-    /* Check if cloud app data push period is  */
-    if (secondsElapsed >= CLOUD_APP_PUSH_DATA_PERIOD_SEC)
-    {
-        /* Fill latest sensor data into structure */
-        switch(lastDataPushed)
-        {
-            case CLOUD_APP_IAQ_DATA:
-                lastDataPushed = CLOUD_APP_OAQ_DATA;
-                break;
-            case CLOUD_APP_OAQ_DATA:
-                lastDataPushed = CLOUD_APP_HS3001_DATA;
-                break;
-            case CLOUD_APP_HS3001_DATA:
-                lastDataPushed = CLOUD_APP_ICM_DATA;
-                break;
-            case CLOUD_APP_ICM_DATA:
-                lastDataPushed = CLOUD_APP_ICP_DATA;
-                break;
-            case CLOUD_APP_ICP_DATA:
-                lastDataPushed = CLOUD_APP_OB1203_DATA;
-                break;
-            case CLOUD_APP_OB1203_DATA:
-                lastDataPushed = CLOUD_APP_IAQ_DATA;
-                break;
-            default:
-                /* If this state is reached, this cloudkit is cursed */
-                break;
-        }
-
-        /* Update request to push data. CloudApp_MainFunction will process this request */
-        CloudAppDataPush = lastDataPushed;
-        /* reset timer */
-        secondsElapsed = 0u;
-    }
-
-}
-
 static void CloudApp_PublishSensorData(MQTTContext_t *mqttContext, CloudApp_SensorData_t sensorData)
 {
     MQTTStatus_t mqttStatus;
@@ -655,27 +430,27 @@ static void CloudApp_PublishSensorData(MQTTContext_t *mqttContext, CloudApp_Sens
             pubInfo.payloadLength = snprintf (CloudAppPayloadBuffer,
                                               sizeof(CloudAppPayloadBuffer),
                                               CLOUD_APP_PAYLOAD_FORMAT_BULK_JSON,
-                                                (double)iaqData.tvoc,
-                                                (double)iaqData.etoh,
-                                                (double)iaqData.eco2,
-                                                (double)oaqData,
-                                                (double)humidity,
-                                                (double)tempHs3001,
-                                                acc.x,
-                                                acc.y,
-                                                acc.z,
-                                                magnitude.x,
-                                                magnitude.y,
-                                                magnitude.z,
-                                                gyr.x,
-                                                gyr.y,
-                                                gyr.z,
-                                                (double)tempIcp,
-                                                (double)pressure,
-                                                (double)ob1203data.spo2,
-                                                (double)ob1203data.heart_rate,
-                                                (double)ob1203data.respiration_rate,
-                                                (double)ob1203data.perfusion_index);
+                                              (double)iaqData.tvoc,
+                                              (double)iaqData.etoh,
+                                              (double)iaqData.eco2,
+                                              (double)oaqData,
+                                              (double)humidity,
+                                              (double)tempHs3001,
+                                              acc.x,
+                                              acc.y,
+                                              acc.z,
+                                              magnitude.x,
+                                              magnitude.y,
+                                              magnitude.z,
+                                              gyr.x,
+                                              gyr.y,
+                                              gyr.z,
+                                              (double)tempIcp,
+                                              (double)pressure,
+                                              (double)ob1203data.spo2,
+                                              (double)ob1203data.heart_rate,
+                                              (double)ob1203data.respiration_rate,
+                                              (double)ob1203data.perfusion_index);
             break;
         }
 
@@ -707,9 +482,256 @@ static void CloudApp_PublishSensorData(MQTTContext_t *mqttContext, CloudApp_Sens
 
 
     APP_INFO_PRINT(("Published CloudApp sensor data %.*s\r\n"),
-                       pubInfo.payloadLength,
-                       pubInfo.pPayload);
+                   pubInfo.payloadLength,
+                   pubInfo.pPayload);
 
+}
+
+static MQTTStatus_t CloudApp_SubscribeTopics(MQTTContext_t *mqttContext)
+{
+    SubscriptionManagerStatus_t managerStatus = 0u;
+    MQTTStatus_t mqttStatus = MQTTBadParameter;
+    MQTTSubscribeInfo_t subscriptionList[ CLOUD_APP_SUB_TOPIC_COUNT ] = {0u};
+    uint16_t topicNameLength;
+    const char *topicsName[CLOUD_APP_SUB_TOPIC_COUNT] =
+            {
+                    "aws/topic/get_iaq_sensor_data",
+                    "aws/topic/get_oaq_sensor_data",
+                    "aws/topic/get_hs3001_sensor_data",
+                    "aws/topic/get_icm_sensor_data",
+                    "aws/topic/get_icp_sensor_data",
+                    "aws/topic/get_ob1203_sensor_data",
+                    "aws/topic/get_bulk_sensor_data",
+                    "aws/topic/set_temperature_led_data",
+                    "aws/topic/set_spo2_led_data",
+            };
+    SubscriptionManagerCallback_t callbacks[CLOUD_APP_SUB_TOPIC_COUNT] =
+            {
+                    CloudApp_IAQCallback,
+                    CloudApp_OAQCallback,
+                    CloudApp_HS3001Callback,
+                    CloudApp_ICMCallback,
+                    CloudApp_ICPCallback,
+                    CloudApp_OB1203Callback,
+                    CloudApp_BulkDataCallback,
+                    CloudApp_TempLedCallback,
+                    CloudApp_Spo2LedCallback
+            };
+
+
+    /* Register topicsName and their callback with subscription manager.
+     * On an incoming PUBLISH message whose topic name that matches the topic filter
+     * being registered, its callback will be invoked. */
+    for(uint8_t topic=0u; topic<CLOUD_APP_SUB_TOPIC_COUNT; topic++)
+    {
+        topicNameLength = strlen(topicsName[topic]);
+        managerStatus |= SubscriptionManager_RegisterCallback(topicsName[topic],
+                                                              topicNameLength,
+                                                              callbacks[topic] );
+        /* Populate subscription list with topic info */
+        subscriptionList[topic].pTopicFilter = topicsName[topic];
+        subscriptionList[topic].topicFilterLength = topicNameLength;
+        subscriptionList[topic].qos = MQTTQoS1;
+    }
+
+    /* Indicate start of interaction with MQTT. This sets the led to OFF, and sybsequent MQTT
+     * receive callbacks/publishes will toggle it further */
+    AWS_ACTIVITY_INDICATION;
+
+    if( managerStatus == SUBSCRIPTION_MANAGER_SUCCESS )
+    {
+        APP_INFO_PRINT("Correctly registered callbacks to CloudApp topics.\r\n");
+
+        /* Send subscribe packts in 2 separate messages because AWS server does not accept all
+         * topics in one message */
+        mqttStatus = MQTT_Subscribe(mqttContext,
+                                    subscriptionList,
+                                    5u,
+                                    MQTT_GetPacketId( mqttContext ) );
+        if(mqttStatus != MQTTSuccess )
+        {
+            APP_WARN_PRINT( ( "Failed to send SUBSCRIBE packet to broker with error = %s.\r\n"),
+                            MQTT_Status_strerror(mqttStatus) );
+        }
+        mqttStatus = MQTT_Subscribe(mqttContext,
+                                    &subscriptionList[5],
+                                    4u,
+                                    MQTT_GetPacketId( mqttContext ) );
+        if(mqttStatus != MQTTSuccess )
+        {
+            APP_WARN_PRINT( ( "Failed to send SUBSCRIBE packet to broker with error = %s.\r\n"),
+                            MQTT_Status_strerror(mqttStatus) );
+        }
+    }
+
+    if(mqttStatus == MQTTSuccess )
+    {
+        uint16_t timeMs = 0u;
+        /* Check until 2 SUBACK packets are received  */
+        while((timeMs <= 5000u) && (CLoudAppSubAckReceived <= 2))
+        {
+            mqttStatus = MQTT_ProcessLoop( mqttContext);
+            timeMs += 1000u;
+            vTaskDelay(pdMS_TO_TICKS(1000u));
+        }
+        if(CLoudAppSubAckReceived < 2u)
+        {
+            APP_WARN_PRINT( ( "Failed to receive SUBACK packets from broker with error = %s.\r\n"),
+                            MQTT_Status_strerror(mqttStatus) );
+        }
+    }
+    return mqttStatus;
+}
+
+static void CloudApp_EnableDataPushTimer(void)
+{
+    g_timer1.p_api->open (g_timer1.p_ctrl, g_timer1.p_cfg);
+    g_timer1.p_api->enable (g_timer1.p_ctrl);
+    g_timer1.p_api->start (g_timer1.p_ctrl);
+}
+
+/**********************************************************************************************************************
+                                    GLOBAL FUNCTION PROTOTYPES
+**********************************************************************************************************************/
+
+void CloudApp_MqttCallback( MQTTContext_t * pMqttContext,
+                                MQTTPacketInfo_t * pPacketInfo,
+                                MQTTDeserializedInfo_t * pDeserializedInfo )
+{
+    MQTTStatus_t xResult = MQTTSuccess;
+    uint8_t * pucPayload = NULL;
+    size_t xSize = 0;
+
+    configASSERT( pMqttContext != NULL );
+    configASSERT( pPacketInfo != NULL );
+    configASSERT( pDeserializedInfo != NULL );
+
+    /* Indicate on Cloud Kit some MQTT activity by toggling blue led*/
+    AWS_ACTIVITY_INDICATION;
+
+    /* Handle incoming publish. The lower 4 bits of the publish packet
+     * type is used for the dup, QoS, and retain flags. Hence masking
+     * out the lower bits to check if the packet is publish. */
+    if( ( pPacketInfo->type & 0xF0U ) == MQTT_PACKET_TYPE_PUBLISH )
+    {
+        configASSERT( pDeserializedInfo->pPublishInfo != NULL );
+        /* Handle incoming publish. */
+        SubscriptionManager_DispatchHandler( pMqttContext, pDeserializedInfo->pPublishInfo );
+    }
+    else
+    {
+        /* Handle other packets. */
+        switch( pPacketInfo->type )
+        {
+            case MQTT_PACKET_TYPE_SUBACK:
+                APP_INFO_PRINT("MQTT_PACKET_TYPE_SUBACK\r\n");
+                CLoudAppSubAckReceived ++;
+                /* A SUBACK from the broker, containing the server response to our subscription request, has been received.
+                 * It contains the status code indicating server approval/rejection for the subscription to the single topic
+                 * requested. The SUBACK will be parsed to obtain the status code, and this status code will be stored in global
+                 * variable #xTopicFilterContext. */
+                xResult = MQTT_GetSubAckStatusCodes( pPacketInfo, &pucPayload, &xSize );
+
+                /* Only a single topic filter is expected for each SUBSCRIBE packet. */
+                //configASSERT( xSize == 1UL ); TODO figure out what this byte is. Maybe topic count in sub request?
+                uint8_t subackSts;
+                subackSts = *pucPayload;
+
+                if( subackSts != MQTTSubAckFailure )
+                {
+                    APP_INFO_PRINT("Subscribed to the topic %s with maximum QoS %u.\r\n",
+                               pDeserializedInfo->pPublishInfo->pTopicName,
+                               subackSts);
+                    APP_INFO_PRINT("ACK packet identifier %d.\r\n", pDeserializedInfo->packetIdentifier);
+                }
+                break;
+
+            case MQTT_PACKET_TYPE_UNSUBACK:
+                APP_INFO_PRINT("MQTT_PACKET_TYPE_UNSUBACK\r\n" );
+                break;
+
+            case MQTT_PACKET_TYPE_PINGRESP:
+                /* Nothing to be done from application as library handles
+                 * PINGRESP. */
+                APP_WARN_PRINT("PINGRESP should not be handled by the application "
+                           "callback when using MQTT_ProcessLoop.\r\n" );
+                break;
+
+            case MQTT_PACKET_TYPE_PUBACK:
+                APP_INFO_PRINT("PUBACK received for packet id %u.\r\n", pDeserializedInfo->packetIdentifier);
+                break;
+
+            default:
+                /* Any other packet type is invalid. */
+                APP_ERR_PRINT("Unknown packet type received:(%02x).\r\n", pPacketInfo->type);
+        }
+    }
+    AWS_ACTIVITY_INDICATION;
+}
+
+void CloudApp_PeriodicDataPush(timer_callback_args_t *p_args)
+{
+    (void) (p_args);
+    static uint16_t secondsElapsed = 0;
+    static CloudApp_SensorData_t lastDataPushed = CLOUD_APP_IAQ_DATA;
+
+    secondsElapsed++;
+    /* Check if cloud app data push period is  */
+    if (secondsElapsed >= CLOUD_APP_PUSH_DATA_PERIOD_SEC)
+    {
+        /* Fill latest sensor data into structure */
+        switch(lastDataPushed)
+        {
+            case CLOUD_APP_IAQ_DATA:
+                lastDataPushed = CLOUD_APP_OAQ_DATA;
+                break;
+            case CLOUD_APP_OAQ_DATA:
+                lastDataPushed = CLOUD_APP_HS3001_DATA;
+                break;
+            case CLOUD_APP_HS3001_DATA:
+                lastDataPushed = CLOUD_APP_ICM_DATA;
+                break;
+            case CLOUD_APP_ICM_DATA:
+                lastDataPushed = CLOUD_APP_ICP_DATA;
+                break;
+            case CLOUD_APP_ICP_DATA:
+                lastDataPushed = CLOUD_APP_OB1203_DATA;
+                break;
+            case CLOUD_APP_OB1203_DATA:
+                lastDataPushed = CLOUD_APP_IAQ_DATA;
+                break;
+            default:
+                /* If this state is reached, this cloudkit is cursed */
+                break;
+        }
+
+        /* Update request to push data. CloudApp_MainFunction will process this request */
+        CloudAppDataPush = lastDataPushed;
+        /* reset timer */
+        secondsElapsed = 0u;
+    }
+
+}
+
+void CloudApp_Init(MQTTContext_t *mqttContext)
+{
+    MQTTStatus_t mqttStatus;
+
+    /* Subscribe to topics on which AWS IoT core will publish */
+    mqttStatus = CloudApp_SubscribeTopics(mqttContext);
+
+    if(mqttStatus == MQTTSuccess)
+    {
+        APP_PRINT(("Device is ready for Receiving/Publishing messages from AWS Iot \r\n\r\n"));
+    }
+    else
+    {
+        APP_WARN_PRINT(("Device is not connected to AWS IoT server, but will still print sensor reading" \
+        " on Console. \r\n\r\n"));
+    }
+
+    /* Enable periodic timer to publish sensor data */
+    CloudApp_EnableDataPushTimer();
 }
 
 void CloudApp_MainFunction(MQTTContext_t *mqttContext)

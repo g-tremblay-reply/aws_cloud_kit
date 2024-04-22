@@ -946,14 +946,7 @@ MQTTStatus_t CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t app
         FreeRTOS_inet_ntoa(ipAddress, ( char * ) cBuffer);
         APP_PRINT("\r\nDNS Lookup for \"%s\" is      : %s  \r\n", CloudProvMqttEndpoint, cBuffer);
 
-        if(CLoudProvForceProvisioning == true)
-        {
-            /* Force Provisioning of device, thus do not attempt to connect MQTT with credentials
-             * stored in corePKCS11 and return error status so that caller knows there's no
-             * successful connection with MQTT */
-            mqttStatus = MQTTBadParameter;
-        }
-        else
+        if(CLoudProvForceProvisioning == false)
         {
             /* Assume the device is provisioned already and try to connect to MQTT with MQTT Broker
              * endpoint + Device credentials stored in corePKCS11. If connection fails, because credentials
@@ -962,6 +955,25 @@ MQTTStatus_t CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t app
             APP_INFO_PRINT( ( "Assuming Cloud Kit is already provisioned, trying to connect to "
                               "MQTT broker with device credentials... \r\n") );
             mqttStatus = CloudProv_ConnectMQTT(mqttContext, appMqttCallback);
+        }
+        else
+        {
+            /* Force Provisioning of device, thus do not attempt to connect MQTT with credentials
+             * stored in corePKCS11. */
+            mqttStatus = MQTTBadParameter;
+        }
+
+        if(mqttStatus != MQTTSuccess)
+        {
+            /* Connection to MQTT was unsuccessful. This might be caused by the certificate chain being invalid,
+             * Thus, try to provision device via fleet provisioning */
+            mqttStatus = CloudProv_ProvisionDevice(mqttContext, appMqttCallback);
+            if(mqttStatus != MQTTSuccess)
+            {
+                APP_WARN_PRINT("CloudApp could not authenticate with given claim credentials."
+                               "\r\nPlease reset Cloud Kit [ORANGE]while spamming BACKSPACE KEY[YELLOW] "
+                               "to open MENU and try new credentials\r\n\r\n");
+            }
         }
     }
 

@@ -25,14 +25,11 @@ typedef enum
     CLOUD_APP_BULK_SENS_DATA =  (uint8_t)7u,
 }CloudApp_SensorData_t;
 
-MQTTStatus_t CloudApp_SubscribeTopics(MQTTContext_t *mqttContext);
+void CloudApp_Init(MQTTContext_t *mqttContext);
 
 void CloudApp_MqttCallback( MQTTContext_t * pMqttContext,
                             MQTTPacketInfo_t * pPacketInfo,
                             MQTTDeserializedInfo_t * pDeserializedInfo );
-
-void CloudApp_EnableDataPushTimer(void);
-
 void CloudApp_MainFunction(MQTTContext_t *mqttContext);
 
 
