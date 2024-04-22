@@ -61,6 +61,7 @@ typedef struct
 
 static char Console_WaitForKeypress(void);
 static void Console_HelpMenu (int8_t selectedMenu);
+static void Console_ForceDeviceProvisioning(int8_t selectedMenu);
 static void Console_DefaultClaimCredMenu (int8_t selectedMenu);
 static void Console_StartAppMenu(int8_t selectedMenu);
 static void Console_FlashInfoMenu(int8_t selectedMenu);
@@ -87,15 +88,15 @@ static bsp_unique_id_t const *ConsoleDeviceUUID;
 /* Table of main menu functions */
 static ConsoleMenu_t ConsoleMainMenus[] =
         {
-                {"Start Application"             , Console_StartAppMenu},
-                {"Write MQTT Broker end point"   , Console_FlashWriteEndPointMenu},
-                {"Write Claim Certificate"             , Console_FlashWriteCertMenu},
-                {"Write RSA Claim Private Key"             , Console_FlashWriteKeyMeu},
-                {"Write IOT Thing name"          , Console_FlashWriteIotNameMenu},
-                {"Check stored credentials"      ,Console_FlashCheckCredentialsMenu },
-                {"Data Flash Info"               , Console_FlashInfoMenu},
-                {"Use default Claim Credentials" , Console_DefaultClaimCredMenu},
-                {"Help"                          , Console_HelpMenu},
+                {"Start Application"            ,Console_StartAppMenu},
+                {"Write MQTT Broker end point"  ,Console_FlashWriteEndPointMenu},
+                {"Write Claim Certificate"      ,Console_FlashWriteCertMenu},
+                {"Write RSA Claim Private Key"  ,Console_FlashWriteKeyMeu},
+                {"Write IOT Thing name"         ,Console_FlashWriteIotNameMenu},
+                {"Check stored credentials"     ,Console_FlashCheckCredentialsMenu },
+                {"Data Flash Info"              ,Console_FlashInfoMenu},
+                {"Use default Claim Credentials",Console_DefaultClaimCredMenu},
+                {"Help"                         ,Console_HelpMenu},
                 {"", NULL }
         };
 
@@ -252,7 +253,8 @@ static void Console_DefaultClaimCredMenu(int8_t selectedMenu)
     int8_t key_pressed = -1;
 
     Console_ResetClaimCredentials();
-    Console_ColorPrintf("[GREEN]\r\nClaim Credentials erased from flash. Default ones will be used.\r\n"
+    Console_ColorPrintf("[GREEN]\r\nClaim Credentials erased from flash. Default ones will be used "
+                        "if device is not provisioned.\r\n"
                         "\r\n[YELLOW]Please Restart CloudKit...\r\n");
     while ((CONSOLE_MENU_EXIT_KEY != key_pressed) && (CONSOLE_CONNECTION_ABORT != key_pressed))
     {
@@ -260,6 +262,12 @@ static void Console_DefaultClaimCredMenu(int8_t selectedMenu)
          * ask user to restart app */
         vTaskDelay (5000);
     }
+}
+
+static void Console_ForceDeviceProvisioning(int8_t selectedMenu)
+{
+    CloudProv_ForceProvisioning();
+    Console_ColorPrintf("[PINK]\r\nCheat Code Activated. Forcing device provisioning\r\n");
 }
 
 
@@ -613,6 +621,7 @@ void Console_Init(void)
 void Console_DisplayMenu(void)
 {
     int8_t key_pressed = -1;
+    int8_t num_key_pressed;
     int8_t menuItemCount = 0;
     char consoleBanner[1024u];
     uint8_t rx_buf = 0;
@@ -679,13 +688,18 @@ void Console_DisplayMenu(void)
         key_pressed = Console_WaitForKeypress();
 
         /* Translate menu number from ascii to int */
-        key_pressed = (int8_t) (key_pressed - '0');
+        num_key_pressed = (int8_t) (key_pressed - '0');
 
-        if ((key_pressed > 0) && (key_pressed <= menuItemCount))
+        if ((num_key_pressed > 0) && (num_key_pressed <= menuItemCount))
         {
             optionValid = true;
             Console_ColorPrintf(consoleBanner);
-            ConsoleMainMenus[key_pressed - 1].displayMenu(key_pressed);
+            ConsoleMainMenus[num_key_pressed - 1].displayMenu(num_key_pressed);
+        }
+        else if(key_pressed == 'f')
+        {
+            Console_ForceDeviceProvisioning(0u);
+            optionValid = true;
         }
         else
         {

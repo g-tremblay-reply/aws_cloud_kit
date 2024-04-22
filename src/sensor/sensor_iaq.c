@@ -35,8 +35,8 @@ typedef enum
 } Sensor_IaqState_t;
 
 
-static rm_zmod4xxx_raw_data_t SensorIaqRawData;
-static rm_zmod4xxx_iaq_1st_data_t SensorIaqData;
+static rm_zmod4xxx_raw_data_t SensorIaqRawData = {0};
+static rm_zmod4xxx_iaq_1st_data_t SensorIaqData = {0};
 static Sensor_IaqState_t SensorIaqMeasurementState = SENSOR_IAQ_START_MEASUREMENT;
 
 void SensorIaq_Init(void)
@@ -81,12 +81,11 @@ void SensorIaq_CommCallback(rm_zmod4xxx_callback_args_t *p_args)
             }
             else
             {
-                /* Underlying driver error, retry sendding frame to read result */
+                /* Underlying driver error, retry sending frame to read result */
                 SensorIaqMeasurementState = SENSOR_IAQ_READ_RESULT;
             }
             break;
         default:
-            //TODO log dev error
             break;
     }
 }
@@ -95,10 +94,15 @@ void SensorIaq_EndOfMeasurement(rm_zmod4xxx_callback_args_t *p_args)
 {
     FSP_PARAMETER_NOT_USED(p_args);
 
+    /* Got notification of end of measurement. Start reading result at next state machine execution */
     if(SensorIaqMeasurementState == SENSOR_IAQ_WAIT_END_OF_MEASUREMENT)
     {
-        /* Got notification of end of measurement. On next MainFunction iteration, try reading results */
         SensorIaqMeasurementState = SENSOR_IAQ_READ_RESULT;
+    }
+    else
+    {
+        /* Unexpected state, restart sensor measurement to have a known state */
+        SensorIaqMeasurementState = SENSOR_IAQ_START_MEASUREMENT;
     }
 }
 
@@ -124,24 +128,31 @@ void SensorIaq_MainFunction(void)
         }
         case SENSOR_IAQ_READ_RESULT:
         {
-            /* Read data */
+            /* If End Of Measurement interrupt happened, read result data */
             err = g_zmod4xxx_sensor0.p_api->read (g_zmod4xxx_sensor0.p_ctrl, &SensorIaqRawData);
             if (FSP_SUCCESS == err)
             {
                 SensorIaqMeasurementState = SENSOR_IAQ_WAIT_READ_RESULT_NOTIF;
             }
+            else if(err == FSP_ERR_SENSOR_MEASUREMENT_NOT_FINISHED)
+            {
+                APP_ERR_TRAP((69u));
+            }
             break;
         }
         case SENSOR_IAQ_CALCULATE_DATA:
         {
-            /* Calculate data. Disable interrupts to update data in case context switch happens and public api
-             * GetData is called to access the SensorIaqData */
-            portENTER_CRITICAL();
+            rm_zmod4xxx_iaq_1st_data_t iaqData = {0u};
+            /* Calculate data. */
             g_zmod4xxx_sensor0.p_api->iaq1stGenDataCalculate(g_zmod4xxx_sensor0.p_ctrl,
                                                              &SensorIaqRawData,
-                                                             &SensorIaqData);
+                                                             &iaqData );
+            portENTER_CRITICAL();
+            /* Disable interrupts in case context switch happens and public api
+             * GetData is called to access the SensorIaqData */
+            SensorIaqData = iaqData;
             portEXIT_CRITICAL();
-            SensorIaqMeasurementState = SENSOR_IAQ_START_MEASUREMENT;
+            SensorIaqMeasurementState = SENSOR_IAQ_WAIT_END_OF_MEASUREMENT;
             break;
         }
         default:

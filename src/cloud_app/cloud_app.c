@@ -517,7 +517,6 @@ void CloudApp_PeriodicDataPush(timer_callback_args_t *p_args)
                 break;
             default:
                 /* If this state is reached, this cloudkit is cursed */
-            	lastDataPushed = CLOUD_APP_IAQ_DATA;
                 break;
         }
 
@@ -582,12 +581,12 @@ static void CloudApp_PublishSensorData(MQTTContext_t *mqttContext, CloudApp_Sens
                                               (double)temperature);
             break;
         }
-        case CLOUD_APP_ICM_DATA:
+        case  CLOUD_APP_ICP_DATA:
         {
             float_t temperature, pressure;
             SensorIcp10101_GetData(&temperature, &pressure);
-            pubInfo.pTopicName = CloudAppPubTopicsNames[3u];
-            pubInfo.topicNameLength = strlen(CloudAppPubTopicsNames[3u]);
+            pubInfo.pTopicName = CloudAppPubTopicsNames[4u];
+            pubInfo.topicNameLength = strlen(CloudAppPubTopicsNames[4u]);
             /* Populate payload buffer and paayload length according to data format */
             pubInfo.payloadLength = snprintf (CloudAppPayloadBuffer,
                                               sizeof(CloudAppPayloadBuffer),
@@ -596,12 +595,12 @@ static void CloudApp_PublishSensorData(MQTTContext_t *mqttContext, CloudApp_Sens
                                               (double)pressure);
             break;
         }
-        case CLOUD_APP_ICP_DATA:
+        case CLOUD_APP_ICM_DATA:
         {
             xyzFloat acc, gyr, magnitude;
             SensorIcm20948_GetData(&acc, &gyr, &magnitude);
-            pubInfo.pTopicName = CloudAppPubTopicsNames[4u];
-            pubInfo.topicNameLength = strlen(CloudAppPubTopicsNames[4u]);
+            pubInfo.pTopicName = CloudAppPubTopicsNames[3u];
+            pubInfo.topicNameLength = strlen(CloudAppPubTopicsNames[3u]);
             /* Populate payload buffer and paayload length according to data format */
             pubInfo.payloadLength = snprintf (CloudAppPayloadBuffer,
                                               sizeof(CloudAppPayloadBuffer),
@@ -684,7 +683,7 @@ static void CloudApp_PublishSensorData(MQTTContext_t *mqttContext, CloudApp_Sens
             break;
     }
 
-    /* Check if MQTT is correctly init, then publish requested sensor data . */
+    /* Check if MQTT context is correctly init, then publish requested sensor data . */
     if(mqttContext->transportInterface.send != NULL)
     {
         /* Toggle CLoudKit lit to indicate MQTT activity */

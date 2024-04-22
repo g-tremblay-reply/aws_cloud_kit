@@ -174,9 +174,6 @@ void sensor_thread_entry(void *pvParameters)
     SensorIaq_Init();
 #endif
 
-    /* Start sensing ZMOD 4410 sensor data */
-    xTaskNotifyFromISR(zmod_thread, 1, 1, NULL);
-
 #if _ZMOD4510_SENSOR_ENABLE_
     /* Open ZMOD4510 */
     SensorOaq_Init();
@@ -191,10 +188,14 @@ void sensor_thread_entry(void *pvParameters)
     /* Open ICM20948 */
     SensorIcm20948_Init ();
 #endif
+
 	xTaskNotifyFromISR(console_thread, 1, 1, NULL);
 
     /* wait for application thread to finish MQTT connection */
     xTaskNotifyWait(pdFALSE, pdFALSE, (uint32_t* )&sensor_thread, portMAX_DELAY);
+
+    /* Start thread for IAQ ZMOD 4410 data acquisition */
+    xTaskNotifyFromISR(zmod_thread, 1, 1, NULL);
 
     while (1)
     {

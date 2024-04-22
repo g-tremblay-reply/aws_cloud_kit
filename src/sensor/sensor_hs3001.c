@@ -37,7 +37,7 @@ typedef enum
 #define WAIT_WHILE_FALSE(e) ({while(!(e)) { vTaskDelay (50); }})
 
 /* Variable declarations*/
-static volatile fsp_err_t g_err; /* FSP Error variable*/
+static volatile fsp_err_t SensorHs3001Error; /* FSP Error variable*/
 volatile bool g_hs300x_completed = false;
 static float SensorHs3001Humidity;
 static float SensorHs3001Temperature;
@@ -80,37 +80,47 @@ void SensorHs3001_MainFunction(void)
     {
         case SENSOR_HS3001_START_MEASUREMENT:
             SensorHs3001State = SENSOR_HS3001_WAIT_END_OF_MEASUREMENT;
-            g_err = g_hs300x_sensor0.p_api->measurementStart (g_hs300x_sensor0.p_ctrl);
+            SensorHs3001Error = g_hs300x_sensor0.p_api->measurementStart (g_hs300x_sensor0.p_ctrl);
             /* Start counting timeout for waiting end of measurement */
             xTickCount = xTaskGetTickCount();
             break;
         case SENSOR_HS3001_READ_RESULT:
             SensorHs3001State = SENSOR_HS3001_WAIT_READ_RESULT_NOTIF;
-            g_err = g_hs300x_sensor0.p_api->read (g_hs300x_sensor0.p_ctrl, &TH_rawdata);
-            assert(FSP_SUCCESS == g_err);
+            SensorHs3001Error = g_hs300x_sensor0.p_api->read (g_hs300x_sensor0.p_ctrl, &TH_rawdata);
+            assert(FSP_SUCCESS == SensorHs3001Error);
             break;
         case SENSOR_HS3001_WAIT_END_OF_MEASUREMENT:
         case SENSOR_HS3001_WAIT_READ_RESULT_NOTIF:
             xTickCount =  xTaskGetTickCount() - xTickCount;
-            if (xTickCount >= pdMS_TO_TICKS(40u))
+            if (xTickCount >= pdMS_TO_TICKS(1000u))
             {
-                /* measurement timed out, restart measurement*/
+                /* Couldn't get notification after 1sec, restart measurement */
                 SensorHs3001State = SENSOR_HS3001_START_MEASUREMENT;
             }
             break;
         case SENSOR_HS3001_CALCULATE_DATA:
             /* Calculate results */
-            g_err = g_hs300x_sensor0.p_api->dataCalculate (g_hs300x_sensor0.p_ctrl, &TH_rawdata, &hs3001Data);
-            assert((FSP_SUCCESS == g_err) || (g_err == FSP_ERR_SENSOR_INVALID_DATA));
-            /* Update sensor data. Disable interrupts in case there is a context switch
-             * with read access to those global variables through the GetData api */
-            portENTER_CRITICAL();
-            SensorHs3001Humidity = (float) hs3001Data.humidity.integer_part
-                                   + (float) hs3001Data.humidity.decimal_part * 0.01F;
-            SensorHs3001Temperature = (float) hs3001Data.temperature.integer_part
-                                      + (float) hs3001Data.temperature.decimal_part * 0.01F;
-            portEXIT_CRITICAL();
-            SensorHs3001State = SENSOR_HS3001_START_MEASUREMENT;
+            SensorHs3001Error = g_hs300x_sensor0.p_api->dataCalculate (g_hs300x_sensor0.p_ctrl, &TH_rawdata, &hs3001Data);
+            assert((FSP_SUCCESS == SensorHs3001Error) || (SensorHs3001Error == FSP_ERR_SENSOR_INVALID_DATA));
+
+            if(SensorHs3001Error == FSP_ERR_SENSOR_INVALID_DATA)
+            {
+                /* Based on state of this code for CloudKit application version 1.0, read() api and dataCalculate()
+                 * api should be called until a valid result is returned. */
+                SensorHs3001State = SENSOR_HS3001_READ_RESULT;
+            }
+            else
+            {
+                /* Update sensor data. Disable interrupts in case there is a context switch
+                 * with read access to those global variables through the GetData api */
+                portENTER_CRITICAL();
+                SensorHs3001Humidity = (float) hs3001Data.humidity.integer_part
+                                       + (float) hs3001Data.humidity.decimal_part * 0.01F;
+                SensorHs3001Temperature = (float) hs3001Data.temperature.integer_part
+                                          + (float) hs3001Data.temperature.decimal_part * 0.01F;
+                portEXIT_CRITICAL();
+                SensorHs3001State = SENSOR_HS3001_START_MEASUREMENT;
+            }
             break;
         default:
             break;
@@ -148,7 +158,6 @@ void SensorHs3001_Callback(rm_hs300x_callback_args_t *p_args)
     else
     {
         SensorHs3001State = SENSOR_HS3001_START_MEASUREMENT;
-        APP_ERR_PRINT("HS3001 Irq Callback had a failed event. Restarting meassurement\r\n");
     }
 }
 

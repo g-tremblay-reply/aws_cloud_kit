@@ -21,7 +21,6 @@
  * Copyright (C) 2023 Renesas Electronics Corporation. All rights reserved.
  ***********************************************************************************************************************/
 #include <console_flash.h>
-#include <cloud_prov.h>
 
 static fsp_err_t Console_WaitBlankCheck(void);
 static fsp_err_t Console_WriteToFlash(ConsoleCredentialMem_t *memMapItem, uint8_t *credentialBuffer);
@@ -259,6 +258,7 @@ void Console_ResetClaimCredentials(void)
 
     memset (ConsoleDataFlashInfo[CONSOLE_CERTIFICATE].stored_in_flash, 0, CONSOLE_FLASH_LENGTH_SAVE);
     memset (ConsoleDataFlashInfo[CONSOLE_RSA_PRIVATE_KEY].stored_in_flash, 0, CONSOLE_FLASH_LENGTH_SAVE);
+    memset (ConsoleDataFlashInfo[CONSOLE_MQTT_ENDPOINT].stored_in_flash, 0, CONSOLE_FLASH_LENGTH_SAVE);
     err = Console_WriteToFlash(&ConsoleDataFlashInfo[CONSOLE_FLASH_DATA_INFO],
                                (uint8_t *)ConsoleDataFlashInfo);
 

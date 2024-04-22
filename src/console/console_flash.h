@@ -22,6 +22,7 @@
  ***********************************************************************************************************************/
 
 #include <console.h>
+#include <cloud_prov.h>
 
 #ifndef CONSOLE_FLASH_H
 #define CONSOLE_FLASH_H

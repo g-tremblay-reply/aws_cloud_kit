@@ -514,9 +514,18 @@ static MQTTStatus_t CloudProv_ConnectMQTT(MQTTContext_t * mqttContext, MQTTEvent
                                   NULL,
                                   CLOUD_PROV_MQTT_CONNACK_RECV_TIMEOUT_MS,
                                   &sessionPresent );
-        if(mqttStatus != MQTTSuccess )
+        if(mqttStatus == MQTTRecvFailed)
+        {
+            APP_ERR_PRINT(("TLS connection was done correctly but closed shortly after by AWS IoT Core. "
+                           "It is very likely the certificate chain is invalid.\r\n"));
+        }
+        else if(mqttStatus != MQTTSuccess )
         {
             APP_ERR_PRINT(( "MQTT_Connect() returns status code %s.\r\n"), MQTT_Status_strerror(mqttStatus ));
+        }
+        else
+        {
+            /* Connection successfull */
         }
     }
 
@@ -975,6 +984,11 @@ uint8_t CloudProv_ImportMqttEndpoint(uint8_t *endpointBuffer, size_t endpointLen
         status = 1u;
     }
     return status;
+}
+
+void CloudProv_ForceProvisioning(void)
+{
+    CLoudProvForceProvisioning = true;
 }
 
 uint8_t CloudProv_ImportClaimCertificate(uint8_t *endpointBuffer, size_t endpointLength, bool forceProvisioning)

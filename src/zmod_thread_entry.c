@@ -46,6 +46,6 @@ void zmod_thread_entry(void *pvParameters)
         /* Read ZMOD4410 sensor data */
         SensorIaq_MainFunction();
 #endif
-        vTaskDelay (1);
+        vTaskDelay (5);
     }
 }

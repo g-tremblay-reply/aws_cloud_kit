@@ -19,10 +19,9 @@ typedef enum
 } Sensor_OaqState_t;
 
 static Sensor_OaqState_t SensorOaqMeasurementState = SENSOR_OAQ_START_MEASUREMENT;
-static rm_zmod4xxx_raw_data_t SensorOaqRawData;
-static rm_zmod4xxx_oaq_1st_data_t SensorOaqData;
+static rm_zmod4xxx_raw_data_t SensorOaqRawData = {0u};
+static rm_zmod4xxx_oaq_1st_data_t SensorOaqData = {0u};
 bool g_irq_callback_status1 = false;
-bool g_i2c_callback_status1 = false;
 
 void SensorOaq_Init(void)
 {
@@ -43,18 +42,17 @@ void SensorOaq_Init(void)
 
 void SensorOaq_CommCallback(rm_zmod4xxx_callback_args_t *p_args)
 {
-    g_i2c_callback_status1 = true;
-    /*switch(SensorOaqMeasurementState)
+    switch(SensorOaqMeasurementState)
     {
         case SENSOR_OAQ_WAIT_START_MEASUREMENT_NOTIF:
             if ((RM_ZMOD4XXX_EVENT_SUCCESS == p_args->event) ||
                 (RM_ZMOD4XXX_EVENT_MEASUREMENT_COMPLETE == p_args->event))
             {
-                SensorOaqMeasurementState = SENSOR_OAQ_WAIT_END_OF_MEASUREMENT;
+                SensorOaqMeasurementState = SENSOR_OAQ_READ_RESULT;
             }
             else
             {
-                *//* Underlying driver error, retry sending frame to start measurement *//*
+                /* Underlying driver error, retry sending frame to start measurement */
                 SensorOaqMeasurementState = SENSOR_OAQ_START_MEASUREMENT;
             }
             break;
@@ -62,19 +60,19 @@ void SensorOaq_CommCallback(rm_zmod4xxx_callback_args_t *p_args)
             if ((RM_ZMOD4XXX_EVENT_SUCCESS == p_args->event) ||
                 (RM_ZMOD4XXX_EVENT_MEASUREMENT_COMPLETE == p_args->event))
             {
-                *//* Use the raw data to calculate IAW sensor data on next MainFunction iteration *//*
+                /* Use the raw data to calculate IAW sensor data on next MainFunction iteration */
                 SensorOaqMeasurementState = SENSOR_OAQ_CALCULATE_DATA;
             }
             else
             {
-                *//* Underlying driver error, retry sending frame to read result *//*
+                /* Underlying driver error, retry reading result */
                 SensorOaqMeasurementState = SENSOR_OAQ_READ_RESULT;
             }
             break;
         default:
             //TODO log dev error
             break;
-    }*/
+    }
 }
 
 void SensorOaq_EndOfMeasurement(rm_zmod4xxx_callback_args_t *p_args)
@@ -99,7 +97,7 @@ void SensorOaq_MainFunction(void)
         case SENSOR_OAQ_START_MEASUREMENT:
         {
             /* Start measurement */
-            SensorOaqMeasurementState = SENSOR_OAQ_READ_RESULT;
+            SensorOaqMeasurementState = SENSOR_OAQ_WAIT_START_MEASUREMENT_NOTIF;
             err = g_zmod4xxx_sensor1.p_api->measurementStart (g_zmod4xxx_sensor1.p_ctrl);
             if (FSP_SUCCESS != err)
             {
@@ -114,11 +112,10 @@ void SensorOaq_MainFunction(void)
         case SENSOR_OAQ_READ_RESULT:
         {
             /* Read data */
-            SensorOaqMeasurementState = SENSOR_OAQ_CALCULATE_DATA;
-            if((g_i2c_callback_status1 == true) && (g_irq_callback_status1 == true))
+            if(g_irq_callback_status1 == true)
             {
-                g_i2c_callback_status1 = false;
                 g_irq_callback_status1 = false;
+                SensorOaqMeasurementState = SENSOR_OAQ_CALCULATE_DATA;
                 err = g_zmod4xxx_sensor1.p_api->read (g_zmod4xxx_sensor1.p_ctrl, &SensorOaqRawData);
                 if (FSP_SUCCESS != err)
                 {
@@ -132,16 +129,12 @@ void SensorOaq_MainFunction(void)
         {
             /* Calculate data. Disable interrupts to update data in case context switch happens and public api
              * GetData is called to access the SensorIaqData */
-            if(g_i2c_callback_status1 == true)
-            {
-                portENTER_CRITICAL();
-                g_zmod4xxx_sensor1.p_api->oaq1stGenDataCalculate (g_zmod4xxx_sensor1.p_ctrl,
-                                                                  &SensorOaqRawData,
-                                                                  &SensorOaqData);
-                portEXIT_CRITICAL();
-                SensorOaqMeasurementState = SENSOR_OAQ_START_MEASUREMENT;
-            }
-
+            portENTER_CRITICAL();
+            g_zmod4xxx_sensor1.p_api->oaq1stGenDataCalculate (g_zmod4xxx_sensor1.p_ctrl,
+                                                              &SensorOaqRawData,
+                                                              &SensorOaqData);
+            portEXIT_CRITICAL();
+            SensorOaqMeasurementState = SENSOR_OAQ_READ_RESULT;
         }
         break;
 
