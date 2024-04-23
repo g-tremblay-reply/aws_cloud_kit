@@ -21,10 +21,9 @@
  * Copyright (C) 2023 Renesas Electronics Corporation. All rights reserved.
  ***********************************************************************************************************************/
 
-#include "zmod_thread.h"
-#include "RA_ZMOD4XXX_Common.h"
-#include "common_utils.h"
-#include "user_choice.h"
+#include <zmod_thread.h>
+#include <sensor_config.h>
+#include <sensor_iaq.h>
 
 extern TaskHandle_t zmod_thread; // @suppress("Global (API or Non-API) variable prefix")
 
@@ -45,8 +44,8 @@ void zmod_thread_entry(void *pvParameters)
 
 #if  _ZMOD4410_SENSOR_ENABLE_
         /* Read ZMOD4410 sensor data */
-        start_iaq_1st_gen ();
+        SensorIaq_MainFunction();
 #endif
-        vTaskDelay (1);
+        vTaskDelay (5);
     }
 }
