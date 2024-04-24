@@ -9,7 +9,6 @@
 #include <console.h>
 
 
-
 /**
  * @brief Sensor data types the cloud app can have requested by AWS server
  */

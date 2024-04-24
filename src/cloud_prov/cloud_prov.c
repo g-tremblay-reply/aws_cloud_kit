@@ -898,7 +898,7 @@ MQTTStatus_t CloudProv_ProvisionDevice(MQTTContext_t *mqttContext, MQTTEventCall
     return mqttStatus;
 }
 
-MQTTStatus_t CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t appMqttCallback)
+void CloudProv_Init(MQTTContext_t * mqttContext, MQTTEventCallback_t appMqttCallback)
 {
     uint8_t lfsStatus = LFS_ERR_CORRUPT;
     MQTTStatus_t mqttStatus = MQTTBadParameter;

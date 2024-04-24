@@ -715,10 +715,15 @@ void CloudApp_PeriodicDataPush(timer_callback_args_t *p_args)
 
 void CloudApp_Init(MQTTContext_t *mqttContext)
 {
-    MQTTStatus_t mqttStatus;
+    MQTTStatus_t mqttStatus = MQTTBadParameter;
 
-    /* Subscribe to topics on which AWS IoT core will publish */
-    mqttStatus = CloudApp_SubscribeTopics(mqttContext);
+    /* Check if provided MQTT context has valid transport interface */
+    if(mqttContext->transportInterface.recv != NULL)
+    {
+        /* Subscribe to topics on which AWS IoT core will publish */
+        mqttStatus = CloudApp_SubscribeTopics(mqttContext);
+    }
+
 
     if(mqttStatus == MQTTSuccess)
     {
@@ -726,8 +731,8 @@ void CloudApp_Init(MQTTContext_t *mqttContext)
     }
     else
     {
-        APP_WARN_PRINT(("Device is not connected to AWS IoT server, but will still print sensor reading" \
-        " on Console. \r\n\r\n"));
+        APP_WARN_PRINT(("Device is not connected to AWS IoT server, but will still print sensor reading " \
+        "on Console. \r\n\r\n"));
     }
 
     /* Enable periodic timer to publish sensor data */

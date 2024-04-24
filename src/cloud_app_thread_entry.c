@@ -52,7 +52,6 @@ extern TaskHandle_t console_thread;
 void cloud_app_thread_entry(void *pvParameters)
 {
     MQTTContext_t CloudAppMqtt = {0u};
-    MQTTStatus_t mqttStatus = MQTTServerRefused;
 
     FSP_PARAMETER_NOT_USED (pvParameters);
 
@@ -61,12 +60,10 @@ void cloud_app_thread_entry(void *pvParameters)
     xTaskNotifyWait(pdFALSE, pdFALSE, NULL, portMAX_DELAY);
 
     /* Try to connect to MQTT and provision device if needed */
-    mqttStatus = CloudProv_Init(&CloudAppMqtt, CloudApp_MqttCallback);
+    CloudProv_Init(&CloudAppMqtt, CloudApp_MqttCallback);
 
-    if(mqttStatus == MQTTSuccess)
-    {
-         CloudApp_Init(&CloudAppMqtt);
-    }
+    /* Init cloud app */
+    CloudApp_Init(&CloudAppMqtt);
 
     xTaskNotifyFromISR(sensor_thread, 1, 1, NULL);
 
